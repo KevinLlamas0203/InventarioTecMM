@@ -4,9 +4,9 @@
 
 :root {
     /* Color Palette */
-    --color-primary: #FF6B6B;
-    --color-primary-dark: #E85555;
-    --color-primary-light: #FF8787;
+    --color-primary: #3c46dd;
+    --color-primary-dark: #000081;
+    --color-primary-light: #87ff8b;
     --color-secondary: #4ECDC4;
     --color-success: #51CF66;
     --color-warning: #FFE66D;
