@@ -4,8 +4,8 @@
 
 :root {
     /* Color Palette */
-    --color-primary: #3c46dd;
-    --color-primary-dark: #000081;
+    --color-primary: #3f4bf5;
+    --color-primary-dark: #0707b1;
     --color-primary-light: #87ff8b;
     --color-secondary: #4ECDC4;
     --color-success: #51CF66;
@@ -1283,6 +1283,11 @@ input, textarea, select {
     gap: 4px;
 }
 
+.blurred-text {
+    filter: blur(4px);
+    user-select: none;
+}
+
 .asset-name {
     font-weight: 500;
 }
@@ -1446,6 +1451,11 @@ input, textarea, select {
     inset: 0;
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(4px);
+}
+
+.blur {
+    filter: drop-shadow(0 0 8px black);
+    height: 10px;
 }
 
 .modal-content {
