@@ -4,7 +4,7 @@ Sistema web moderno para la gestión del inventario de activos y consumibles del
 
 ## 🎨 Características de Diseño
 
-- **Estética Moderna**: Diseño oscuro con acentos en rojo coral (#FF6B6B)
+- **Estética Moderna**: Diseño oscuro con acentos en la paleta de colores del TSJ
 - **Tipografía Distintiva**: Uso de Archivo para títulos y DM Sans para cuerpo
 - **Animaciones Fluidas**: Transiciones suaves y micro-interacciones
 - **Responsive**: Adaptable a dispositivos móviles, tablets y desktop
@@ -91,19 +91,6 @@ El sistema se adapta a diferentes tamaños de pantalla:
 - 968px: Sidebar móvil
 - 640px: Layout de una columna
 
-## 🎨 Paleta de Colores
-
-```css
---color-primary: #FF6B6B      /* Rojo coral */
---color-secondary: #4ECDC4    /* Turquesa */
---color-success: #51CF66      /* Verde */
---color-warning: #FFE66D      /* Amarillo */
---color-info: #339AF0         /* Azul */
-
---color-bg: #0F0F0F          /* Fondo principal */
---color-surface: #1A1A1A     /* Superficies */
---color-text: #FFFFFF        /* Texto principal */
-```
 
 ## 🚦 Páginas Pendientes (Para Implementar)
 
@@ -180,10 +167,6 @@ Las siguientes páginas siguen la misma estructura y pueden crearse fácilmente:
 6. Implementar sistema de notificaciones
 7. Agregar gráficos interactivos (Chart.js)
 
-## 📞 Soporte
-
-Sistema desarrollado para el Tecnológico Superior de Jalisco  
-Área de Ingeniería en Sistemas Computacionales
 
 ---
 
