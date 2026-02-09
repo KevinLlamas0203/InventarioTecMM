@@ -10,6 +10,24 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap" rel="stylesheet">
 </head>
 <body class="login-page">
+    <!-- Botón de tema (arriba a la derecha) -->
+    <button class="theme-toggle-btn" id="themeToggle" aria-label="Cambiar tema">
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="5" stroke-width="2"/>
+            <line x1="12" y1="1" x2="12" y2="3" stroke-width="2" stroke-linecap="round"/>
+            <line x1="12" y1="21" x2="12" y2="23" stroke-width="2" stroke-linecap="round"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke-width="2" stroke-linecap="round"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke-width="2" stroke-linecap="round"/>
+            <line x1="1" y1="12" x2="3" y2="12" stroke-width="2" stroke-linecap="round"/>
+            <line x1="21" y1="12" x2="23" y2="12" stroke-width="2" stroke-linecap="round"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke-width="2" stroke-linecap="round"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
+
     <div class="login-container">
         <div class="login-visual">
             <div class="visual-content">
@@ -35,21 +53,20 @@
                 </div>
                 
                 <form class="login-form" id="loginForm">
-    <div class="form-group">
-        <label for="username">Correo Electrónico</label>
-        <div class="input-wrapper">
-            <svg class="input-icon" viewBox="0 0 26 20" fill="none" stroke="currentColor">
-                <!-- Rectángulo del sobre -->
-                <rect x="1" y="1" width="24" height="18" rx="2" ry="2" 
-                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <!-- Solapa del sobre -->
-                <polyline points="1,1 13,11 25,1" 
-                          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <input type="text" id="username" name="username" required placeholder="Ingresa tu Correo Electrónico">
-        </div>
-    </div>
-</form>
+                    <div class="form-group">
+                        <label for="username">Correo Electrónico</label>
+                        <div class="input-wrapper">
+                            <svg class="input-icon" viewBox="0 0 26 20" fill="none" stroke="currentColor">
+                                <!-- Rectángulo del sobre -->
+                                <rect x="1" y="1" width="24" height="18" rx="2" ry="2" 
+                                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <!-- Solapa del sobre -->
+                                <polyline points="1,1 13,11 25,1" 
+                                          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <input type="text" id="username" name="username" required placeholder="Ingresa tu Correo Electrónico">
+                        </div>
+                    </div>
                     
                     <div class="form-group">
                         <label for="password">Contraseña</label>
@@ -92,6 +109,40 @@
     </div>
 
     <script>
+        // ============================================
+        // THEME TOGGLE FUNCTIONALITY
+        // ============================================
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+
+        // Cargar tema guardado o usar preferencia del sistema
+        const savedTheme = localStorage.getItem('theme');
+        const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        const currentTheme = savedTheme || systemPreference;
+
+        // Aplicar tema al cargar
+        html.setAttribute('data-theme', currentTheme);
+
+        // Toggle del tema
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Escuchar cambios en preferencia del sistema
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) {
+                html.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+            }
+        });
+
+        // ============================================
+        // EXISTING FUNCTIONALITY
+        // ============================================
+        
         // Toggle password visibility
         document.querySelector('.toggle-password').addEventListener('click', function() {
             const passwordInput = document.getElementById('password');
