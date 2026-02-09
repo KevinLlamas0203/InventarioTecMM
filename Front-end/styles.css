@@ -2,8 +2,12 @@
    ISC Inventory System - Main Styles
    ======================================== */
 
+/* ========================================
+   VARIABLES DE TEMA
+   ======================================== */
+
 :root {
-    /* Color Palette */
+    /* Color Palette - MODO OSCURO (default) */
     --color-primary: #3f4bf5;
     --color-primary-dark: #0707b1;
     --color-primary-light: #87ff8b;
@@ -13,7 +17,7 @@
     --color-info: #339AF0;
     --color-danger: #FF6B6B;
     
-    /* Neutrals */
+    /* Neutrals - OSCURO */
     --color-bg: #0F0F0F;
     --color-surface: #1A1A1A;
     --color-surface-raised: #242424;
@@ -52,6 +56,87 @@
     --transition-slow: 400ms ease;
 }
 
+/* MODO CLARO */
+[data-theme="light"] {
+    /* Neutrals - CLARO */
+    --color-bg: #F5F7FA;
+    --color-surface: #FFFFFF;
+    --color-surface-raised: #F8F9FB;
+    --color-border: #E1E8ED;
+    --color-text: #0F1419;
+    --color-text-secondary: #536471;
+    --color-text-muted: #8899A6;
+    
+    /* Shadows ajustadas para modo claro */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+    --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================================
+   BOTÓN DE TOGGLE DE TEMA
+   ======================================== */
+
+.theme-toggle-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-md);
+}
+
+.theme-toggle-btn:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-primary);
+}
+
+.theme-toggle-btn:active {
+    transform: scale(0.95);
+}
+
+/* Iconos del sol y luna */
+.theme-toggle-btn svg {
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    transition: all var(--transition-base);
+    stroke: var(--color-text);
+}
+
+/* Por defecto (modo oscuro) - mostrar luna */
+.sun-icon {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.5);
+}
+
+.moon-icon {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+}
+
+/* Modo claro - mostrar sol */
+[data-theme="light"] .sun-icon {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+}
+
+[data-theme="light"] .moon-icon {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.5);
+}
+
 /* ========================================
    Global Reset & Base Styles
    ======================================== */
@@ -70,6 +155,7 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+    transition: background-color var(--transition-base), color var(--transition-base);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -104,7 +190,7 @@ input, textarea, select {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #0F0F0F 0%, #1A1A1A 100%);
+    background: var(--color-bg);
     position: relative;
     overflow: hidden;
 }
@@ -116,8 +202,13 @@ input, textarea, select {
     right: -50%;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle, rgba(255, 107, 107, 0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(63, 75, 245, 0.1) 0%, transparent 70%);
     animation: pulse 8s ease-in-out infinite;
+}
+
+/* Ajuste para modo claro */
+[data-theme="light"] .login-page::before {
+    background: radial-gradient(circle, rgba(63, 75, 245, 0.05) 0%, transparent 70%);
 }
 
 @keyframes pulse {
@@ -387,13 +478,13 @@ input, textarea, select {
     justify-content: center;
     gap: var(--spacing-sm);
     transition: all var(--transition-base);
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    box-shadow: 0 4px 12px rgba(63, 75, 245, 0.3);
 }
 
 .btn-primary:hover {
     background: var(--color-primary-dark);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+    box-shadow: 0 6px 20px rgba(63, 75, 245, 0.4);
 }
 
 .btn-primary:active {
@@ -872,7 +963,7 @@ input, textarea, select {
 }
 
 .activity-icon.update {
-    background: rgba(255, 107, 107, 0.15);
+    background: rgba(63, 75, 245, 0.15);
     color: var(--color-primary);
 }
 
@@ -1106,6 +1197,18 @@ input, textarea, select {
     .btn-secondary {
         flex: 1;
     }
+    
+    .theme-toggle-btn {
+        width: 45px;
+        height: 45px;
+        top: 15px;
+        right: 15px;
+    }
+    
+    .theme-toggle-btn svg {
+        width: 20px;
+        height: 20px;
+    }
 }
 
 /* ========================================
@@ -1306,7 +1409,7 @@ input, textarea, select {
 }
 
 .badge-hardware {
-    background: rgba(255, 107, 107, 0.15);
+    background: rgba(63, 75, 245, 0.15);
     color: var(--color-primary);
 }
 
