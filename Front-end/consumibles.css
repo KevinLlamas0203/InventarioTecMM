@@ -1,0 +1,276 @@
+/* ========================================
+   Consumibles Page Specific Styles
+   ======================================== */
+
+/* Alert Banner */
+.alert-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid currentColor;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.alert-banner.warning {
+    color: var(--color-warning);
+    background: rgba(255, 230, 109, 0.1);
+    border-left-color: var(--color-warning);
+}
+
+.alert-banner.info {
+    color: var(--color-info);
+    background: rgba(51, 154, 240, 0.1);
+    border-left-color: var(--color-info);
+}
+
+.alert-banner.success {
+    color: var(--color-success);
+    background: rgba(81, 207, 102, 0.1);
+    border-left-color: var(--color-success);
+}
+
+.alert-banner > svg {
+    min-width: 20px;
+    width: 20px;
+    height: 20px;
+    stroke-width: 2;
+    flex-shrink: 0;
+}
+
+.alert-content {
+    flex: 1;
+    color: var(--color-text);
+}
+
+.alert-content strong {
+    font-weight: 600;
+}
+
+.alert-close {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    transition: all var(--transition-fast);
+}
+
+.alert-close:hover {
+    background: var(--color-surface-raised);
+    color: var(--color-text);
+}
+
+.alert-close svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+}
+
+/* Consumibles Stats */
+.consumibles-stats {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+/* Stock Info */
+.stock-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.stock-number {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.stock-bar {
+    width: 100px;
+    height: 6px;
+    background: var(--color-surface-raised);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.stock-fill {
+    height: 100%;
+    background: var(--color-success);
+    transition: width var(--transition-base);
+}
+
+.stock-info.critical .stock-fill {
+    background: var(--color-danger);
+}
+
+.stock-info.low .stock-fill {
+    background: var(--color-warning);
+}
+
+.stock-info.medium .stock-fill {
+    background: var(--color-info);
+}
+
+.stock-info.high .stock-fill {
+    background: var(--color-success);
+}
+
+/* Stock Status */
+.stock-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.stock-status.critical {
+    background: rgba(255, 107, 107, 0.15);
+    color: var(--color-danger);
+}
+
+.stock-status.low {
+    background: rgba(255, 230, 109, 0.15);
+    color: var(--color-warning);
+}
+
+.stock-status.medium {
+    background: rgba(51, 154, 240, 0.15);
+    color: var(--color-info);
+}
+
+.stock-status.high {
+    background: rgba(81, 207, 102, 0.15);
+    color: var(--color-success);
+}
+
+/* Consumible Code */
+.consumible-code {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--color-secondary);
+}
+
+.consumible-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.consumible-name {
+    font-weight: 500;
+}
+
+.consumible-specs {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+}
+
+/* Badge Variants */
+.badge-cables {
+    background: rgba(63, 75, 245, 0.15);
+    color: var(--color-primary);
+}
+
+.badge-perifericos {
+    background: rgba(78, 205, 196, 0.15);
+    color: var(--color-secondary);
+}
+
+.badge-papeleria {
+    background: rgba(255, 230, 109, 0.15);
+    color: var(--color-warning);
+}
+
+.badge-limpieza {
+    background: rgba(81, 207, 102, 0.15);
+    color: var(--color-success);
+}
+
+.badge-componentes {
+    background: rgba(51, 154, 240, 0.15);
+    color: var(--color-info);
+}
+
+/* Modal Small Variant */
+.modal-small {
+    max-width: 500px;
+}
+
+/* Form Enhancements */
+.consumible-form .form-row,
+.stock-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+}
+
+/* Responsive Adjustments for Consumibles */
+@media (max-width: 768px) {
+    .consumibles-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .alert-banner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .stock-bar {
+        width: 100%;
+    }
+
+    .toolbar {
+        flex-direction: column;
+    }
+
+    .search-box {
+        width: 100%;
+        min-width: auto;
+    }
+
+    .filters {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .filter-select,
+    .btn-filter {
+        flex: 1;
+        min-width: 140px;
+    }
+}
+
+/* Print Styles for Consumibles */
+@media print {
+    .sidebar,
+    .header-right,
+    .toolbar,
+    .alert-banner,
+    .action-buttons,
+    .pagination {
+        display: none !important;
+    }
+
+    .main-content {
+        padding: 0;
+    }
+
+    .table-card {
+        border: none;
+        box-shadow: none;
+    }
+
+    .data-table {
+        font-size: 10pt;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 4px 8px;
+    }
+}
