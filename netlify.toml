@@ -1,0 +1,4 @@
+[[redirects]]
+  from = "/*"
+  to = "/Front-End/pagesAdmin/login.html"
+  status = 200
