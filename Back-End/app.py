@@ -1,119 +1,70 @@
-from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import psycopg2
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
+# ✅ Permite peticiones desde CUALQUIER origen:
+#    - HTML en carpeta /front abierto directamente (file://)
+#    - HTML servido desde otro puerto o carpeta distinta
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# MODELO - refleja tu tabla credenciales
-class Credencial(db.Model):
-    __tablename__ = 'credenciales'
-    
-    id_credenciales = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(100), nullable=False)
-    pasword = db.Column(db.String(255), nullable=False)  # Nota: mantuve "pasword" como en tu tabla
-    id_user = db.Column(db.Integer, nullable=False)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# ENDPOINTS para trabajar con credenciales
 
-# 1. OBTENER TODAS LAS CREDENCIALES (GET)
-@app.route('/credenciales', methods=['GET'])
-def get_credenciales():
-    credenciales = Credencial.query.all()
-    return jsonify([{
-        'id_credenciales': c.id_credenciales,
-        'email': c.email,
-        'pasword': c.pasword,
-        'id_user': c.id_user
-    } for c in credenciales])
+def get_db_connection():
+    """Establece y retorna una conexión a PostgreSQL."""
+    conn = psycopg2.connect(DATABASE_URL)
+    return conn
 
-# 2. OBTENER UNA CREDENCIAL POR ID (GET)
-@app.route('/credenciales/<int:id>', methods=['GET'])
-def get_credencial(id):
-    credencial = Credencial.query.get_or_404(id)
-    return jsonify({
-        'id_credenciales': credencial.id_credenciales,
-        'email': credencial.email,
-        'pasword': credencial.pasword,
-        'id_user': credencial.id_user
-    })
 
-# 3. OBTENER CREDENCIAL POR EMAIL (GET) - Útil para login
-@app.route('/credenciales/email/<string:email>', methods=['GET'])
-def get_credencial_by_email(email):
-    credencial = Credencial.query.filter_by(email=email).first()
-    if credencial:
-        return jsonify({
-            'id_credenciales': credencial.id_credenciales,
-            'email': credencial.email,
-            'pasword': credencial.pasword,
-            'id_user': credencial.id_user
-        })
-    return jsonify({'error': 'Credencial no encontrada'}), 404
-
-# 4. CREAR NUEVA CREDENCIAL (POST)
-@app.route('/credenciales', methods=['POST'])
-def create_credencial():
+@app.route('/api/login', methods=['POST'])
+def login():
+    """
+    Recibe JSON con { email, password },
+    compara contra la tabla 'credenciales':
+        email    → columna email
+        password → columna pasword
+    Retorna JSON con { success, message }
+    """
     data = request.get_json()
-    
-    # Validar que el email no exista
-    existe = Credencial.query.filter_by(email=data['email']).first()
-    if existe:
-        return jsonify({'error': 'El email ya existe'}), 400
-    
-    nueva_credencial = Credencial(
-        email=data['email'],
-        pasword=data['pasword'],
-        id_user=data['id_user']
-    )
-    
-    db.session.add(nueva_credencial)
-    db.session.commit()
-    
-    return jsonify({'mensaje': 'Credencial creada exitosamente'}), 201
 
-# 5. ACTUALIZAR CREDENCIAL (PUT)
-@app.route('/credenciales/<int:id>', methods=['PUT'])
-def update_credencial(id):
-    credencial = Credencial.query.get_or_404(id)
-    data = request.get_json()
-    
-    credencial.email = data.get('email', credencial.email)
-    credencial.pasword = data.get('pasword', credencial.pasword)
-    credencial.id_user = data.get('id_user', credencial.id_user)
-    
-    db.session.commit()
-    
-    return jsonify({'mensaje': 'Credencial actualizada exitosamente'})
+    if not data:
+        return jsonify({'success': False, 'message': 'No se recibieron datos.'}), 400
 
-# 6. ELIMINAR CREDENCIAL (DELETE)
-@app.route('/credenciales/<int:id>', methods=['DELETE'])
-def delete_credencial(id):
-    credencial = Credencial.query.get_or_404(id)
-    
-    db.session.delete(credencial)
-    db.session.commit()
-    
-    return jsonify({'mensaje': 'Credencial eliminada exitosamente'})
+    email    = data.get('email', '').strip()
+    password = data.get('password', '').strip()
 
-# Rutas de prueba
-@app.route('/')
-def home():
-    return {'mensaje': 'API funcionando correctamente'}
+    # Validación de campos vacíos
+    if not email or not password:
+        return jsonify({'success': False, 'message': 'Por favor completa todos los campos.'}), 400
 
-@app.route('/test-db')
-def test_db():
     try:
-        db.engine.connect()
-        return {'mensaje': 'Conexión a la base de datos exitosa'}
+        conn = get_db_connection()
+        cur  = conn.cursor()
+
+        # Consulta segura con parámetros (evita SQL Injection)
+        cur.execute(
+            "SELECT email FROM credenciales WHERE email = %s AND pasword = %s",
+            (email, password)
+        )
+        user = cur.fetchone()
+
+        cur.close()
+        conn.close()
+
+        if user:
+            return jsonify({'success': True, 'message': 'Acceso correcto.'})
+        else:
+            return jsonify({'success': False, 'message': 'Correo electrónico o contraseña incorrectos.'}), 401
+
     except Exception as e:
-        return {'error': str(e)}, 500
+        return jsonify({'success': False, 'message': f'Error de conexión: {str(e)}'}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

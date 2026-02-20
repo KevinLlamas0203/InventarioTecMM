@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISC Inventory System - Login</title>    <link rel="stylesheet" href="css/styles.css">
+    <title>ISC Inventory System - Login</title>
+    <link rel="stylesheet" href="css/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap" rel="stylesheet">
@@ -12,9 +13,33 @@
     <link rel="icon" type="image/png" sizes="16x16" href="../images/favicon_io/favicon-16x16.png">
     <link rel="manifest" href="../images/favicon_io/site.webmanifest">
     <link rel="shortcut icon" href="../images/favicon_io/favicon.ico">
+
+    <style>
+        /* Mensaje de error */
+        .error-message {
+            background-color: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #dc2626;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            display: none;          /* oculto por defecto */
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .error-message.visible {
+            display: flex;          /* se muestra cuando Flask responde error */
+        }
+        .error-message svg {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+        }
+    </style>
 </head>
 <body class="login-page">
-    <!-- Botón de tema (arriba a la derecha) -->
+
     <button class="theme-toggle-btn" id="themeToggle" aria-label="Cambiar tema">
         <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <circle cx="12" cy="12" r="5" stroke-width="2"/>
@@ -41,8 +66,7 @@
                     <div class="shape shape-3"></div>
                 </div>
                 <div class="brand-section">
-                    <img src="../images/tsjColor-BD6-EaCK.png" alt="TSJ logo" class="brand-logo" width="450" height="200" class="blur">
-                    
+                    <img src="../images/tsjColor-BD6-EaCK.png" alt="TSJ logo" class="brand-logo" width="450" height="200">
                     <h1 class="brand-title">Sistema de<br>Gestión ISC</h1>
                     <p class="brand-subtitle">Control integral de activos y consumibles del área de Ingeniería en Sistemas Computacionales</p>
                 </div>
@@ -57,14 +81,23 @@
                 </div>
                 
                 <form class="login-form" id="loginForm">
+
+                    <!-- Mensaje de error (se activa desde JS según respuesta de Flask) -->
+                    <div class="error-message" id="errorMsg">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                            <line x1="12" y1="8" x2="12" y2="12" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span id="errorText"></span>
+                    </div>
+
                     <div class="form-group">
                         <label for="username">Correo Electrónico</label>
                         <div class="input-wrapper">
                             <svg class="input-icon" viewBox="0 0 26 20" fill="none" stroke="currentColor">
-                                <!-- Rectángulo del sobre -->
                                 <rect x="1" y="1" width="24" height="18" rx="2" ry="2" 
                                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <!-- Solapa del sobre -->
                                 <polyline points="1,1 13,11 25,1" 
                                           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
@@ -112,12 +145,11 @@
         </div>
     </div>
 
-    <script src="js/theme-toggle.js"></script>    <script>
+    <script src="js/theme-toggle.js"></script>
+    <script>
         // ============================================
-        // EXISTING FUNCTIONALITY
-        // ============================================
-        
         // Toggle password visibility
+        // ============================================
         document.querySelector('.toggle-password').addEventListener('click', function() {
             const passwordInput = document.getElementById('password');
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
@@ -125,20 +157,53 @@
             this.classList.toggle('active');
         });
 
-        // Form submission (redirect to dashboard)
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // ============================================
+        // VALIDACIÓN CON FLASK API
+        // ============================================
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            // Add loading state
-            const submitBtn = this.querySelector('.btn-primary');
+
+            const submitBtn  = this.querySelector('.btn-primary');
+            const errorMsg   = document.getElementById('errorMsg');
+            const errorText  = document.getElementById('errorText');
+            const email      = document.getElementById('username').value.trim();
+            const password   = document.getElementById('password').value.trim();
+
+            // Ocultar error previo y mostrar loading
+            errorMsg.classList.remove('visible');
             submitBtn.classList.add('loading');
-            
-            // Simulate authentication
-            setTimeout(() => {
-                window.location.href = 'pagesAdmin/dashboard_admin.html';
-            }, 1000);
+
+            try {
+                // 👇 Llamada a la API de Flask
+                const response = await fetch('http://localhost:5000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, password: password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // ✅ Credenciales correctas → redirigir al dashboard
+                    window.location.href = 'pagesAdmin/dashboard_admin.html';
+                } else {
+                    // ❌ Credenciales incorrectas → mostrar mensaje de error
+                    errorText.textContent = data.message;
+                    errorMsg.classList.add('visible');
+                    submitBtn.classList.remove('loading');
+                }
+
+            } catch (error) {
+                // Error de red (Flask no está corriendo)
+                errorText.textContent = 'No se pudo conectar con el servidor. Asegúrate de que Flask esté corriendo.';
+                errorMsg.classList.add('visible');
+                submitBtn.classList.remove('loading');
+            }
         });
 
+        // ============================================
         // Floating shapes animation
+        // ============================================
         const shapes = document.querySelectorAll('.shape');
         shapes.forEach((shape, index) => {
             shape.style.animationDelay = `${index * 0.7}s`;
