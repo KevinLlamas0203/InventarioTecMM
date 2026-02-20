@@ -151,31 +151,616 @@
                 </div>
             </header>
             
-            <div class="content-grid">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Contenido en construcción</h3>
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <div class="stat-card primary">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke-width="2"/>
+                            <circle cx="9" cy="7" r="4" stroke-width="2"/>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/>
+                        </svg>
                     </div>
-                    <div style="padding: 2rem;">
-                        <p>Esta página está actualmente en desarrollo. ¡Vuelve pronto!</p>
+                    <div class="stat-content">
+                        <span class="stat-label">Total Asignaciones</span>
+                        <span class="stat-value">187</span>
+                        <span class="stat-change positive">+12 este mes</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card success">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="20 6 9 17 4 12" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Activas</span>
+                        <span class="stat-value">165</span>
+                        <span class="stat-change">En uso actualmente</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card warning">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                            <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Por Vencer</span>
+                        <span class="stat-value">8</span>
+                        <span class="stat-change negative">Próximos 7 días</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card info">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M9 11l3 3L22 4" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Finalizadas</span>
+                        <span class="stat-value">22</span>
+                        <span class="stat-change">Este mes</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filters and Search -->
+            <div class="toolbar">
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                        <path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <input type="text" placeholder="Buscar por usuario, activo o ID..." class="search-input" id="searchInput">
+                </div>
+                
+                <div class="filters">
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">Todos los estados</option>
+                        <option value="activa">Activa</option>
+                        <option value="vencida">Vencida</option>
+                        <option value="finalizada">Finalizada</option>
+                    </select>
+                    
+                    <select class="filter-select" id="typeFilter">
+                        <option value="">Todos los tipos</option>
+                        <option value="temporal">Temporal</option>
+                        <option value="permanente">Permanente</option>
+                    </select>
+                    
+                    <button class="btn-filter">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" stroke-width="2"/>
+                        </svg>
+                        <span>Más filtros</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Assignments Table -->
+            <div class="card table-card">
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox" id="selectAll"></th>
+                                <th>ID Asignación</th>
+                                <th>Usuario</th>
+                                <th>Activo</th>
+                                <th>Tipo</th>
+                                <th>Fecha Inicio</th>
+                                <th>Fecha Fin</th>
+                                <th>Estado</th>
+                                <th>Ubicación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assignmentsTable">
+                            <tr data-status="activa" data-type="temporal">
+                                <td><input type="checkbox" class="table-checkbox"></td>
+                                <td><span class="assignment-id">ASG-2026-089</span></td>
+                                <td>
+                                    <div class="user-info-cell">
+                                        <div class="user-avatar-small">JP</div>
+                                        <div>
+                                            <span class="user-name-cell">Juan Pérez García</span>
+                                            <span class="user-email-cell">juan.perez@tsj.edu.mx</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="asset-info">
+                                        <span class="asset-name">MacBook Pro 16"</span>
+                                        <span class="asset-specs">LAP-2024-045</span>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-temporal">Temporal</span></td>
+                                <td>01/02/2026</td>
+                                <td>01/08/2026</td>
+                                <td><span class="status status-active">Activa</span></td>
+                                <td>Lab 301</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Ver detalles" onclick="viewAssignment('ASG-2026-089')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
+                                                <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Extender plazo" onclick="extendAssignment('ASG-2026-089')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                                                <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Finalizar" onclick="finishAssignment('ASG-2026-089')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <polyline points="20 6 9 17 4 12" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <tr data-status="activa" data-type="permanente">
+                                <td><input type="checkbox" class="table-checkbox"></td>
+                                <td><span class="assignment-id">ASG-2026-072</span></td>
+                                <td>
+                                    <div class="user-info-cell">
+                                        <div class="user-avatar-small">ML</div>
+                                        <div>
+                                            <span class="user-name-cell">María López Sánchez</span>
+                                            <span class="user-email-cell">maria.lopez@tsj.edu.mx</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="asset-info">
+                                        <span class="asset-name">Monitor Dell 27"</span>
+                                        <span class="asset-specs">MON-2024-082</span>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-permanente">Permanente</span></td>
+                                <td>15/01/2026</td>
+                                <td>—</td>
+                                <td><span class="status status-active">Activa</span></td>
+                                <td>Lab 305</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Ver detalles" onclick="viewAssignment('ASG-2026-072')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
+                                                <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Editar">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Finalizar" onclick="finishAssignment('ASG-2026-072')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <polyline points="20 6 9 17 4 12" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <tr data-status="activa" data-type="temporal">
+                                <td><input type="checkbox" class="table-checkbox"></td>
+                                <td><span class="assignment-id">ASG-2026-105</span></td>
+                                <td>
+                                    <div class="user-info-cell">
+                                        <div class="user-avatar-small">CR</div>
+                                        <div>
+                                            <span class="user-name-cell">Carlos Ramírez Torres</span>
+                                            <span class="user-email-cell">carlos.ramirez@tsj.edu.mx</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="asset-info">
+                                        <span class="asset-name">Proyector Epson</span>
+                                        <span class="asset-specs">PRO-2024-018</span>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-temporal">Temporal</span></td>
+                                <td>10/02/2026</td>
+                                <td>17/02/2026</td>
+                                <td><span class="status status-active">Activa</span></td>
+                                <td>Aula 204</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Ver detalles" onclick="viewAssignment('ASG-2026-105')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
+                                                <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Extender plazo" onclick="extendAssignment('ASG-2026-105')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                                                <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Finalizar" onclick="finishAssignment('ASG-2026-105')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <polyline points="20 6 9 17 4 12" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <tr data-status="vencida" data-type="temporal">
+                                <td><input type="checkbox" class="table-checkbox"></td>
+                                <td><span class="assignment-id">ASG-2026-058</span></td>
+                                <td>
+                                    <div class="user-info-cell">
+                                        <div class="user-avatar-small">AG</div>
+                                        <div>
+                                            <span class="user-name-cell">Ana Gutiérrez Morales</span>
+                                            <span class="user-email-cell">ana.gutierrez@tsj.edu.mx</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="asset-info">
+                                        <span class="asset-name">Tablet Samsung</span>
+                                        <span class="asset-specs">TAB-2024-033</span>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-temporal">Temporal</span></td>
+                                <td>20/01/2026</td>
+                                <td>15/02/2026</td>
+                                <td><span class="status status-expired">Vencida</span></td>
+                                <td>Lab 302</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Ver detalles" onclick="viewAssignment('ASG-2026-058')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
+                                                <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Extender plazo" onclick="extendAssignment('ASG-2026-058')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                                                <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Finalizar" onclick="finishAssignment('ASG-2026-058')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <polyline points="20 6 9 17 4 12" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <tr data-status="finalizada" data-type="temporal">
+                                <td><input type="checkbox" class="table-checkbox"></td>
+                                <td><span class="assignment-id">ASG-2026-041</span></td>
+                                <td>
+                                    <div class="user-info-cell">
+                                        <div class="user-avatar-small">LM</div>
+                                        <div>
+                                            <span class="user-name-cell">Luis Martínez Flores</span>
+                                            <span class="user-email-cell">luis.martinez@tsj.edu.mx</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="asset-info">
+                                        <span class="asset-name">Cámara Web Logitech</span>
+                                        <span class="asset-specs">CAM-2024-067</span>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-temporal">Temporal</span></td>
+                                <td>05/01/2026</td>
+                                <td>12/02/2026</td>
+                                <td><span class="status status-finished">Finalizada</span></td>
+                                <td>Lab 301</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Ver detalles" onclick="viewAssignment('ASG-2026-041')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
+                                                <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Generar reporte">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/>
+                                                <polyline points="14 2 14 8 20 8" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Archivar">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <polyline points="21 8 21 21 3 21 3 8" stroke-width="2"/>
+                                                <rect x="1" y="3" width="22" height="5" stroke-width="2"/>
+                                                <line x1="10" y1="12" x2="14" y2="12" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="table-footer">
+                    <div class="table-info">
+                        Mostrando <strong>1-5</strong> de <strong>187</strong> asignaciones
+                    </div>
+                    <div class="pagination">
+                        <button class="pagination-btn" disabled>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="15 18 9 12 15 6" stroke-width="2"/>
+                            </svg>
+                        </button>
+                        <button class="pagination-btn active">1</button>
+                        <button class="pagination-btn">2</button>
+                        <button class="pagination-btn">3</button>
+                        <span class="pagination-dots">...</span>
+                        <button class="pagination-btn">38</button>
+                        <button class="pagination-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="9 18 15 12 9 6" stroke-width="2"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <script>
-        // Sidebar toggle for mobile
-        document.querySelector('.sidebar-toggle').addEventListener('click', function() {
-            document.querySelector('.sidebar').classList.toggle('collapsed');
-        });
+    <!-- Modal for New Assignment -->
+    <div class="modal" id="assignmentModal">
+        <div class="modal-overlay" onclick="closeAssignmentModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nueva Asignación</h2>
+                <button class="modal-close" onclick="closeAssignmentModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="assignment-form" id="assignmentForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Usuario *</label>
+                            <select required id="assignUser">
+                                <option value="">Seleccionar usuario</option>
+                                <option value="1">Juan Pérez García</option>
+                                <option value="2">María López Sánchez</option>
+                                <option value="3">Carlos Ramírez Torres</option>
+                                <option value="4">Ana Gutiérrez Morales</option>
+                                <option value="5">Luis Martínez Flores</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Activo *</label>
+                            <select required id="assignAsset">
+                                <option value="">Seleccionar activo</option>
+                                <option value="LAP-2024-045">MacBook Pro 16" (LAP-2024-045)</option>
+                                <option value="MON-2024-082">Monitor Dell 27" (MON-2024-082)</option>
+                                <option value="PRO-2024-018">Proyector Epson (PRO-2024-018)</option>
+                                <option value="TAB-2024-033">Tablet Samsung (TAB-2024-033)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tipo de asignación *</label>
+                            <select required id="assignType" onchange="toggleEndDate()">
+                                <option value="">Seleccionar tipo</option>
+                                <option value="temporal">Temporal</option>
+                                <option value="permanente">Permanente</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Ubicación *</label>
+                            <input type="text" placeholder="Ej: Lab 301" required id="assignLocation">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Fecha de inicio *</label>
+                            <input type="date" required id="assignStartDate">
+                        </div>
+                        <div class="form-group" id="endDateGroup">
+                            <label>Fecha de fin</label>
+                            <input type="date" id="assignEndDate">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Notas / Observaciones</label>
+                        <textarea rows="3" placeholder="Información adicional sobre la asignación..." id="assignNotes"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="notifyUser">
+                            <span class="checkbox-label">Notificar al usuario por correo electrónico</span>
+                        </label>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="closeAssignmentModal()">Cancelar</button>
+                        <button type="submit" class="btn-primary">Crear Asignación</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-        // Logout functionality
-        document.querySelector('.logout-btn').addEventListener('click', function() {
-            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                window.location.href = 'login.html';
-            }
-        });
-    </script>
+    <!-- Modal for View Assignment Details -->
+    <div class="modal" id="viewModal">
+        <div class="modal-overlay" onclick="closeViewModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Detalles de Asignación</h2>
+                <button class="modal-close" onclick="closeViewModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="assignment-details">
+                    <div class="detail-section">
+                        <h3>Información General</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">ID Asignación:</span>
+                                <span class="detail-value" id="detailId">ASG-2026-089</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Estado:</span>
+                                <span class="status status-active" id="detailStatus">Activa</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Tipo:</span>
+                                <span class="badge badge-temporal" id="detailType">Temporal</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3>Usuario Asignado</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Nombre:</span>
+                                <span class="detail-value" id="detailUserName">Juan Pérez García</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Email:</span>
+                                <span class="detail-value" id="detailUserEmail">juan.perez@tsj.edu.mx</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3>Activo</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Nombre:</span>
+                                <span class="detail-value" id="detailAssetName">MacBook Pro 16"</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">ID Activo:</span>
+                                <span class="detail-value" id="detailAssetId">LAP-2024-045</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3>Fechas y Ubicación</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Fecha Inicio:</span>
+                                <span class="detail-value" id="detailStartDate">01/02/2026</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Fecha Fin:</span>
+                                <span class="detail-value" id="detailEndDate">01/08/2026</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Ubicación:</span>
+                                <span class="detail-value" id="detailLocation">Lab 301</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3>Notas</h3>
+                        <p class="detail-notes" id="detailNotes">Sin observaciones adicionales.</p>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeViewModal()">Cerrar</button>
+                    <button type="button" class="btn-primary" onclick="printAssignment()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="6 9 6 2 18 2 18 9" stroke-width="2"/>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke-width="2"/>
+                            <rect x="6" y="14" width="12" height="8" stroke-width="2"/>
+                        </svg>
+                        Imprimir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Extend Assignment -->
+    <div class="modal" id="extendModal">
+        <div class="modal-overlay" onclick="closeExtendModal()"></div>
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>Extender Plazo</h2>
+                <button class="modal-close" onclick="closeExtendModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="extend-form" id="extendForm">
+                    <div class="form-group">
+                        <label>ID Asignación</label>
+                        <input type="text" id="extendAssignmentId" disabled>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Fecha fin actual</label>
+                        <input type="date" id="extendCurrentDate" disabled>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Nueva fecha fin *</label>
+                        <input type="date" required id="extendNewDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Motivo de extensión *</label>
+                        <textarea rows="3" placeholder="Explica el motivo de la extensión..." required id="extendReason"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="extendNotify">
+                            <span class="checkbox-label">Notificar al usuario</span>
+                        </label>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="closeExtendModal()">Cancelar</button>
+                        <button type="submit" class="btn-primary">Extender Plazo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/app.js"></script>
+    <script src="../js/theme-toggle.js"></script>
+    <script src="../js/asignaciones.js"></script>
 </body>
 </html>
