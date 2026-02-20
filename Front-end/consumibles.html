@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Consumibles - ISC Inventory System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="consumibles-styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap" rel="stylesheet">
+</head>
+<body class="dashboard-page">
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-brand">
+                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="5" y="5" width="30" height="30" rx="6" fill="currentColor" opacity="0.2"/>
+                        <path d="M13 16h14M13 20h14M13 24h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="28" cy="24" r="2" fill="currentColor"/>
+                    </svg>
+                    <span class="brand-name">ISC System</span>
+                </div>
+                <button class="sidebar-toggle" aria-label="Toggle sidebar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M3 12h18M3 6h18M3 18h18" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-section-title">Principal</span>
+                    <a href="dashboard.html" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="3" y="3" width="7" height="7" stroke-width="2" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" stroke-width="2" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" stroke-width="2" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" stroke-width="2" rx="1"/>
+                        </svg>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <span class="nav-section-title">Gestión</span>
+                    <a href="activos.html" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
+                            <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span>Activos</span>
+                        <span class="nav-badge">245</span>
+                    </a>
+                    <a href="consumibles.html" class="nav-item active">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2"/>
+                            <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/>
+                        </svg>
+                        <span>Consumibles</span>
+                        <span class="nav-badge warning">12</span>
+                    </a>
+                    <a href="asignaciones.html" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke-width="2"/>
+                            <circle cx="9" cy="7" r="4" stroke-width="2"/>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/>
+                        </svg>
+                        <span>Asignaciones</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <span class="nav-section-title">Reportes</span>
+                    <a href="reportes.html" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/>
+                            <polyline points="14 2 14 8 20 8" stroke-width="2"/>
+                            <line x1="16" y1="13" x2="8" y2="13" stroke-width="2"/>
+                            <line x1="16" y1="17" x2="8" y2="17" stroke-width="2"/>
+                            <polyline points="10 9 9 9 8 9" stroke-width="2"/>
+                        </svg>
+                        <span>Reportes</span>
+                    </a>
+                    <a href="auditoria.html" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                            <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+                        </svg>
+                        <span>Auditoría</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <span class="nav-section-title">Configuración</span>
+                    <a href="usuarios.html" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/>
+                            <circle cx="9" cy="7" r="4" stroke-width="2"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/>
+                        </svg>
+                        <span>Usuarios</span>
+                    </a>
+                    <a href="ajustes.html" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                            <path d="M12 1v6m0 6v6M23 12h-6m-6 0H1" stroke-width="2"/>
+                        </svg>
+                        <span>Ajustes</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">AD</div>
+                    <div class="user-info">
+                        <span class="user-name">Admin ISC</span>
+                        <span class="user-role">Administrador</span>
+                    </div>
+                </div>
+                <button class="btn-icon logout-btn" aria-label="Cerrar sesión">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <div class="header-left">
+                    <h1 class="page-title">Gestión de Consumibles</h1>
+                    <p class="page-subtitle">Control de stock y reposición de materiales</p>
+                </div>
+                <div class="header-right">
+                    <button class="btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span>Exportar</span>
+                    </button>
+                    <button class="btn-primary" onclick="openConsumibleModal()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span>Nuevo Consumible</span>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Stats Overview -->
+            <div class="stats-grid consumibles-stats">
+                <div class="stat-card success">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Total Unidades</span>
+                        <span class="stat-value">1,248</span>
+                        <span class="stat-change positive">+145 este mes</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card warning">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/>
+                            <line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Stock Bajo</span>
+                        <span class="stat-value">12</span>
+                        <span class="stat-change negative">Requieren reposición</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card info">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="2" y="7" width="20" height="14" rx="2" stroke-width="2"/>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Categorías</span>
+                        <span class="stat-value">8</span>
+                        <span class="stat-change">Tipos diferentes</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card primary">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <line x1="12" y1="1" x2="12" y2="23" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Valor Total</span>
+                        <span class="stat-value">$24,580</span>
+                        <span class="stat-change positive">Inventario actual</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filters and Search -->
+            <div class="toolbar">
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                        <path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <input type="text" placeholder="Buscar consumible..." class="search-input" id="searchInput">
+                </div>
+                
+                <div class="filters">
+                    <select class="filter-select" id="categoryFilter">
+                        <option value="">Todas las categorías</option>
+                        <option value="cables">Cables y Conectores</option>
+                        <option value="perifericos">Periféricos</option>
+                        <option value="papeleria">Papelería</option>
+                        <option value="limpieza">Limpieza</option>
+                        <option value="componentes">Componentes</option>
+                    </select>
+                    
+                    <select class="filter-select" id="stockFilter">
+                        <option value="">Todos los niveles</option>
+                        <option value="critico">Crítico (< 10)</option>
+                        <option value="bajo">Bajo (10-30)</option>
+                        <option value="medio">Medio (31-100)</option>
+                        <option value="alto">Alto (> 100)</option>
+                    </select>
+                    
+                    <button class="btn-filter">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" stroke-width="2"/>
+                        </svg>
+                        <span>Más filtros</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Low Stock Alert -->
+            <div class="alert-banner warning">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/>
+                    <line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <div class="alert-content">
+                    <strong>Atención:</strong> 12 consumibles con stock bajo requieren reposición urgente
+                </div>
+                <button class="alert-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Consumibles Table -->
+            <div class="card table-card">
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox" id="selectAll"></th>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Stock Actual</th>
+                                <th>Stock Mínimo</th>
+                                <th>Unidad</th>
+                                <th>Precio Unit.</th>
+                                <th>Ubicación</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="consumiblesTable">
+                            <tr data-category="cables" data-stock="5">
+                                <td><input type="checkbox" class="table-checkbox"></td>
+                                <td><span class="consumible-code">HDMI-001</span></td>
+                                <td>
+                                    <div class="consumible-info">
+                                        <span class="consumible-name">Cable HDMI 2.0</span>
+                                        <span class="consumible-specs">2 metros, alta velocidad</span>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-cables">Cables</span></td>
+                                <td>
+                                    <div class="stock-info critical">
+                                        <span class="stock-number">5</span>
+                                        <div class="stock-bar">
+                                            <div class="stock-fill" style="width: 25%;"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>20</td>
+                                <td>Pieza</td>
+                                <td>$12.50</td>
+                                <td>Almacén A-12</td>
+                                <td><span class="stock-status critical">Crítico</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Añadir stock" onclick="openStockModal('HDMI-001')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Ver detalles">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
+                                                <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Editar">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <tr data-category="cables" data-stock="8">
+                                <td><input type="checkbox" class="table-checkbox"></td>
+                                <td><span class="consumible-code">USB-024</span></td>
+                                <td>
+                                    <div class="consumible-info">
+                                        <span class="consumible-name">Cable USB-C a USB-A</span>
+                                        <span class="consumible-specs">1.5 metros, USB 3.0</span>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-cables">Cables</span></td>
+                                <td>
+                                    <div class="stock-info critical">
+                                        <span class="stock-number">8</span>
+                                        <div class="stock-bar">
+                                            <div class="stock-fill" style="width: 32%;"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>25</td>
+                                <td>Pieza</td>
+                                <td>$8.75</td>
+                                <td>Almacén A-12</td>
+                                <td><span class="stock-status critical">Crítico</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Añadir stock" onclick="openStockModal('USB-024')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Ver detalles">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
+                                                <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Editar">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <tr data-category="perifericos" data-stock="15">
+                                <td><input type="checkbox" class="table-checkbox"></td>
+                                <td><span class="consumible-code">MOU-015</span></td>
+                                <td>
+                                    <div class="consumible-info">
+                                        <span class="consumible-name">Mouse USB Óptico</span>
+                                        <span class="consumible-specs">1000 DPI, cable 1.5m</span>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-perifericos">Periféricos</span></td>
+                                <td>
+                                    <div class="stock-info low">
+                                        <span class="stock-number">15</span>
+                                        <div class="stock-bar">
+                                            <div class="stock-fill" style="width: 50%;"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>30</td>
+                                <td>Pieza</td>
+                                <td>$6.99</td>
+                                <td>Almacén B-05</td>
+                                <td><span class="stock-status low">Bajo</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Añadir stock" onclick="openStockModal('MOU-015')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Ver detalles">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
+                                                <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Editar">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <tr data-category="perifericos" data-stock="22">
+                                <td><input type="checkbox" class="table-checkbox"></td>
+                                <td><span class="consumible-code">TEC-008</span></td>
+                                <td>
+                                    <div class="consumible-info">
+                                        <span class="consumible-name">Teclado USB Estándar</span>
+                                        <span class="consumible-specs">QWERTY español, resistente al agua</span>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-perifericos">Periféricos</span></td>
+                                <td>
+                                    <div class="stock-info low">
+                                        <span class="stock-number">22</span>
+                                        <div class="stock-bar">
+                                            <div class="stock-fill" style="width: 55%;"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>40</td>
+                                <td>Pieza</td>
+                                <td>$15.50</td>
+                                <td>Almacén B-05</td>
+                                <td><span class="stock-status low">Bajo</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Añadir stock" onclick="openStockModal('TEC-008')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Ver detalles">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
+                                                <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Editar">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <tr data-category="limpieza" data-stock="45">
+                                <td><input type="checkbox" class="table-checkbox"></td>
+                                <td><span class="consumible-code">LIM-032</span></td>
+                                <td>
+                                    <div class="consumible-info">
+                                        <span class="consumible-name">Toallas Limpiadoras</span>
+                                        <span class="consumible-specs">Para pantallas y dispositivos</span>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-limpieza">Limpieza</span></td>
+                                <td>
+                                    <div class="stock-info medium">
+                                        <span class="stock-number">45</span>
+                                        <div class="stock-bar">
+                                            <div class="stock-fill" style="width: 75%;"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>60</td>
+                                <td>Paquete</td>
+                                <td>$4.25</td>
+                                <td>Almacén C-18</td>
+                                <td><span class="stock-status medium">Medio</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Añadir stock" onclick="openStockModal('LIM-032')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Ver detalles">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
+                                                <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Editar">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <tr data-category="componentes" data-stock="156">
+                                <td><input type="checkbox" class="table-checkbox"></td>
+                                <td><span class="consumible-code">RAM-DDR4-16</span></td>
+                                <td>
+                                    <div class="consumible-info">
+                                        <span class="consumible-name">Memoria RAM DDR4</span>
+                                        <span class="consumible-specs">16GB, 3200MHz</span>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-componentes">Componentes</span></td>
+                                <td>
+                                    <div class="stock-info high">
+                                        <span class="stock-number">156</span>
+                                        <div class="stock-bar">
+                                            <div class="stock-fill" style="width: 100%;"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>50</td>
+                                <td>Pieza</td>
+                                <td>$45.00</td>
+                                <td>Almacén D-22</td>
+                                <td><span class="stock-status high">Alto</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Añadir stock" onclick="openStockModal('RAM-DDR4-16')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Ver detalles">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
+                                                <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                        <button class="btn-action" title="Editar">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="table-footer">
+                    <div class="table-info">
+                        Mostrando <strong>1-6</strong> de <strong>48</strong> consumibles
+                    </div>
+                    <div class="pagination">
+                        <button class="pagination-btn" disabled>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="15 18 9 12 15 6" stroke-width="2"/>
+                            </svg>
+                        </button>
+                        <button class="pagination-btn active">1</button>
+                        <button class="pagination-btn">2</button>
+                        <button class="pagination-btn">3</button>
+                        <span class="pagination-dots">...</span>
+                        <button class="pagination-btn">8</button>
+                        <button class="pagination-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="9 18 15 12 9 6" stroke-width="2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for New Consumible -->
+    <div class="modal" id="consumibleModal">
+        <div class="modal-overlay" onclick="closeConsumibleModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Registrar Nuevo Consumible</h2>
+                <button class="modal-close" onclick="closeConsumibleModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="consumible-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nombre del consumible</label>
+                            <input type="text" placeholder="Ej: Cable HDMI 2.0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Código</label>
+                            <input type="text" placeholder="Generado automáticamente" disabled>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Categoría</label>
+                            <select required>
+                                <option value="">Seleccionar categoría</option>
+                                <option>Cables y Conectores</option>
+                                <option>Periféricos</option>
+                                <option>Papelería</option>
+                                <option>Limpieza</option>
+                                <option>Componentes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Unidad de medida</label>
+                            <select required>
+                                <option value="">Seleccionar unidad</option>
+                                <option>Pieza</option>
+                                <option>Paquete</option>
+                                <option>Caja</option>
+                                <option>Metro</option>
+                                <option>Litro</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Especificaciones</label>
+                        <textarea rows="2" placeholder="Detalles técnicos del consumible..."></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Stock inicial</label>
+                            <input type="number" placeholder="0" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Stock mínimo</label>
+                            <input type="number" placeholder="10" min="0" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Precio unitario</label>
+                            <input type="number" step="0.01" placeholder="0.00" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Ubicación</label>
+                            <input type="text" placeholder="Ej: Almacén A-12" required>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="closeConsumibleModal()">Cancelar</button>
+                        <button type="submit" class="btn-primary">Guardar Consumible</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Add Stock -->
+    <div class="modal" id="stockModal">
+        <div class="modal-overlay" onclick="closeStockModal()"></div>
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>Añadir Stock</h2>
+                <button class="modal-close" onclick="closeStockModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="stock-form">
+                    <div class="form-group">
+                        <label>Consumible</label>
+                        <input type="text" id="stockItemCode" disabled>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Cantidad a añadir</label>
+                        <input type="number" placeholder="0" min="1" required id="stockQuantity">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Motivo</label>
+                        <select required>
+                            <option value="">Seleccionar motivo</option>
+                            <option>Compra nueva</option>
+                            <option>Reposición</option>
+                            <option>Devolución</option>
+                            <option>Ajuste de inventario</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Notas (opcional)</label>
+                        <textarea rows="2" placeholder="Información adicional..."></textarea>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="closeStockModal()">Cancelar</button>
+                        <button type="submit" class="btn-primary">Añadir Stock</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="consumibles.js"></script>
+    <script>
+        // Logout functionality
+        document.querySelector('.logout-btn').addEventListener('click', function() {
+            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Sidebar toggle for mobile
+        const sidebarToggle = document.querySelector('.sidebar-toggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                document.querySelector('.sidebar').classList.toggle('active');
+            });
+        }
+
+        // Modal functions
+        function openConsumibleModal() {
+            document.getElementById('consumibleModal').classList.add('active');
+        }
+        
+        function closeConsumibleModal() {
+            document.getElementById('consumibleModal').classList.remove('active');
+        }
+
+        function openStockModal(code) {
+            document.getElementById('stockItemCode').value = code;
+            document.getElementById('stockModal').classList.add('active');
+        }
+        
+        function closeStockModal() {
+            document.getElementById('stockModal').classList.remove('active');
+        }
+        
+        // Close modals on ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeConsumibleModal();
+                closeStockModal();
+            }
+        });
+
+        // Alert close
+        const alertClose = document.querySelector('.alert-close');
+        if (alertClose) {
+            alertClose.addEventListener('click', function() {
+                this.closest('.alert-banner').style.display = 'none';
+            });
+        }
+
+        // Select all checkbox
+        document.getElementById('selectAll').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.table-checkbox:not(#selectAll)');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+    </script>
+</body>
+</html>
