@@ -1,4 +1,4 @@
 [[redirects]]
   from = "/*"
-  to = "/Front-End/pagesAdmin/login.html"
+  to = "/Front-end/login.html"
   status = 200
