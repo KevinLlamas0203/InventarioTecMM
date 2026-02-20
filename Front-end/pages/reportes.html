@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditoría - ISC Inventory System</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Reportes - ISC Inventory System</title>
+    <link rel="stylesheet" href="../css/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap" rel="stylesheet">
@@ -37,7 +37,7 @@
             <nav class="sidebar-nav">
                 <div class="nav-section">
                     <span class="nav-section-title">Principal</span>
-                    <a href="dashboard.html" class="nav-item">
+                    <a href="dashboard_admin.html" class="nav-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <rect x="3" y="3" width="7" height="7" stroke-width="2" rx="1"/>
                             <rect x="14" y="3" width="7" height="7" stroke-width="2" rx="1"/>
@@ -79,7 +79,7 @@
                 
                 <div class="nav-section">
                     <span class="nav-section-title">Reportes</span>
-                    <a href="reportes.html" class="nav-item">
+                    <a href="reportes.html" class="nav-item active">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/>
                             <polyline points="14 2 14 8 20 8" stroke-width="2"/>
@@ -89,7 +89,7 @@
                         </svg>
                         <span>Reportes</span>
                     </a>
-                    <a href="auditoria.html" class="nav-item active">
+                    <a href="auditoria.html" class="nav-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <circle cx="12" cy="12" r="10" stroke-width="2"/>
                             <polyline points="12 6 12 12 16 14" stroke-width="2"/>
@@ -138,15 +138,15 @@
         <main class="main-content">
             <header class="content-header">
                 <div class="header-left">
-                    <h1 class="page-title">Auditoría</h1>
-                    <p class="page-subtitle">Registro de actividad y cambios en el sistema.</p>
+                    <h1 class="page-title">Reportes</h1>
+                    <p class="page-subtitle">Generación de informes de inventario y actividad.</p>
                 </div>
                 <div class="header-right">
-                    <button class="btn-secondary">
+                    <button class="btn-primary">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
                         </svg>
-                        <span>Exportar Registros</span>
+                        <span>Nuevo Reporte</span>
                     </button>
                 </div>
             </header>
