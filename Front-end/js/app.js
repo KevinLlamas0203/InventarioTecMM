@@ -17,7 +17,9 @@ document.addEventListener('DOMContentLoaded', function() {
         logoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
             if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                window.location.href = 'login.html';
+                // Redirige a login.html, subiendo un nivel desde la carpeta 'pages'
+                // Esto funcionará para dashboard_admin.html, activos.html, etc.
+                window.location.href = '../login.html';
             }
         });
     }

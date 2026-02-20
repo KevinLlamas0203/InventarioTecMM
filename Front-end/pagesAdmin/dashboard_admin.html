@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - ISC Inventory System</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Dashboard - ISC Inventory System</title>    <link rel="stylesheet" href="../css/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../images/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../images/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../images/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="../../images/favicon_io/site.webmanifest">
+    <link rel="shortcut icon" href="../../images/favicon_io/favicon.ico">
 </head>
 <body class="dashboard-page">
     <div class="dashboard-layout">
@@ -32,7 +36,7 @@
             <nav class="sidebar-nav">
                 <div class="nav-section">
                     <span class="nav-section-title">Principal</span>
-                    <a href="dashboard.html" class="nav-item active">
+                    <a href="dashboard_admin.html" class="nav-item active">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <rect x="3" y="3" width="7" height="7" stroke-width="2" rx="1"/>
                             <rect x="14" y="3" width="7" height="7" stroke-width="2" rx="1"/>
@@ -398,19 +402,9 @@
         </main>
     </div>
 
+    <script src="../js/app.js"></script>
+    <script src="../js/theme-toggle.js"></script>
     <script>
-        // Sidebar toggle for mobile
-        document.querySelector('.sidebar-toggle').addEventListener('click', function() {
-            document.querySelector('.sidebar').classList.toggle('collapsed');
-        });
-
-        // Logout functionality
-        document.querySelector('.logout-btn').addEventListener('click', function() {
-            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                window.location.href = 'login.html';
-            }
-        });
-
         // Simple chart placeholder (in production, use Chart.js or similar)
         const canvas = document.getElementById('distributionChart');
         if (canvas) {

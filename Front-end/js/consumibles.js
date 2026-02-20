@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeFilters();
     initializeForms();
     updateStockVisuals();
+    initializeModals();
+    initializeEventListeners();
 });
 
 // ========================================
@@ -122,6 +124,46 @@ function updateStockVisuals() {
 }
 
 // ========================================
+// MODALES
+// ========================================
+
+function initializeModals() {
+    // Cierra los modales con la tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeConsumibleModal();
+            closeStockModal();
+        }
+    });
+}
+
+function openConsumibleModal() {
+    document.getElementById('consumibleModal')?.classList.add('active');
+}
+
+function closeConsumibleModal() {
+    document.getElementById('consumibleModal')?.classList.remove('active');
+}
+
+function openStockModal(code) {
+    const modal = document.getElementById('stockModal');
+    if (modal) {
+        modal.querySelector('#stockItemCode').value = code;
+        modal.classList.add('active');
+    }
+}
+
+function closeStockModal() {
+    document.getElementById('stockModal')?.classList.remove('active');
+}
+
+// Hacer las funciones de modal accesibles globalmente para los `onclick` en el HTML
+window.openConsumibleModal = openConsumibleModal;
+window.closeConsumibleModal = closeConsumibleModal;
+window.openStockModal = openStockModal;
+window.closeStockModal = closeStockModal;
+
+// ========================================
 // FORMULARIOS
 // ========================================
 
@@ -169,6 +211,29 @@ function handleStockSubmit(e) {
     
     // Actualizar visualización
     updateStockVisuals();
+}
+
+// ========================================
+// EVENT LISTENERS ADICIONALES
+// ========================================
+
+function initializeEventListeners() {
+    // Cierre del banner de alerta
+    const alertClose = document.querySelector('.alert-close');
+    if (alertClose) {
+        alertClose.addEventListener('click', function() {
+            this.closest('.alert-banner').style.display = 'none';
+        });
+    }
+
+    // Checkbox para seleccionar todo
+    const selectAll = document.getElementById('selectAll');
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('#consumiblesTable .table-checkbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+    }
 }
 
 // ========================================

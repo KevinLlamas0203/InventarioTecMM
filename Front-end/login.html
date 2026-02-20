@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISC Inventory System - Login</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>ISC Inventory System - Login</title>    <link rel="stylesheet" href="css/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="../images/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../images/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../images/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="../images/favicon_io/site.webmanifest">
+    <link rel="shortcut icon" href="../images/favicon_io/favicon.ico">
 </head>
 <body class="login-page">
     <!-- Botón de tema (arriba a la derecha) -->
@@ -108,37 +112,7 @@
         </div>
     </div>
 
-    <script>
-        // ============================================
-        // THEME TOGGLE FUNCTIONALITY
-        // ============================================
-        const themeToggle = document.getElementById('themeToggle');
-        const html = document.documentElement;
-
-        // Cargar tema guardado o usar preferencia del sistema
-        const savedTheme = localStorage.getItem('theme');
-        const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        const currentTheme = savedTheme || systemPreference;
-
-        // Aplicar tema al cargar
-        html.setAttribute('data-theme', currentTheme);
-
-        // Toggle del tema
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-        });
-
-        // Escuchar cambios en preferencia del sistema
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-            if (!localStorage.getItem('theme')) {
-                html.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-            }
-        });
-
+    <script src="js/theme-toggle.js"></script>    <script>
         // ============================================
         // EXISTING FUNCTIONALITY
         // ============================================
@@ -160,7 +134,7 @@
             
             // Simulate authentication
             setTimeout(() => {
-                window.location.href = 'dashboard.html';
+                window.location.href = 'pagesAdmin/dashboard_admin.html';
             }, 1000);
         });
 
