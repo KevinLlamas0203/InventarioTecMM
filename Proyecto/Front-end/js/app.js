@@ -12,14 +12,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Logout functionality
+    // Auto-detects depth: pages in /pagesAdmin/ go to ../login.html, root pages go to login.html
     const logoutBtn = document.querySelector('.logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
             if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                // Redirige a login.html, subiendo un nivel desde la carpeta 'pages'
-                // Esto funcionará para dashboard_admin.html, activos.html, etc.
-                window.location.href = '../login.html';
+                const depth = window.location.pathname.split('/').filter(Boolean).length;
+                window.location.href = depth > 1 ? '../login.html' : 'login.html';
             }
         });
     }

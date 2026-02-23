@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reportes - ISC Inventory System</title>
+    <title>Reportes - Sistema de Inventario</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,10 +13,119 @@
     <link rel="icon" type="image/png" sizes="16x16" href="../../images/favicon_io/favicon-16x16.png">
     <link rel="manifest" href="../../images/favicon_io/site.webmanifest">
     <link rel="shortcut icon" href="../../images/favicon_io/favicon.ico">
+    <style>
+        /* ── Report Cards ── */
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .report-card {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .report-card .card-header {
+            margin-bottom: 0;
+        }
+
+        .report-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .report-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke-width: 2;
+        }
+
+        .report-icon.blue  { background: rgba(51,154,240,0.15);  color: var(--color-info); }
+        .report-icon.green { background: rgba(81,207,102,0.15);  color: var(--color-success); }
+        .report-icon.amber { background: rgba(255,230,109,0.15); color: var(--color-warning); }
+        .report-icon.red   { background: rgba(255,107,107,0.15); color: var(--color-danger); }
+        .report-icon.purple{ background: rgba(63,75,245,0.15);   color: var(--color-primary); }
+
+        .report-card h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .report-card p {
+            font-size: 0.9rem;
+            color: var(--color-text-secondary);
+            line-height: 1.5;
+        }
+
+        .report-card .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .report-card .form-group label {
+            font-size: 0.82rem;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+        }
+
+        .report-card select {
+            padding: 8px 12px;
+            background: var(--color-surface-raised);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            color: var(--color-text);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: border-color var(--transition-fast);
+        }
+
+        .report-card select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        .report-card .btn-primary {
+            width: 100%;
+            justify-content: center;
+            margin-top: auto;
+            padding: 10px;
+        }
+
+        .report-card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        /* ── History table badges ── */
+        .badge-pdf   { background: rgba(255,107,107,0.15); color: var(--color-danger); }
+        .badge-xlsx  { background: rgba(81,207,102,0.15);  color: var(--color-success); }
+        .badge-csv   { background: rgba(51,154,240,0.15);  color: var(--color-info); }
+
+        /* ── Stats row ── */
+        .report-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+    </style>
 </head>
 <body class="dashboard-page">
     <div class="dashboard-layout">
-        <!-- Sidebar -->
+        <!-- ═══════════════ SIDEBAR ═══════════════ -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-brand">
@@ -25,7 +134,7 @@
                         <path d="M13 16h14M13 20h14M13 24h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         <circle cx="28" cy="24" r="2" fill="currentColor"/>
                     </svg>
-                    <span class="brand-name">ISC System</span>
+                    <span class="brand-name">Sistema de Inventario</span>
                 </div>
                 <button class="sidebar-toggle" aria-label="Toggle sidebar">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -33,7 +142,7 @@
                     </svg>
                 </button>
             </div>
-            
+
             <nav class="sidebar-nav">
                 <div class="nav-section">
                     <span class="nav-section-title">Principal</span>
@@ -47,7 +156,7 @@
                         <span>Dashboard</span>
                     </a>
                 </div>
-                
+
                 <div class="nav-section">
                     <span class="nav-section-title">Gestión</span>
                     <a href="activos.html" class="nav-item">
@@ -76,7 +185,7 @@
                         <span>Asignaciones</span>
                     </a>
                 </div>
-                
+
                 <div class="nav-section">
                     <span class="nav-section-title">Reportes</span>
                     <a href="reportes.html" class="nav-item active">
@@ -97,7 +206,7 @@
                         <span>Auditoría</span>
                     </a>
                 </div>
-                
+
                 <div class="nav-section">
                     <span class="nav-section-title">Configuración</span>
                     <a href="usuarios.html" class="nav-item">
@@ -109,15 +218,15 @@
                         <span>Usuarios</span>
                     </a>
                     <a href="ajustes.html" class="nav-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <circle cx="12" cy="12" r="3" stroke-width="2"/>
-                            <path d="M12 1v6m0 6v6M23 12h-6m-6 0H1" stroke-width="2"/>
-                        </svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+    <circle cx="12" cy="12" r="3"></circle>
+</svg>
                         <span>Ajustes</span>
                     </a>
                 </div>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <div class="user-profile">
                     <div class="user-avatar">AD</div>
@@ -133,49 +242,464 @@
                 </button>
             </div>
         </aside>
-        
-        <!-- Main Content -->
+
+        <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
         <main class="main-content">
             <header class="content-header">
                 <div class="header-left">
-                    <h1 class="page-title">Reportes</h1>
-                    <p class="page-subtitle">Generación de informes de inventario y actividad.</p>
+                    <h1 class="page-title">Generación de Reportes</h1>
+                    <p class="page-subtitle">Exporta información detallada del inventario en distintos formatos</p>
                 </div>
                 <div class="header-right">
-                    <button class="btn-primary">
+                    <button class="btn-secondary" onclick="exportData('excel')">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
+                            <polyline points="6 9 6 2 18 2 18 9" stroke-width="2"/>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke-width="2"/>
+                            <rect x="6" y="14" width="12" height="8" stroke-width="2"/>
                         </svg>
-                        <span>Nuevo Reporte</span>
+                        <span>Exportar Todo</span>
                     </button>
                 </div>
             </header>
-            
-            <div class="content-grid">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Contenido en construcción</h3>
+
+            <!-- ── Stats ── -->
+            <div class="report-stats">
+                <div class="stat-card primary">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/><polyline points="14 2 14 8 20 8" stroke-width="2"/></svg>
                     </div>
-                    <div style="padding: 2rem;">
-                        <p>Esta página está actualmente en desarrollo. ¡Vuelve pronto!</p>
+                    <div class="stat-content">
+                        <span class="stat-label">Reportes este mes</span>
+                        <span class="stat-value">24</span>
+                    </div>
+                    <span class="stat-change positive">↑ 8 más que el mes pasado</span>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Completados</span>
+                        <span class="stat-value">22</span>
+                    </div>
+                    <span class="stat-change positive">91.7% de éxito</span>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/><polyline points="12 6 12 12 16 14" stroke-width="2"/></svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">En procesamiento</span>
+                        <span class="stat-value">2</span>
+                    </div>
+                    <span class="stat-change">Tiempo promedio: 3 seg</span>
+                </div>
+            </div>
+
+            <!-- ── Report Generator Cards ── -->
+            <div class="reports-grid">
+                <!-- Inventario General -->
+                <div class="card report-card">
+                    <div class="card-header">
+                        <div class="report-icon blue">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2"/>
+                                <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Inventario General</h3>
+                            <p>Reporte completo de todos los activos y consumibles registrados en el sistema.</p>
+                        </div>
+                    </div>
+                    <div class="report-card-body">
+                        <div class="form-group">
+                            <label>Formato de exportación</label>
+                            <select id="fmt-inventario">
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel (XLSX)</option>
+                                <option value="csv">CSV</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Rango de fechas</label>
+                            <select>
+                                <option>Últimos 30 días</option>
+                                <option>Últimos 3 meses</option>
+                                <option>Este año</option>
+                                <option>Todo el historial</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="generarReporte('Inventario General', document.getElementById('fmt-inventario').value)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/>
+                            <polyline points="7 10 12 15 17 10" stroke-width="2"/>
+                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/>
+                        </svg>
+                        <span>Descargar Reporte</span>
+                    </button>
+                </div>
+
+                <!-- Asignaciones -->
+                <div class="card report-card">
+                    <div class="card-header">
+                        <div class="report-icon green">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke-width="2"/>
+                                <circle cx="9" cy="7" r="4" stroke-width="2"/>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Asignaciones Activas</h3>
+                            <p>Listado de activos asignados actualmente a usuarios o áreas específicas.</p>
+                        </div>
+                    </div>
+                    <div class="report-card-body">
+                        <div class="form-group">
+                            <label>Filtrar por área</label>
+                            <select id="fmt-asignaciones">
+                                <option value="all">Todas las áreas</option>
+                                <option value="lab1">Laboratorio 1</option>
+                                <option value="lab2">Laboratorio 2</option>
+                                <option value="admin">Administración</option>
+                                <option value="docentes">Sala de Docentes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Formato de exportación</label>
+                            <select>
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel (XLSX)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="generarReporte('Asignaciones Activas', 'pdf')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/>
+                            <polyline points="7 10 12 15 17 10" stroke-width="2"/>
+                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/>
+                        </svg>
+                        <span>Descargar Reporte</span>
+                    </button>
+                </div>
+
+                <!-- Mantenimiento -->
+                <div class="card report-card">
+                    <div class="card-header">
+                        <div class="report-icon amber">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Mantenimiento</h3>
+                            <p>Activos que requieren mantenimiento o se encuentran actualmente en reparación.</p>
+                        </div>
+                    </div>
+                    <div class="report-card-body">
+                        <div class="form-group">
+                            <label>Tipo de mantenimiento</label>
+                            <select>
+                                <option value="all">Todos</option>
+                                <option value="preventivo">Preventivo</option>
+                                <option value="correctivo">Correctivo</option>
+                                <option value="baja">Dado de baja</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Formato de exportación</label>
+                            <select>
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel (XLSX)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="generarReporte('Mantenimiento', 'pdf')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/>
+                            <polyline points="7 10 12 15 17 10" stroke-width="2"/>
+                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/>
+                        </svg>
+                        <span>Descargar Reporte</span>
+                    </button>
+                </div>
+
+                <!-- Consumibles / Stock -->
+                <div class="card report-card">
+                    <div class="card-header">
+                        <div class="report-icon red">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/>
+                                <line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Alertas de Stock</h3>
+                            <p>Consumibles con nivel de inventario bajo o en estado crítico que requieren reposición.</p>
+                        </div>
+                    </div>
+                    <div class="report-card-body">
+                        <div class="form-group">
+                            <label>Umbral de alerta</label>
+                            <select>
+                                <option>Stock crítico (≤5 unidades)</option>
+                                <option>Stock bajo (≤10 unidades)</option>
+                                <option>Todos los consumibles</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Formato de exportación</label>
+                            <select>
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel (XLSX)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="generarReporte('Alertas de Stock', 'pdf')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/>
+                            <polyline points="7 10 12 15 17 10" stroke-width="2"/>
+                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/>
+                        </svg>
+                        <span>Descargar Reporte</span>
+                    </button>
+                </div>
+
+                <!-- Auditoría -->
+                <div class="card report-card">
+                    <div class="card-header">
+                        <div class="report-icon purple">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                                <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Historial de Auditoría</h3>
+                            <p>Registro completo de todas las acciones realizadas por los usuarios en el sistema.</p>
+                        </div>
+                    </div>
+                    <div class="report-card-body">
+                        <div class="form-group">
+                            <label>Período</label>
+                            <select>
+                                <option>Última semana</option>
+                                <option>Últimos 30 días</option>
+                                <option>Este año</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Formato de exportación</label>
+                            <select>
+                                <option value="pdf">PDF</option>
+                                <option value="csv">CSV</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="generarReporte('Auditoría', 'pdf')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/>
+                            <polyline points="7 10 12 15 17 10" stroke-width="2"/>
+                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/>
+                        </svg>
+                        <span>Descargar Reporte</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── Download History ── -->
+            <div class="card table-card">
+                <div class="card-header">
+                    <h3 class="card-title">Historial de Descargas</h3>
+                    <button class="btn-secondary" onclick="limpiarHistorial()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="3 6 5 6 21 6" stroke-width="2"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/>
+                        </svg>
+                        <span>Limpiar historial</span>
+                    </button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Reporte</th>
+                                <th>Usuario</th>
+                                <th>Fecha y hora</th>
+                                <th>Formato</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historialBody">
+                            <tr>
+                                <td>
+                                    <div class="asset-info">
+                                        <span class="asset-name">Inventario General</span>
+                                        <span class="asset-specs">Todo el historial · 245 activos</span>
+                                    </div>
+                                </td>
+                                <td>Admin ISC</td>
+                                <td>15 Feb 2026, 10:30 AM</td>
+                                <td><span class="badge badge-pdf">PDF</span></td>
+                                <td><span class="status status-available">Completado</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Descargar de nuevo" onclick="showToast('Descargando reporte…', 'info')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/>
+                                                <polyline points="7 10 12 15 17 10" stroke-width="2"/>
+                                                <line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="asset-info">
+                                        <span class="asset-name">Asignaciones Lab 1</span>
+                                        <span class="asset-specs">Laboratorio 1 · 38 activos</span>
+                                    </div>
+                                </td>
+                                <td>Admin ISC</td>
+                                <td>14 Feb 2026, 09:15 AM</td>
+                                <td><span class="badge badge-xlsx">XLSX</span></td>
+                                <td><span class="status status-available">Completado</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Descargar de nuevo" onclick="showToast('Descargando reporte…', 'info')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/>
+                                                <polyline points="7 10 12 15 17 10" stroke-width="2"/>
+                                                <line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="asset-info">
+                                        <span class="asset-name">Alertas de Stock</span>
+                                        <span class="asset-specs">Stock crítico · 7 consumibles</span>
+                                    </div>
+                                </td>
+                                <td>Admin ISC</td>
+                                <td>13 Feb 2026, 04:00 PM</td>
+                                <td><span class="badge badge-csv">CSV</span></td>
+                                <td><span class="status status-available">Completado</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Descargar de nuevo" onclick="showToast('Descargando reporte…', 'info')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/>
+                                                <polyline points="7 10 12 15 17 10" stroke-width="2"/>
+                                                <line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer">
+                    <div class="table-info">Mostrando <strong>1-3</strong> de <strong>24</strong> reportes</div>
+                    <div class="pagination">
+                        <button class="pagination-btn" disabled>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6" stroke-width="2"/></svg>
+                        </button>
+                        <button class="pagination-btn active">1</button>
+                        <button class="pagination-btn">2</button>
+                        <button class="pagination-btn">3</button>
+                        <button class="pagination-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6" stroke-width="2"/></svg>
+                        </button>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
+    <script src="../js/app.js"></script>
+    <script src="../js/theme-toggle.js"></script>
     <script>
-        // Sidebar toggle for mobile
+        // Sidebar toggle
         document.querySelector('.sidebar-toggle').addEventListener('click', function() {
             document.querySelector('.sidebar').classList.toggle('collapsed');
         });
 
-        // Logout functionality
+        // Logout
         document.querySelector('.logout-btn').addEventListener('click', function() {
             if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                window.location.href = 'login.html';
+                window.location.href = '../login.html';
             }
         });
+
+        // Simulate report generation
+        function generarReporte(nombre, formato) {
+            showToast(`Generando reporte "${nombre}" en formato ${formato.toUpperCase()}…`, 'info');
+            setTimeout(() => {
+                showToast(`Reporte "${nombre}" listo para descargar.`, 'success');
+                agregarHistorial(nombre, formato);
+            }, 1800);
+        }
+
+        function agregarHistorial(nombre, formato) {
+            const tbody = document.getElementById('historialBody');
+            const fmtClass = formato === 'pdf' ? 'badge-pdf' : formato === 'excel' || formato === 'xlsx' ? 'badge-xlsx' : 'badge-csv';
+            const fmtLabel = formato.toUpperCase().replace('EXCEL','XLSX');
+            const ahora = new Date().toLocaleString('es-MX', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><div class="asset-info"><span class="asset-name">${nombre}</span><span class="asset-specs">Generado ahora</span></div></td>
+                <td>Admin ISC</td>
+                <td>${ahora}</td>
+                <td><span class="badge ${fmtClass}">${fmtLabel}</span></td>
+                <td><span class="status status-available">Completado</span></td>
+                <td><div class="action-buttons">
+                    <button class="btn-action" title="Descargar de nuevo" onclick="showToast('Descargando…','info')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/>
+                            <polyline points="7 10 12 15 17 10" stroke-width="2"/>
+                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/>
+                        </svg>
+                    </button>
+                </div></td>
+            `;
+            tbody.insertBefore(row, tbody.firstChild);
+        }
+
+        function limpiarHistorial() {
+            if (confirm('¿Deseas limpiar todo el historial de descargas?')) {
+                document.getElementById('historialBody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--color-text-secondary);">No hay reportes en el historial.</td></tr>';
+                showToast('Historial limpiado.', 'info');
+            }
+        }
+
+        // Toast (fallback if app.js not loaded yet)
+        function showToast(message, type = 'info') {
+            let existing = document.querySelector('.toast-container');
+            if (!existing) {
+                existing = document.createElement('div');
+                existing.className = 'toast-container';
+                existing.style.cssText = 'position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:9999;';
+                document.body.appendChild(existing);
+            }
+            const colors = { info: 'var(--color-info)', success: 'var(--color-success)', warning: 'var(--color-warning)', error: 'var(--color-danger)' };
+            const toast = document.createElement('div');
+            toast.style.cssText = `background:var(--color-surface);border:1px solid var(--color-border);border-left:4px solid ${colors[type]||colors.info};padding:12px 18px;border-radius:8px;font-size:.9rem;box-shadow:var(--shadow-md);max-width:320px;opacity:0;transform:translateX(20px);transition:all .25s ease;`;
+            toast.textContent = message;
+            existing.appendChild(toast);
+            requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)'; setTimeout(() => toast.remove(), 300); }, 3500);
+        }
     </script>
 </body>
 </html>
