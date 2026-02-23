@@ -1,0 +1,4 @@
+[[redirects]]
+  from = "/*"
+  to = "/pagesAdmin/dashboard_admin.html"
+  status = 200
