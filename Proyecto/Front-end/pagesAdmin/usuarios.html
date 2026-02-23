@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Usuarios - ISC Inventory System</title>
+    <title>Usuarios - Sistema de Inventario</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,10 +13,447 @@
     <link rel="icon" type="image/png" sizes="16x16" href="../../images/favicon_io/favicon-16x16.png">
     <link rel="manifest" href="../../images/favicon_io/site.webmanifest">
     <link rel="shortcut icon" href="../../images/favicon_io/favicon.ico">
+
+    <style>
+        /* ══════════════════════════════════════
+           USUARIOS PAGE STYLES
+        ══════════════════════════════════════ */
+
+        /* Stats */
+        .user-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        /* Role badges */
+        .badge-admin    { background: rgba(63,75,245,0.15);  color: var(--color-primary); }
+        .badge-docente  { background: rgba(51,154,240,0.15); color: var(--color-info); }
+        .badge-alumno   { background: rgba(78,205,196,0.15); color: var(--color-secondary); }
+
+        /* Status badges */
+        .badge-activo   { background: rgba(81,207,102,0.15); color: var(--color-success); }
+        .badge-inactivo { background: rgba(160,160,160,0.15); color: var(--color-text-secondary); }
+        .badge-bloqueado{ background: rgba(255,107,107,0.15); color: var(--color-danger); }
+
+        /* User avatar in table */
+        .user-avatar-sm {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+        .avatar-admin   { background: rgba(63,75,245,0.2);  color: var(--color-primary); }
+        .avatar-docente { background: rgba(51,154,240,0.2); color: var(--color-info); }
+        .avatar-alumno  { background: rgba(78,205,196,0.2); color: var(--color-secondary); }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .user-cell-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .user-cell-name  { font-weight: 500; }
+        .user-cell-email { font-size: 0.82rem; color: var(--color-text-secondary); }
+
+        /* Tab filter */
+        .role-tabs {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+            flex-wrap: wrap;
+        }
+
+        .role-tab {
+            padding: 8px 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+            color: var(--color-text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .role-tab:hover {
+            border-color: var(--color-text-muted);
+            color: var(--color-text);
+        }
+
+        .role-tab.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: #fff;
+        }
+
+        .role-tab .tab-count {
+            background: rgba(255,255,255,0.25);
+            border-radius: 10px;
+            padding: 1px 7px;
+            font-size: 0.75rem;
+        }
+
+        .role-tab:not(.active) .tab-count {
+            background: var(--color-surface-raised);
+            color: var(--color-text-secondary);
+        }
+
+        /* Form grid */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px 14px;
+            background: var(--color-surface-raised);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            color: var(--color-text);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            transition: border-color var(--transition-fast);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        .form-group input::placeholder {
+            color: var(--color-text-muted);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--color-text-muted);
+            font-weight: 600;
+            margin: var(--spacing-lg) 0 var(--spacing-md);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .form-group-full {
+            grid-column: 1 / -1;
+        }
+
+        /* Permission checkboxes */
+        .permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: var(--spacing-sm);
+            padding: var(--spacing-md);
+            background: var(--color-surface-raised);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--color-border);
+        }
+
+        .permission-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .permission-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--color-primary);
+        }
+
+        .permission-item span {
+            font-size: 0.88rem;
+            color: var(--color-text);
+        }
+
+        /* Role info card inside modal */
+        .role-info-card {
+            padding: var(--spacing-md);
+            border-radius: var(--radius-sm);
+            border-left: 3px solid currentColor;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            margin-top: var(--spacing-sm);
+        }
+        .role-info-admin   { color: var(--color-primary); background: rgba(63,75,245,0.08); }
+        .role-info-docente { color: var(--color-info);    background: rgba(51,154,240,0.08); }
+        .role-info-alumno  { color: var(--color-secondary); background: rgba(78,205,196,0.08); }
+
+        /* Password strength bar */
+        .password-strength {
+            margin-top: 6px;
+            display: flex;
+            gap: 4px;
+        }
+
+        .strength-bar {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--color-border);
+            transition: background var(--transition-fast);
+        }
+
+        .strength-bar.weak   { background: var(--color-danger); }
+        .strength-bar.medium { background: var(--color-warning); }
+        .strength-bar.strong { background: var(--color-success); }
+
+        .strength-label {
+            font-size: 0.78rem;
+            margin-top: 4px;
+            color: var(--color-text-muted);
+        }
+
+        /* Delete confirm modal */
+        .modal-danger .modal-header {
+            border-bottom-color: rgba(255,107,107,0.3);
+        }
+
+        .danger-zone {
+            text-align: center;
+            padding: var(--spacing-lg) 0;
+        }
+
+        .danger-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: rgba(255,107,107,0.15);
+            color: var(--color-danger);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-md);
+        }
+
+        .danger-icon svg { width: 28px; height: 28px; stroke-width: 2; }
+
+        .danger-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .danger-text {
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: flex-end;
+            margin-top: var(--spacing-lg);
+        }
+
+        .btn-danger {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: 10px var(--spacing-lg);
+            background: var(--color-danger);
+            color: #fff;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-danger:hover { background: #e55252; }
+        .btn-danger svg { width: 18px; height: 18px; stroke-width: 2; }
+
+        /* Last access */
+        .last-access {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .last-access-date { font-size: 0.88rem; }
+        .last-access-time { font-size: 0.78rem; color: var(--color-text-secondary); }
+
+        /* View toggle */
+        .view-toggle {
+            display: flex;
+            gap: 4px;
+            background: var(--color-surface-raised);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            padding: 3px;
+        }
+
+        .view-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            color: var(--color-text-secondary);
+            transition: all var(--transition-fast);
+        }
+
+        .view-btn.active {
+            background: var(--color-surface);
+            color: var(--color-text);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .view-btn svg { width: 16px; height: 16px; stroke-width: 2; }
+
+        /* Card grid view */
+        .users-card-grid {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .users-card-grid.visible { display: grid; }
+
+        .user-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+        }
+
+        .user-card.role-admin::before   { background: var(--color-primary); }
+        .user-card.role-docente::before { background: var(--color-info); }
+        .user-card.role-alumno::before  { background: var(--color-secondary); }
+
+        .user-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .user-card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .user-card-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .user-card-info { flex: 1; }
+
+        .user-card-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 2px;
+        }
+
+        .user-card-email {
+            font-size: 0.82rem;
+            color: var(--color-text-secondary);
+        }
+
+        .user-card-body {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-md) 0;
+            border-top: 1px solid var(--color-border);
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .user-card-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .user-card-row-label { color: var(--color-text-secondary); }
+
+        .user-card-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .user-card-actions .btn-action { flex: 1; justify-content: center; }
+
+        /* Table list view toggle */
+        .table-view { display: block; }
+        .table-view.hidden { display: none; }
+
+        /* Number ID */
+        .user-id {
+            font-family: var(--font-display);
+            font-weight: 600;
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+        }
+    </style>
 </head>
 <body class="dashboard-page">
     <div class="dashboard-layout">
-        <!-- Sidebar -->
+
+        <!-- ═══════════════ SIDEBAR ═══════════════ -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-brand">
@@ -25,7 +462,7 @@
                         <path d="M13 16h14M13 20h14M13 24h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         <circle cx="28" cy="24" r="2" fill="currentColor"/>
                     </svg>
-                    <span class="brand-name">ISC System</span>
+                    <span class="brand-name">Sistema de Inventario</span>
                 </div>
                 <button class="sidebar-toggle" aria-label="Toggle sidebar">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -33,7 +470,7 @@
                     </svg>
                 </button>
             </div>
-            
+
             <nav class="sidebar-nav">
                 <div class="nav-section">
                     <span class="nav-section-title">Principal</span>
@@ -47,7 +484,7 @@
                         <span>Dashboard</span>
                     </a>
                 </div>
-                
+
                 <div class="nav-section">
                     <span class="nav-section-title">Gestión</span>
                     <a href="activos.html" class="nav-item">
@@ -76,7 +513,7 @@
                         <span>Asignaciones</span>
                     </a>
                 </div>
-                
+
                 <div class="nav-section">
                     <span class="nav-section-title">Reportes</span>
                     <a href="reportes.html" class="nav-item">
@@ -97,7 +534,7 @@
                         <span>Auditoría</span>
                     </a>
                 </div>
-                
+
                 <div class="nav-section">
                     <span class="nav-section-title">Configuración</span>
                     <a href="usuarios.html" class="nav-item active">
@@ -117,7 +554,7 @@
                     </a>
                 </div>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <div class="user-profile">
                     <div class="user-avatar">AD</div>
@@ -133,16 +570,24 @@
                 </button>
             </div>
         </aside>
-        
-        <!-- Main Content -->
+
+        <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
         <main class="main-content">
             <header class="content-header">
                 <div class="header-left">
                     <h1 class="page-title">Usuarios</h1>
-                    <p class="page-subtitle">Administración de usuarios y roles del sistema.</p>
+                    <p class="page-subtitle">Administración de usuarios y roles del sistema</p>
                 </div>
                 <div class="header-right">
-                    <button class="btn-primary">
+                    <button class="btn-secondary" onclick="exportarUsuarios()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/>
+                            <polyline points="7 10 12 15 17 10" stroke-width="2"/>
+                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/>
+                        </svg>
+                        <span>Exportar</span>
+                    </button>
+                    <button class="btn-primary" onclick="abrirModalNuevo()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/>
                             <circle cx="9" cy="7" r="4" stroke-width="2"/>
@@ -153,32 +598,794 @@
                     </button>
                 </div>
             </header>
-            
-            <div class="content-grid">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Contenido en construcción</h3>
+
+            <!-- ── Stats ── -->
+            <div class="user-stats">
+                <div class="stat-card primary">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/></svg>
                     </div>
-                    <div style="padding: 2rem;">
-                        <p>Esta página está actualmente en desarrollo. ¡Vuelve pronto!</p>
+                    <div class="stat-content">
+                        <span class="stat-label">Total usuarios</span>
+                        <span class="stat-value" id="statTotal">9</span>
+                    </div>
+                    <span class="stat-change positive">↑ 2 este mes</span>
+                </div>
+                <div class="stat-card info">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" stroke-width="2" rx="1"/><rect x="14" y="3" width="7" height="7" stroke-width="2" rx="1"/><rect x="14" y="14" width="7" height="7" stroke-width="2" rx="1"/><rect x="3" y="14" width="7" height="7" stroke-width="2" rx="1"/></svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Administradores</span>
+                        <span class="stat-value" id="statAdmin">2</span>
+                    </div>
+                    <span class="stat-change">Acceso total</span>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.35a16 16 0 0 0 6 6l.1-.08a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 18l-.08.92" stroke-width="2"/></svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Docentes</span>
+                        <span class="stat-value" id="statDocente">3</span>
+                    </div>
+                    <span class="stat-change">Acceso consulta</span>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke-width="2"/></svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Alumnos</span>
+                        <span class="stat-value" id="statAlumno">4</span>
+                    </div>
+                    <span class="stat-change">Acceso limitado</span>
+                </div>
+            </div>
+
+            <!-- ── Role Tabs + Search + View toggle ── -->
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--spacing-md); margin-bottom:var(--spacing-lg);">
+                <div class="role-tabs">
+                    <button class="role-tab active" data-role="todos" onclick="filtrarRol('todos', this)">
+                        Todos <span class="tab-count" id="tab-todos">9</span>
+                    </button>
+                    <button class="role-tab" data-role="administrador" onclick="filtrarRol('administrador', this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:14px;height:14px;stroke-width:2.5;"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+                        Administrador <span class="tab-count" id="tab-administrador">2</span>
+                    </button>
+                    <button class="role-tab" data-role="docente" onclick="filtrarRol('docente', this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:14px;height:14px;stroke-width:2.5;"><path d="M22 10v6M2 10l10-5 10 5-10 5z" stroke-width="2"/><path d="M6 12v5c3 3 9 3 12 0v-5" stroke-width="2"/></svg>
+                        Docente <span class="tab-count" id="tab-docente">3</span>
+                    </button>
+                    <button class="role-tab" data-role="alumno" onclick="filtrarRol('alumno', this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:14px;height:14px;stroke-width:2.5;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="12" cy="7" r="4" stroke-width="2"/></svg>
+                        Alumno <span class="tab-count" id="tab-alumno">4</span>
+                    </button>
+                </div>
+                <div style="display:flex;gap:var(--spacing-md);align-items:center;">
+                    <div class="view-toggle">
+                        <button class="view-btn active" id="btnTabla" title="Vista tabla" onclick="setView('tabla')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="3" y1="12" x2="21" y2="12" stroke-width="2"/><line x1="3" y1="6" x2="21" y2="6" stroke-width="2"/><line x1="3" y1="18" x2="21" y2="18" stroke-width="2"/></svg>
+                        </button>
+                        <button class="view-btn" id="btnCards" title="Vista tarjetas" onclick="setView('cards')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Search + Filters ── -->
+            <div class="toolbar">
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                        <path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <input type="text" placeholder="Buscar por nombre, correo o número de control…" class="search-input" id="userSearch">
+                </div>
+                <div class="filters">
+                    <select class="filter-select" id="filterEstado">
+                        <option value="">Todos los estados</option>
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                        <option value="Bloqueado">Bloqueado</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ══ CARD GRID VIEW ══ -->
+            <div class="users-card-grid" id="cardGrid"></div>
+
+            <!-- ══ TABLE VIEW ══ -->
+            <div class="table-view" id="tableView">
+                <div class="card table-card">
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" class="table-checkbox" id="selectAll"></th>
+                                    <th>ID</th>
+                                    <th>Usuario</th>
+                                    <th>Rol</th>
+                                    <th>No. Control / Emp.</th>
+                                    <th>Estado</th>
+                                    <th>Último acceso</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer">
+                        <div class="table-info" id="tableInfo">—</div>
+                        <div class="pagination">
+                            <button class="pagination-btn" disabled>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6" stroke-width="2"/></svg>
+                            </button>
+                            <button class="pagination-btn active">1</button>
+                            <button class="pagination-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6" stroke-width="2"/></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <script>
-        // Sidebar toggle for mobile
-        document.querySelector('.sidebar-toggle').addEventListener('click', function() {
-            document.querySelector('.sidebar').classList.toggle('collapsed');
-        });
+    <!-- ══════════════════════════════════════
+         MODAL: Crear / Editar Usuario
+    ══════════════════════════════════════ -->
+    <div class="modal" id="userModal">
+        <div class="modal-overlay" onclick="cerrarModal('userModal')"></div>
+        <div class="modal-content" style="max-width: 640px;">
+            <div class="modal-header">
+                <h2 id="modalTitulo">Nuevo Usuario</h2>
+                <button class="modal-close" onclick="cerrarModal('userModal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm" onsubmit="guardarUsuario(event)">
+                    <input type="hidden" id="userId" value="">
 
-        // Logout functionality
-        document.querySelector('.logout-btn').addEventListener('click', function() {
-            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                window.location.href = 'login.html';
-            }
+                    <!-- Sección: Información personal -->
+                    <p class="form-section-title">Información personal</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fNombre">Nombre(s) *</label>
+                            <input type="text" id="fNombre" placeholder="Ej: María" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fApellidos">Apellidos *</label>
+                            <input type="text" id="fApellidos" placeholder="Ej: García López" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fEmail">Correo electrónico *</label>
+                            <input type="email" id="fEmail" placeholder="usuario@tsj.mx" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fControl">No. Control / Empleado *</label>
+                            <input type="text" id="fControl" placeholder="Ej: 20230045 / E-1234">
+                        </div>
+                    </div>
+
+                    <!-- Sección: Rol y acceso -->
+                    <p class="form-section-title">Rol y acceso</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fRol">Rol *</label>
+                            <select id="fRol" required onchange="actualizarInfoRol()">
+                                <option value="">— Seleccionar rol —</option>
+                                <option value="administrador">Administrador</option>
+                                <option value="docente">Docente</option>
+                                <option value="alumno">Alumno</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="fEstado">Estado</label>
+                            <select id="fEstado">
+                                <option value="Activo">Activo</option>
+                                <option value="Inactivo">Inactivo</option>
+                                <option value="Bloqueado">Bloqueado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Info de rol dinámica -->
+                    <div id="rolInfoBox" style="display:none; margin-bottom: var(--spacing-md);"></div>
+
+                    <!-- Permisos (sólo para Docente / Administrador) -->
+                    <div id="permisosSection" style="display:none;">
+                        <p class="form-section-title">Permisos del módulo</p>
+                        <div class="permissions-grid">
+                            <label class="permission-item"><input type="checkbox" value="activos"       checked><span>Ver Activos</span></label>
+                            <label class="permission-item"><input type="checkbox" value="activos_edit"       ><span>Editar Activos</span></label>
+                            <label class="permission-item"><input type="checkbox" value="consumibles"   checked><span>Ver Consumibles</span></label>
+                            <label class="permission-item"><input type="checkbox" value="consumibles_edit"   ><span>Editar Consumibles</span></label>
+                            <label class="permission-item"><input type="checkbox" value="asignaciones"  checked><span>Ver Asignaciones</span></label>
+                            <label class="permission-item"><input type="checkbox" value="asign_edit"         ><span>Editar Asignaciones</span></label>
+                            <label class="permission-item"><input type="checkbox" value="reportes"      checked><span>Descargar Reportes</span></label>
+                            <label class="permission-item"><input type="checkbox" value="auditoria"          ><span>Ver Auditoría</span></label>
+                        </div>
+                    </div>
+
+                    <!-- Sección: Contraseña -->
+                    <p class="form-section-title">Contraseña</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fPassword">Contraseña *</label>
+                            <input type="password" id="fPassword" placeholder="Mínimo 8 caracteres" oninput="evaluarPassword()">
+                            <div class="password-strength">
+                                <div class="strength-bar" id="bar1"></div>
+                                <div class="strength-bar" id="bar2"></div>
+                                <div class="strength-bar" id="bar3"></div>
+                                <div class="strength-bar" id="bar4"></div>
+                            </div>
+                            <span class="strength-label" id="strengthLabel">Ingresa una contraseña</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="fPasswordConfirm">Confirmar contraseña *</label>
+                            <input type="password" id="fPasswordConfirm" placeholder="Repite la contraseña">
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="cerrarModal('userModal')">Cancelar</button>
+                        <button type="submit" class="btn-primary" id="btnGuardar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke-width="2"/>
+                                <polyline points="17 21 17 13 7 13 7 21" stroke-width="2"/>
+                                <polyline points="7 3 7 8 15 8" stroke-width="2"/>
+                            </svg>
+                            <span>Guardar Usuario</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         MODAL: Confirmar Eliminación
+    ══════════════════════════════════════ -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-overlay" onclick="cerrarModal('deleteModal')"></div>
+        <div class="modal-content modal-danger" style="max-width: 440px;">
+            <div class="modal-header">
+                <h2>Eliminar Usuario</h2>
+                <button class="modal-close" onclick="cerrarModal('deleteModal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="danger-zone">
+                    <div class="danger-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="3 6 5 6 21 6" stroke-width="2"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/>
+                            <line x1="10" y1="11" x2="10" y2="17" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="14" y1="11" x2="14" y2="17" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <p class="danger-title" id="deleteUserName">¿Eliminar usuario?</p>
+                    <p class="danger-text">Esta acción es permanente y no se puede deshacer. El usuario perderá el acceso inmediatamente y todas sus asignaciones activas serán liberadas.</p>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-secondary" onclick="cerrarModal('deleteModal')">Cancelar</button>
+                    <button class="btn-danger" onclick="confirmarEliminar()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="3 6 5 6 21 6" stroke-width="2"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" stroke-width="2"/>
+                        </svg>
+                        Sí, eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         MODAL: Ver Perfil
+    ══════════════════════════════════════ -->
+    <div class="modal" id="profileModal">
+        <div class="modal-overlay" onclick="cerrarModal('profileModal')"></div>
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <h2>Perfil de Usuario</h2>
+                <button class="modal-close" onclick="cerrarModal('profileModal')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="profileContent">
+                <!-- injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/app.js"></script>
+    <script src="../js/theme-toggle.js"></script>
+    <script>
+    // ══════════════════════════════════════════
+    //  DATA
+    // ══════════════════════════════════════════
+    let usuarios = [
+        { id: 'USR-001', nombre: 'Carlos',    apellidos: 'Ramírez Mora',    email: 'c.ramirez@tsj.mx',        control: 'E-0001', rol: 'administrador', estado: 'Activo',   ultimoAcceso: '22 Feb 2026', hora: '08:12',  permisos: ['all'] },
+        { id: 'USR-002', nombre: 'Laura',     apellidos: 'Mendoza Torres',  email: 'l.mendoza@tsj.mx',        control: 'E-0002', rol: 'administrador', estado: 'Activo',   ultimoAcceso: '21 Feb 2026', hora: '17:45',  permisos: ['all'] },
+        { id: 'USR-003', nombre: 'Jorge',     apellidos: 'García López',    email: 'j.garcia@tsj.mx',         control: 'E-1021', rol: 'docente',       estado: 'Activo',   ultimoAcceso: '20 Feb 2026', hora: '09:30',  permisos: ['activos','consumibles','asignaciones','reportes'] },
+        { id: 'USR-004', nombre: 'Ana',       apellidos: 'Flores Ruiz',     email: 'a.flores@tsj.mx',         control: 'E-1034', rol: 'docente',       estado: 'Activo',   ultimoAcceso: '18 Feb 2026', hora: '14:05',  permisos: ['activos','consumibles'] },
+        { id: 'USR-005', nombre: 'Miguel',    apellidos: 'Ortiz Sánchez',   email: 'm.ortiz@tsj.mx',          control: 'E-1078', rol: 'docente',       estado: 'Inactivo', ultimoAcceso: '10 Feb 2026', hora: '11:20',  permisos: ['activos'] },
+        { id: 'USR-006', nombre: 'Valeria',   apellidos: 'Cruz Hernández',  email: '20230034@alumnos.tsj.mx', control: '20230034', rol: 'alumno',      estado: 'Activo',   ultimoAcceso: '22 Feb 2026', hora: '10:50',  permisos: [] },
+        { id: 'USR-007', nombre: 'Diego',     apellidos: 'Reyes Castillo',  email: '20230087@alumnos.tsj.mx', control: '20230087', rol: 'alumno',      estado: 'Activo',   ultimoAcceso: '21 Feb 2026', hora: '16:30',  permisos: [] },
+        { id: 'USR-008', nombre: 'Sofía',     apellidos: 'Luna Morales',    email: '20220156@alumnos.tsj.mx', control: '20220156', rol: 'alumno',      estado: 'Bloqueado',ultimoAcceso: '05 Feb 2026', hora: '13:15',  permisos: [] },
+        { id: 'USR-009', nombre: 'Emilio',    apellidos: 'Vega Domínguez',  email: '20230198@alumnos.tsj.mx', control: '20230198', rol: 'alumno',      estado: 'Activo',   ultimoAcceso: '19 Feb 2026', hora: '08:45',  permisos: [] },
+    ];
+
+    let rolActivo = 'todos';
+    let eliminarId = null;
+    let vistaActual = 'tabla';
+
+    // ── Helpers ──
+    function iniciales(u) { return (u.nombre[0] + (u.apellidos[0] || '')).toUpperCase(); }
+    function avatarClass(rol) { return { administrador: 'avatar-admin', docente: 'avatar-docente', alumno: 'avatar-alumno' }[rol] || 'avatar-admin'; }
+    function badgeRolClass(rol) { return { administrador: 'badge-admin', docente: 'badge-docente', alumno: 'badge-alumno' }[rol] || ''; }
+    function badgeRolLabel(rol) { return { administrador: 'Administrador', docente: 'Docente', alumno: 'Alumno' }[rol] || rol; }
+    function badgeEstadoClass(e) { return { Activo: 'badge-activo', Inactivo: 'badge-inactivo', Bloqueado: 'badge-bloqueado' }[e] || ''; }
+
+    function usuariosFiltrados() {
+        const search  = document.getElementById('userSearch').value.toLowerCase();
+        const estado  = document.getElementById('filterEstado').value;
+        return usuarios.filter(u => {
+            const matchRol    = rolActivo === 'todos' || u.rol === rolActivo;
+            const matchEstado = !estado || u.estado === estado;
+            const matchSearch = !search || (u.nombre + ' ' + u.apellidos + ' ' + u.email + ' ' + u.control).toLowerCase().includes(search);
+            return matchRol && matchEstado && matchSearch;
         });
+    }
+
+    // ── Render Table ──
+    function renderTabla() {
+        const lista = usuariosFiltrados();
+        const tbody = document.getElementById('userTableBody');
+        document.getElementById('tableInfo').innerHTML = `Mostrando <strong>${lista.length}</strong> de <strong>${usuarios.length}</strong> usuarios`;
+
+        tbody.innerHTML = lista.map(u => `
+            <tr data-id="${u.id}" data-rol="${u.rol}" data-estado="${u.estado}">
+                <td><input type="checkbox" class="table-checkbox"></td>
+                <td><span class="user-id">${u.id}</span></td>
+                <td>
+                    <div class="user-cell">
+                        <div class="user-avatar-sm ${avatarClass(u.rol)}">${iniciales(u)}</div>
+                        <div class="user-cell-info">
+                            <span class="user-cell-name">${u.nombre} ${u.apellidos}</span>
+                            <span class="user-cell-email">${u.email}</span>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="badge ${badgeRolClass(u.rol)}">${badgeRolLabel(u.rol)}</span></td>
+                <td>${u.control}</td>
+                <td><span class="badge ${badgeEstadoClass(u.estado)}">${u.estado}</span></td>
+                <td>
+                    <div class="last-access">
+                        <span class="last-access-date">${u.ultimoAcceso}</span>
+                        <span class="last-access-time">${u.hora}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-action" title="Ver perfil"    onclick="verPerfil('${u.id}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+                        </button>
+                        <button class="btn-action" title="Editar"        onclick="editarUsuario('${u.id}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/></svg>
+                        </button>
+                        <button class="btn-action" title="${u.estado === 'Bloqueado' ? 'Desbloquear' : 'Bloquear'}" onclick="toggleBloqueo('${u.id}')">
+                            ${u.estado === 'Bloqueado'
+                                ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="11" width="18" height="11" rx="2" stroke-width="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1" stroke-width="2" stroke-linecap="round"/></svg>`
+                                : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="11" width="18" height="11" rx="2" stroke-width="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke-width="2"/></svg>`
+                            }
+                        </button>
+                        <button class="btn-action" title="Eliminar"      onclick="abrirEliminar('${u.id}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6" stroke-width="2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/></svg>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+
+        if (lista.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:3rem;color:var(--color-text-secondary);">No se encontraron usuarios con los filtros aplicados.</td></tr>`;
+        }
+    }
+
+    // ── Render Cards ──
+    function renderCards() {
+        const lista = usuariosFiltrados();
+        const grid = document.getElementById('cardGrid');
+        grid.innerHTML = lista.map(u => `
+            <div class="user-card role-${u.rol}">
+                <div class="user-card-header">
+                    <div class="user-card-avatar ${avatarClass(u.rol)}">${iniciales(u)}</div>
+                    <div class="user-card-info">
+                        <p class="user-card-name">${u.nombre} ${u.apellidos}</p>
+                        <p class="user-card-email">${u.email}</p>
+                    </div>
+                </div>
+                <div class="user-card-body">
+                    <div class="user-card-row">
+                        <span class="user-card-row-label">Rol</span>
+                        <span class="badge ${badgeRolClass(u.rol)}">${badgeRolLabel(u.rol)}</span>
+                    </div>
+                    <div class="user-card-row">
+                        <span class="user-card-row-label">No. Control</span>
+                        <span>${u.control}</span>
+                    </div>
+                    <div class="user-card-row">
+                        <span class="user-card-row-label">Estado</span>
+                        <span class="badge ${badgeEstadoClass(u.estado)}">${u.estado}</span>
+                    </div>
+                    <div class="user-card-row">
+                        <span class="user-card-row-label">Último acceso</span>
+                        <span style="font-size:.82rem;">${u.ultimoAcceso}</span>
+                    </div>
+                </div>
+                <div class="user-card-actions">
+                    <button class="btn-action" style="flex:0;width:32px;" title="Ver perfil" onclick="verPerfil('${u.id}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+                    </button>
+                    <button class="btn-action" style="flex:1;" title="Editar" onclick="editarUsuario('${u.id}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/></svg>
+                    </button>
+                    <button class="btn-action" style="flex:0;width:32px;" title="Eliminar" onclick="abrirEliminar('${u.id}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6" stroke-width="2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/></svg>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        if (lista.length === 0) {
+            grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--color-text-secondary);">No se encontraron usuarios.</div>`;
+        }
+    }
+
+    function render() {
+        renderTabla();
+        renderCards();
+        actualizarContadores();
+    }
+
+    function actualizarContadores() {
+        const total = usuarios.length;
+        const admins   = usuarios.filter(u => u.rol === 'administrador').length;
+        const docentes = usuarios.filter(u => u.rol === 'docente').length;
+        const alumnos  = usuarios.filter(u => u.rol === 'alumno').length;
+
+        document.getElementById('statTotal').textContent   = total;
+        document.getElementById('statAdmin').textContent   = admins;
+        document.getElementById('statDocente').textContent = docentes;
+        document.getElementById('statAlumno').textContent  = alumnos;
+
+        document.getElementById('tab-todos').textContent        = total;
+        document.getElementById('tab-administrador').textContent = admins;
+        document.getElementById('tab-docente').textContent      = docentes;
+        document.getElementById('tab-alumno').textContent       = alumnos;
+    }
+
+    // ── View toggle ──
+    function setView(v) {
+        vistaActual = v;
+        const tabla = document.getElementById('tableView');
+        const cards = document.getElementById('cardGrid');
+        const btnT  = document.getElementById('btnTabla');
+        const btnC  = document.getElementById('btnCards');
+        if (v === 'tabla') {
+            tabla.classList.remove('hidden'); cards.classList.remove('visible');
+            btnT.classList.add('active'); btnC.classList.remove('active');
+        } else {
+            tabla.classList.add('hidden'); cards.classList.add('visible');
+            btnT.classList.remove('active'); btnC.classList.add('active');
+        }
+        render();
+    }
+
+    // ── Role tab filter ──
+    function filtrarRol(rol, btn) {
+        rolActivo = rol;
+        document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        render();
+    }
+
+    // ── Search & filter events ──
+    document.getElementById('userSearch').addEventListener('input', render);
+    document.getElementById('filterEstado').addEventListener('change', render);
+
+    // ── Select all ──
+    document.addEventListener('change', function(e) {
+        if (e.target.id === 'selectAll') {
+            document.querySelectorAll('#userTableBody .table-checkbox').forEach(cb => cb.checked = e.target.checked);
+        }
+    });
+
+    // ══════════════════════════════════════════
+    //  MODAL: Nuevo / Editar
+    // ══════════════════════════════════════════
+    function limpiarForm() {
+        document.getElementById('userForm').reset();
+        document.getElementById('userId').value = '';
+        document.getElementById('rolInfoBox').style.display = 'none';
+        document.getElementById('permisosSection').style.display = 'none';
+        ['bar1','bar2','bar3','bar4'].forEach(b => { document.getElementById(b).className = 'strength-bar'; });
+        document.getElementById('strengthLabel').textContent = 'Ingresa una contraseña';
+    }
+
+    function abrirModalNuevo() {
+        limpiarForm();
+        document.getElementById('modalTitulo').textContent = 'Nuevo Usuario';
+        document.getElementById('fPassword').required = true;
+        document.getElementById('fPasswordConfirm').required = true;
+        document.getElementById('userModal').classList.add('active');
+    }
+
+    function editarUsuario(id) {
+        const u = usuarios.find(x => x.id === id);
+        if (!u) return;
+        limpiarForm();
+        document.getElementById('modalTitulo').textContent = 'Editar Usuario';
+        document.getElementById('userId').value     = u.id;
+        document.getElementById('fNombre').value    = u.nombre;
+        document.getElementById('fApellidos').value = u.apellidos;
+        document.getElementById('fEmail').value     = u.email;
+        document.getElementById('fControl').value   = u.control;
+        document.getElementById('fRol').value       = u.rol;
+        document.getElementById('fEstado').value    = u.estado;
+        document.getElementById('fPassword').required = false;
+        document.getElementById('fPasswordConfirm').required = false;
+        actualizarInfoRol();
+
+        // Restore permissions
+        const checks = document.querySelectorAll('#permisosSection input[type="checkbox"]');
+        checks.forEach(cb => { cb.checked = u.permisos.includes('all') || u.permisos.includes(cb.value); });
+
+        document.getElementById('userModal').classList.add('active');
+    }
+
+    function actualizarInfoRol() {
+        const rol = document.getElementById('fRol').value;
+        const box = document.getElementById('rolInfoBox');
+        const perm = document.getElementById('permisosSection');
+        const info = {
+            administrador: { cls: 'role-info-admin',   txt: 'Acceso completo al sistema: puede crear, editar y eliminar usuarios, activos, consumibles, asignaciones. Tiene acceso a auditoría y configuración.' },
+            docente:       { cls: 'role-info-docente',  txt: 'Acceso de consulta y operación limitada. Puede ver activos y consumibles, registrar movimientos, y descargar reportes según los permisos asignados.' },
+            alumno:        { cls: 'role-info-alumno',   txt: 'Acceso de solo lectura. Puede consultar activos e historial de préstamos propios. No puede realizar modificaciones al inventario.' },
+        };
+        if (rol && info[rol]) {
+            box.className = `role-info-card ${info[rol].cls}`;
+            box.textContent = info[rol].txt;
+            box.style.display = 'block';
+            perm.style.display = rol !== 'alumno' ? 'block' : 'none';
+            if (rol === 'administrador') {
+                document.querySelectorAll('#permisosSection input[type="checkbox"]').forEach(cb => cb.checked = true);
+            }
+        } else {
+            box.style.display = 'none';
+            perm.style.display = 'none';
+        }
+    }
+
+    function guardarUsuario(e) {
+        e.preventDefault();
+        const pwd  = document.getElementById('fPassword').value;
+        const pwd2 = document.getElementById('fPasswordConfirm').value;
+        const id   = document.getElementById('userId').value;
+
+        if (pwd && pwd !== pwd2) {
+            showToast('Las contraseñas no coinciden.', 'error'); return;
+        }
+
+        const permisos = [];
+        const rol = document.getElementById('fRol').value;
+        if (rol === 'administrador') {
+            permisos.push('all');
+        } else {
+            document.querySelectorAll('#permisosSection input[type="checkbox"]:checked').forEach(cb => permisos.push(cb.value));
+        }
+
+        const nuevo = {
+            id:          id || `USR-${String(usuarios.length + 1).padStart(3,'0')}`,
+            nombre:      document.getElementById('fNombre').value.trim(),
+            apellidos:   document.getElementById('fApellidos').value.trim(),
+            email:       document.getElementById('fEmail').value.trim(),
+            control:     document.getElementById('fControl').value.trim(),
+            rol,
+            estado:      document.getElementById('fEstado').value,
+            ultimoAcceso: '—',
+            hora:         '—',
+            permisos,
+        };
+
+        if (id) {
+            const idx = usuarios.findIndex(u => u.id === id);
+            nuevo.ultimoAcceso = usuarios[idx].ultimoAcceso;
+            nuevo.hora         = usuarios[idx].hora;
+            usuarios[idx] = nuevo;
+            showToast(`Usuario "${nuevo.nombre} ${nuevo.apellidos}" actualizado.`, 'success');
+        } else {
+            usuarios.push(nuevo);
+            showToast(`Usuario "${nuevo.nombre} ${nuevo.apellidos}" creado correctamente.`, 'success');
+        }
+
+        cerrarModal('userModal');
+        render();
+    }
+
+    // ══════════════════════════════════════════
+    //  MODAL: Eliminar
+    // ══════════════════════════════════════════
+    function abrirEliminar(id) {
+        eliminarId = id;
+        const u = usuarios.find(x => x.id === id);
+        document.getElementById('deleteUserName').textContent = `¿Eliminar a "${u.nombre} ${u.apellidos}"?`;
+        document.getElementById('deleteModal').classList.add('active');
+    }
+
+    function confirmarEliminar() {
+        if (!eliminarId) return;
+        const u = usuarios.find(x => x.id === eliminarId);
+        usuarios = usuarios.filter(x => x.id !== eliminarId);
+        cerrarModal('deleteModal');
+        showToast(`Usuario "${u.nombre} ${u.apellidos}" eliminado.`, 'info');
+        eliminarId = null;
+        render();
+    }
+
+    // ══════════════════════════════════════════
+    //  MODAL: Ver Perfil
+    // ══════════════════════════════════════════
+    function verPerfil(id) {
+        const u = usuarios.find(x => x.id === id);
+        const rolColors = { administrador: 'var(--color-primary)', docente: 'var(--color-info)', alumno: 'var(--color-secondary)' };
+        const color = rolColors[u.rol] || 'var(--color-primary)';
+
+        document.getElementById('profileContent').innerHTML = `
+            <div style="text-align:center; padding: var(--spacing-md) 0;">
+                <div style="width:72px;height:72px;border-radius:50%;background:rgba(${u.rol==='administrador'?'63,75,245':u.rol==='docente'?'51,154,240':'78,205,196'},0.2);
+                    color:${color};display:flex;align-items:center;justify-content:center;
+                    font-family:var(--font-display);font-weight:700;font-size:1.5rem;margin:0 auto var(--spacing-md);">
+                    ${iniciales(u)}
+                </div>
+                <h3 style="font-size:1.2rem;margin-bottom:4px;">${u.nombre} ${u.apellidos}</h3>
+                <p style="color:var(--color-text-secondary);font-size:.9rem;">${u.email}</p>
+                <span class="badge ${badgeRolClass(u.rol)}" style="margin-top:8px;">${badgeRolLabel(u.rol)}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-md);padding:var(--spacing-md) 0;border-top:1px solid var(--color-border);border-bottom:1px solid var(--color-border);margin:var(--spacing-md) 0;">
+                <div>
+                    <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;">ID</p>
+                    <p style="font-weight:500;">${u.id}</p>
+                </div>
+                <div>
+                    <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;">No. Control/Emp.</p>
+                    <p style="font-weight:500;">${u.control}</p>
+                </div>
+                <div>
+                    <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;">Estado</p>
+                    <span class="badge ${badgeEstadoClass(u.estado)}">${u.estado}</span>
+                </div>
+                <div>
+                    <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;">Último acceso</p>
+                    <p style="font-weight:500;">${u.ultimoAcceso} <span style="color:var(--color-text-secondary)">${u.hora}</span></p>
+                </div>
+            </div>
+            ${u.permisos.length > 0 ? `
+                <div>
+                    <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:var(--spacing-sm);text-transform:uppercase;letter-spacing:.5px;">Permisos</p>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                        ${u.permisos.includes('all')
+                            ? `<span class="badge badge-admin">Acceso completo</span>`
+                            : u.permisos.map(p => `<span class="badge" style="background:var(--color-surface-raised);color:var(--color-text-secondary);">${p}</span>`).join('')
+                        }
+                    </div>
+                </div>` : ''}
+            <div style="margin-top:var(--spacing-lg);display:flex;gap:var(--spacing-md);">
+                <button class="btn-secondary" onclick="cerrarModal('profileModal');editarUsuario('${u.id}')" style="flex:1;justify-content:center;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:16px;height:16px;stroke-width:2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Editar
+                </button>
+                <button class="btn-secondary" onclick="cerrarModal('profileModal')" style="flex:1;justify-content:center;">Cerrar</button>
+            </div>
+        `;
+        document.getElementById('profileModal').classList.add('active');
+    }
+
+    // ══════════════════════════════════════════
+    //  BLOQUEO RÁPIDO
+    // ══════════════════════════════════════════
+    function toggleBloqueo(id) {
+        const u = usuarios.find(x => x.id === id);
+        if (!u) return;
+        if (u.estado === 'Bloqueado') {
+            u.estado = 'Activo';
+            showToast(`${u.nombre} ${u.apellidos} desbloqueado.`, 'success');
+        } else {
+            u.estado = 'Bloqueado';
+            showToast(`${u.nombre} ${u.apellidos} bloqueado.`, 'info');
+        }
+        render();
+    }
+
+    // ══════════════════════════════════════════
+    //  PASSWORD STRENGTH
+    // ══════════════════════════════════════════
+    function evaluarPassword() {
+        const v = document.getElementById('fPassword').value;
+        const bars = [document.getElementById('bar1'), document.getElementById('bar2'), document.getElementById('bar3'), document.getElementById('bar4')];
+        bars.forEach(b => b.className = 'strength-bar');
+        let score = 0;
+        if (v.length >= 8) score++;
+        if (/[A-Z]/.test(v)) score++;
+        if (/[0-9]/.test(v)) score++;
+        if (/[^A-Za-z0-9]/.test(v)) score++;
+
+        const levels = ['weak','medium','medium','strong'];
+        const labels = ['Muy débil','Débil','Media','Fuerte'];
+        for (let i = 0; i < score; i++) bars[i].classList.add(levels[score - 1]);
+        document.getElementById('strengthLabel').textContent = score > 0 ? labels[score - 1] : 'Ingresa una contraseña';
+    }
+
+    // ══════════════════════════════════════════
+    //  MODALS
+    // ══════════════════════════════════════════
+    function cerrarModal(id) { document.getElementById(id).classList.remove('active'); }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') ['userModal','deleteModal','profileModal'].forEach(cerrarModal); });
+
+    // ══════════════════════════════════════════
+    //  EXPORT
+    // ══════════════════════════════════════════
+    function exportarUsuarios() {
+        showToast('Exportando usuarios en Excel…', 'info');
+        setTimeout(() => showToast('Archivo listo para descargar.', 'success'), 1800);
+    }
+
+    // ══════════════════════════════════════════
+    //  SIDEBAR / LOGOUT
+    // ══════════════════════════════════════════
+    document.querySelector('.sidebar-toggle').addEventListener('click', function() {
+        document.querySelector('.sidebar').classList.toggle('collapsed');
+    });
+    document.querySelector('.logout-btn').addEventListener('click', function() {
+        if (confirm('¿Estás seguro de que deseas cerrar sesión?')) window.location.href = '../login.html';
+    });
+
+    // ══════════════════════════════════════════
+    //  TOAST
+    // ══════════════════════════════════════════
+    function showToast(message, type = 'info') {
+        let container = document.querySelector('.toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'toast-container';
+            container.style.cssText = 'position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:9999;';
+            document.body.appendChild(container);
+        }
+        const colors = { info: 'var(--color-info)', success: 'var(--color-success)', warning: 'var(--color-warning)', error: 'var(--color-danger)' };
+        const toast = document.createElement('div');
+        toast.style.cssText = `background:var(--color-surface);border:1px solid var(--color-border);border-left:4px solid ${colors[type]||colors.info};padding:12px 18px;border-radius:8px;font-size:.9rem;box-shadow:var(--shadow-md);max-width:320px;opacity:0;transform:translateX(20px);transition:all .25s ease;`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)'; setTimeout(() => toast.remove(), 300); }, 3500);
+    }
+
+    // ── Init ──
+    render();
     </script>
 </body>
 </html>
