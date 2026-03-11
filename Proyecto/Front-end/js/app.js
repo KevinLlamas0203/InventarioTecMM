@@ -17,10 +17,50 @@ document.addEventListener('DOMContentLoaded', function() {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                const depth = window.location.pathname.split('/').filter(Boolean).length;
-                window.location.href = depth > 1 ? '../login.html' : 'login.html';
+            
+            // Inyectar modal dinámicamente si no existe (solución global para Dashboard y otras páginas)
+            let logoutModal = document.getElementById('logoutModal');
+            
+            if (!logoutModal) {
+                const modalHTML = `
+                    <div class="modal" id="logoutModal">
+                        <div class="modal-overlay"></div>
+                        <div class="modal-content" style="max-width: 400px;">
+                            <div class="modal-header">
+                                <h2>Cerrar Sesión</h2>
+                                <button class="modal-close" aria-label="Cerrar modal">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p style="color: var(--color-text-secondary); margin-bottom: 2rem;">
+                                    ¿Estás seguro de que deseas salir del sistema?
+                                </p>
+                                <div class="modal-actions">
+                                    <button class="btn-secondary modal-cancel">Cancelar</button>
+                                    <button class="btn-primary modal-confirm">Cerrar Sesión</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+                logoutModal = document.getElementById('logoutModal');
+
+                // Asignar eventos al nuevo modal
+                const closeModal = () => logoutModal.classList.remove('active');
+                
+                logoutModal.querySelectorAll('.modal-close, .modal-overlay, .modal-cancel').forEach(el => el.addEventListener('click', closeModal));
+                
+                logoutModal.querySelector('.modal-confirm').addEventListener('click', () => {
+                    const depth = window.location.pathname.split('/').filter(Boolean).length;
+                    window.location.href = depth > 1 ? '../login.html' : 'login.html';
+                });
             }
+            
+            logoutModal.classList.add('active');
         });
     }
     

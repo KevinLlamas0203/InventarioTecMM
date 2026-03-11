@@ -12,6 +12,21 @@
     <link rel="icon" type="image/png" sizes="16x16" href="../../images/favicon_io/favicon-16x16.png">
     <link rel="manifest" href="../../images/favicon_io/site.webmanifest">
     <link rel="shortcut icon" href="../../images/favicon_io/favicon.ico">
+    <style>
+        /* Estilos para el select de estado en la tabla */
+        .status-select {
+            padding: 6px 10px;
+            border-radius: 20px;
+            border: 1px solid transparent;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+        }
+        .status-select:focus {
+            outline: 2px solid var(--color-primary);
+        }
+    </style>
 </head>
 <body class="dashboard-page">
     <div class="dashboard-layout">
@@ -316,7 +331,7 @@
         </div>
     </div>
 
-
+    <script src="../js/app.js"></script>
     <script>
         const API_URL = "http://127.0.0.1:5000";
 
@@ -406,7 +421,14 @@
                         </div>
                     </td>
                     <td><span class="badge ${badgeCategoria}">${a.categoria}</span></td>
-                    <td><span class="status ${badgeEstado}">${a.estado}</span></td>
+                    <td>
+                        <select class="status-select ${badgeEstado}" onchange="cambiarEstadoRapido(${a.activo_id}, this.value, this)">
+                            <option value="Disponible" ${a.estado === 'Disponible' ? 'selected' : ''}>Disponible</option>
+                            <option value="En uso" ${a.estado === 'En uso' ? 'selected' : ''}>En uso</option>
+                            <option value="Mantenimiento" ${a.estado === 'Mantenimiento' ? 'selected' : ''}>Mantenimiento</option>
+                            <option value="Dado de baja" ${a.estado === 'Dado de baja' ? 'selected' : ''}>Dado de baja</option>
+                        </select>
+                    </td>
                     <td>${a.ubicacion || "—"}</td>
                     <td>${a.asignado_a || "—"}</td>
                     <td>${fechaMostrar}</td>
@@ -461,6 +483,43 @@
             } catch (err) {
                 console.error(err);
                 alert("Error de conexión con el servidor");
+            }
+        }
+
+        // ── ACTUALIZACIÓN RÁPIDA DE ESTADO ────────────────────────────────────
+        async function cambiarEstadoRapido(id, nuevoEstado, selectElement) {
+            try {
+                // 1. Obtener datos actuales del activo para no perder información
+                const resGet = await fetch(`${API_URL}/activos/${id}`);
+                if (!resGet.ok) throw new Error("Error al obtener datos");
+                const currentAsset = await resGet.json();
+
+                // 2. Actualizar solo el estado
+                currentAsset.estado = nuevoEstado;
+
+                // 3. Enviar actualización
+                const resPut = await fetch(`${API_URL}/activos/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(currentAsset)
+                });
+                
+                if (resPut.ok) {
+                    // Actualizar color del select visualmente
+                    const badgeEstado = {
+                        "Disponible":    "status-available",
+                        "En uso":        "status-inuse",
+                        "Mantenimiento": "status-maintenance",
+                        "Dado de baja":  "status-retired"
+                    }[nuevoEstado] || "status-available";
+                    
+                    selectElement.className = `status-select ${badgeEstado}`;
+                } else {
+                    alert("No se pudo actualizar el estado.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error de conexión al cambiar estado.");
             }
         }
 
