@@ -309,11 +309,24 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Ubicación</label>
-                            <input type="text" id="inputUbicacion" placeholder="Ej: Lab 301">
+                            <select id="inputUbicacion" required>
+                                <option value="">Seleccionar ubicación</option>
+                                <option value="Edificio A - Lab 101">Edificio A - Lab 101</option>
+                                <option value="Edificio A - Lab 102">Edificio A - Lab 102</option>
+                                <option value="Edificio B - Lab 201">Edificio B - Lab 201</option>
+                                <option value="Edificio B - Lab 202">Edificio B - Lab 202</option>
+                                <option value="Edificio C - Laboratorio Central">Edificio C - Laboratorio Central</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label>Asignado a (ID usuario)</label>
-                            <input type="number" id="inputAsignadoA" placeholder="ID del usuario (opcional)">
+                            <label>Asignado a</label>
+                            <select id="inputAsignadoA">
+                                <option value="">No asignado</option>
+                                <option value="Ana García">Ana García</option>
+                                <option value="Carlos Ruiz">Carlos Ruiz</option>
+                                <option value="María López">María López</option>
+                                <option value="David Ramírez">David Ramírez</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-row">
@@ -778,7 +791,7 @@
                 descripcion: document.getElementById('inputDescripcion').value.trim() || null,
                 categoria:   document.getElementById('inputCategoria').value,
                 estado:      document.getElementById('inputEstado').value,
-                ubicacion:   document.getElementById('inputUbicacion').value.trim() || null,
+                ubicacion:   document.getElementById('inputUbicacion').value || null,
                 asignado_a:  document.getElementById('inputAsignadoA').value || null,
                 fecha_alta:  document.getElementById('inputFechaAlta').value || null
             };

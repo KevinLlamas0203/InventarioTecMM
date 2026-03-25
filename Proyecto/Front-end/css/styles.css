@@ -1423,6 +1423,16 @@ input, textarea, select {
     color: var(--color-info);
 }
 
+.badge-success {
+    background: rgba(34, 197, 94, 0.15);
+    color: #10b981;
+}
+
+.badge-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
 .status {
     display: inline-block;
     padding: 4px 12px;
