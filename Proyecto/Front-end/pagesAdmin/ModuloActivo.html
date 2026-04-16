@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Módulo de Activos - Sistema de Inventario</title>
+    <title>Dashboard - Sistema de Inventario</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -144,12 +144,12 @@
                             <rect x="14" y="14" width="7" height="7" stroke-width="2" rx="1"/>
                             <rect x="3" y="14" width="7" height="7" stroke-width="2" rx="1"/>
                         </svg>
-                        <span>Panel de Control</span>
+                        <span>Dashboard</span>
                     </a>
                 </div>
                 <div class="nav-section">
                     <span class="nav-section-title">Gestión</span>
-                    <a href="moduloActivo.html" class="nav-item active">
+                    <a href="moduloActivo.html" class="nav-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
                             <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
@@ -197,10 +197,12 @@
         </aside>
 
         <main class="main-content">
-            <section class="module-header">
-                <h1>Módulo de Activos</h1>
-                <p>Catálogo, movimientos y resguardos</p>
-            </section>
+            <header class="content-header">
+                <div class="header-left">
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Resumen general del inventario ISC</p>
+                </div>
+            </header>
 
             <section class="tabs-panel" role="tablist" aria-label="Secciones del módulo de activos">
                 <button class="tab-button active" data-tab="catalogo" type="button" aria-selected="true">
