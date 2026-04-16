@@ -64,7 +64,7 @@
                 
                 <div class="nav-section">
                     <span class="nav-section-title">Gestión</span>
-                    <a href="activos.html" class="nav-item active">
+                    <a href="ModuloActivo.html" class="nav-item active">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
                             <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
@@ -791,7 +791,7 @@
                 descripcion: document.getElementById('inputDescripcion').value.trim() || null,
                 categoria:   document.getElementById('inputCategoria').value,
                 estado:      document.getElementById('inputEstado').value,
-                ubicacion:   document.getElementById('inputUbicacion').value || null,
+                ubicacion:   document.getElementById('inputUbicacion').value.trim() || null,
                 asignado_a:  document.getElementById('inputAsignadoA').value || null,
                 fecha_alta:  document.getElementById('inputFechaAlta').value || null
             };

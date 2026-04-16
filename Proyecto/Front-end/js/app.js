@@ -233,3 +233,25 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(el);
     });
 });
+
+function cambiarTab(tab) {
+    const frame = document.getElementById("frameContenido");
+    const tabs = document.querySelectorAll(".tab");
+
+    tabs.forEach(t => t.classList.remove("active"));
+
+    if (tab === "catalogo") {
+        frame.src = "activos.html";
+        tabs[0].classList.add("active");
+    }
+
+    if (tab === "movimientos") {
+        frame.src = "movimientos.html"; // crear después
+        tabs[1].classList.add("active");
+    }
+
+    if (tab === "resguardos") {
+        frame.src = "asignaciones.html";
+        tabs[2].classList.add("active");
+    }
+}
