@@ -12,80 +12,108 @@
         href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap"
         rel="stylesheet">
     <style>
-        .module-header {
-            background: linear-gradient(135deg, #2f3eb8 0%, #6b53f7 100%);
-            padding: 2rem 2rem 1.5rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 20px 50px rgba(23, 27, 60, 0.3);
-            margin-bottom: 1.5rem;
-            color: #fff;
-        }
-
-        .module-header h1 {
-            font-family: 'Archivo', sans-serif;
-            font-size: clamp(2rem, 2.75vw, 2.8rem);
-            margin: 0 0 0.5rem;
-            letter-spacing: -0.02em;
-        }
-
-        .module-header p {
-            margin: 0;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 1rem;
+        :root {
+            --bg-header-left: #0f172a;
+            --bg-header-right: #1e293b;
+            --text-main: #eff6ff;
+            --text-muted: rgba(255, 255, 255, 0.72);
+            --panel-bg: rgba(255, 255, 255, 0.05);
+            --panel-border: rgba(255, 255, 255, 0.1);
+            --tab-bg: rgba(255, 255, 255, 0.04);
+            --tab-hover: rgba(255, 255, 255, 0.08);
+            --active-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 55%, #ec4899 100%);
+            --active-shadow: 0 10px 30px rgba(100, 100, 255, 0.35);
         }
 
         .tabs-panel {
-            background: rgba(15, 15, 15, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 1.25rem;
-            padding: 0.75rem;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 1.5rem;
+            padding: 1rem;
             display: flex;
-            gap: 0.75rem;
+            gap: 0.9rem;
             flex-wrap: wrap;
             margin-bottom: 1.5rem;
+            box-shadow: 0 30px 80px rgba(4, 9, 30, 0.25);
+            backdrop-filter: blur(12px);
         }
 
         .tabs-panel button {
-            flex: 1 1 11rem;
-            min-width: 10rem;
-            border: none;
-            background: rgba(255, 255, 255, 0.04);
-            color: rgba(255, 255, 255, 0.85);
-            padding: 1rem 1.2rem;
-            border-radius: 1rem;
+            flex: 1 1 14rem;
+            min-width: 14rem;
+            border: 1px solid transparent;
+            background: var(--tab-bg);
+            color: var(--text-main);
+            padding: 1.05rem 1.2rem;
+            border-radius: 1.5rem;
             cursor: pointer;
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.975rem;
-            transition: transform 220ms ease, background 220ms ease, box-shadow 220ms ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.65rem;
+            font-size: 0.95rem;
+            transition: transform 220ms ease, background 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            gap: 0.95rem;
+            text-align: left;
+            outline: none;
+        }
+
+        .tabs-panel button svg {
+            width: 1.8rem;
+            height: 1.8rem;
+            color: rgba(226, 232, 255, 0.8);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .tabs-panel .tab-label {
+            display: grid;
+            gap: 0.28rem;
+        }
+
+        .tabs-panel .tab-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #f8fbff;
+        }
+
+        .tabs-panel .tab-subtitle {
+            font-size: 0.88rem;
+            color: rgba(226, 232, 255, 0.72);
+            line-height: 1.4;
         }
 
         .tabs-panel button:hover {
             transform: translateY(-1px);
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--tab-hover);
+            border-color: rgba(255, 255, 255, 0.16);
         }
 
         .tabs-panel button.active {
-            background: linear-gradient(135deg, #3f57f2 0%, #8b4ff1 100%);
-            box-shadow: 0 14px 32px rgba(63, 87, 242, 0.24);
+            background: var(--active-gradient);
             color: #fff;
+            box-shadow: var(--active-shadow);
+            transform: translateY(-2px);
+            border-color: transparent;
         }
 
         .tabs-panel button.active svg {
             color: #fff;
         }
 
+        .tabs-panel button.active .tab-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
         .tab-content {
             min-height: 520px;
             border-radius: 1.5rem;
-            background: rgba(18, 20, 34, 0.95);
+            background: rgba(15, 20, 38, 0.9);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 1.5rem;
+            padding: 1.75rem;
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
             animation: fadeContent 260ms ease;
+            backdrop-filter: blur(10px);
         }
 
         .tab-content.loading::after {
@@ -245,10 +273,13 @@
         </aside>
 
         <main class="main-content">
-            <section class="module-header">
-                <h1>Módulo de Activos</h1>
-                <p>Catálogo, movimientos y resguardos</p>
-            </section>
+            <header class="content-header">
+                <div class="header-left">
+                    <h1 class="page-title">Módulo de Activos</h1>
+                    <p class="page-subtitle">Catálogo, movimientos y resguardos</p>
+                </div>
+
+            </header>
 
             <section class="tabs-panel" role="tablist" aria-label="Secciones del módulo de activos">
                 <button class="tab-button active" data-tab="catalogo" type="button" aria-selected="true">
@@ -256,7 +287,10 @@
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2" />
                         <polyline points="14 2 14 8 20 8" stroke-width="2" />
                     </svg>
-                    Catálogo
+                    <div class="tab-label">
+                        <span class="tab-title">Catálogo</span>
+                        <span class="tab-subtitle">Explora el inventario completo</span>
+                    </div>
                 </button>
                 <button class="tab-button" data-tab="movimientos" type="button" aria-selected="false">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="18" height="18">
@@ -264,7 +298,10 @@
                         <polyline points="7 10 12 15 17 10" stroke-width="2" />
                         <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" />
                     </svg>
-                    Movimientos
+                    <div class="tab-label">
+                        <span class="tab-title">Movimientos</span>
+                        <span class="tab-subtitle">Registra entradas y salidas</span>
+                    </div>
                 </button>
                 <button class="tab-button" data-tab="resguardos" type="button" aria-selected="false">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="18" height="18">
@@ -272,7 +309,10 @@
                         <circle cx="9" cy="7" r="4" stroke-width="2" />
                         <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2" />
                     </svg>
-                    Resguardos
+                    <div class="tab-label">
+                        <span class="tab-title">Resguardos</span>
+                        <span class="tab-subtitle">Controla las asignaciones y custodios</span>
+                    </div>
                 </button>
             </section>
 
