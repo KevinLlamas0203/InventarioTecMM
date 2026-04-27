@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historial de Movimientos</title>
+</head>
+<body>
+
+<main class="main-content movimientos-page">
+<style>
+  .movimientos-page,
+  .movimientos-page *,
+  .movimientos-page *::before,
+  .movimientos-page *::after {
+    box-sizing: border-box;
+  }
+
+  .movimientos-page {
+    --bg: #090d17;
+    --surface: #111827;
+    --surface-strong: #131a2d;
+    --surface-soft: rgba(255,255,255,0.06);
+    --border: rgba(148,163,184,0.16);
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-soft: #cbd5e1;
+    --accent: #667eea;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --radius: 14px;
+    --radius-sm: 10px;
+    --spacing: 1rem;
+    --spacing-sm: 0.75rem;
+    --spacing-xs: 0.5rem;
+  }
+
+  .movimientos-page {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: radial-gradient(circle at top, rgba(102,126,234,0.14), transparent 35%), #080d19;
+    color: var(--text);
+    min-height: 100%;
+    width: 100%;
+    padding: 0 0 2rem;
+    display: block;
+    margin: 0;
+  }
+
+  .movimientos-page select,
+  .movimientos-page .filter-select,
+  .movimientos-page .asset-form select {
+    width: 100%;
+    background: #111827;
+    color: #eef2ff;
+    border: 1px solid rgba(148,163,184,0.24);
+    border-radius: 14px;
+    padding: 0.78rem 0.95rem;
+    font-size: 0.93rem;
+    appearance: none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  }
+
+  .movimientos-page select option {
+    background: #0f172a;
+    color: #e2e8f0;
+  }
+
+  .movimientos-page select:focus,
+  .movimientos-page .filter-select:focus {
+    outline: none;
+    border-color: rgba(99,102,241,0.6);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.16);
+  }
+
+  /* ─── HEADER ─── */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+  .page-header h1 {
+    font-size: 1.85rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+  }
+  .page-header p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    max-width: 520px;
+    line-height: 1.6;
+  }
+  .btn-register {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 0.8rem 1.35rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .btn-register:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 40px rgba(79,70,229,0.18);
+  }
+  .btn-register svg { width: 18px; height: 18px; }
+
+  /* ─── STAT CARDS ─── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 570px) { .stats-grid { grid-template-columns: 1fr; } }
+
+  .stat-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.15rem 1.15rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: 110px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #6366f1, #8b5cf6);
+  }
+  .stat-card.green::before { background: linear-gradient(180deg, #22c55e, #16a34a); }
+  .stat-card.purple::before { background: linear-gradient(180deg, #8b5cf6, #7c3aed); }
+  .stat-card.orange::before { background: linear-gradient(180deg, #f59e0b, #ea580c); }
+
+  .stat-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.08);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .stat-icon svg { width: 22px; height: 22px; stroke: var(--text); }
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.35rem;
+  }
+  .stat-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    opacity: 0.95;
+  }
+
+  /* ─── FILTERS PANEL ─── */
+  .filters-panel {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(148,163,184,0.12);
+    border-radius: 20px;
+    padding: 1.25rem 1.5rem 1.15rem;
+    margin-bottom: 1.5rem;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+  }
+  .filters-row {
+    display: flex;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .filter-group { flex: 1; min-width: 150px; }
+  .filter-group label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .filter-select {
+    width: 100%;
+    background: #111827;
+    border: 1px solid rgba(148,163,184,0.24);
+    border-radius: 14px;
+    padding: 0.78rem 0.95rem;
+    color: #eef2ff;
+    font-size: 0.92rem;
+    cursor: pointer;
+    appearance: none;
+  }
+  .filter-select option {
+    background: #0f172a;
+    color: #eef2ff;
+  }
+  .filter-select:focus {
+    outline: none;
+    border-color: rgba(99,102,241,0.6);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.16);
+  }
+
+  .btn-export {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    background: rgba(102,126,234,0.12);
+    border: 1px solid rgba(102,126,234,0.3);
+    color: #c7d2fe;
+    border-radius: 999px;
+    padding: 0.78rem 1.1rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.18s ease, transform 0.18s ease;
+    height: 42px;
+  }
+  .btn-export:hover {
+    background: rgba(102,126,234,0.2);
+    transform: translateY(-1px);
+  }
+  .btn-export svg { width: 16px; height: 16px; }
+
+  .results-count {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.85rem;
+  }
+
+  /* ─── TABLE ─── */
+  .table-wrapper {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(148,163,184,0.15);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.18);
+  }
+  .table-header {
+    background: rgba(255,255,255,0.03);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(148,163,184,0.12);
+  }
+  .table-header h3 {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .table-scroll { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    background: rgba(255,255,255,0.02);
+    padding: 0.95rem 1.25rem;
+    text-align: left;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid rgba(148,163,184,0.12);
+    white-space: nowrap;
+  }
+  tbody tr {
+    transition: background 0.18s ease, transform 0.18s ease;
+    background: rgba(255,255,255,0.02);
+  }
+  tbody tr:nth-child(odd) { background: rgba(255,255,255,0.03); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover {
+    background: rgba(255,255,255,0.08);
+    transform: translateY(-1px);
+  }
+  tbody td {
+    padding: 1rem 1.25rem;
+    vertical-align: middle;
+    color: var(--text-soft);
+  }
+
+  /* Date cell */
+  .date-main {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 0.92rem;
+  }
+  .date-time {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+  }
+
+  /* Asset cell */
+  .asset-name {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 0.92rem;
+  }
+  .asset-code {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.3rem;
+    font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+
+  /* Type badges */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+  .badge svg { width: 12px; height: 12px; flex-shrink: 0; }
+  .badge-mantenimiento { background: rgba(245,158,11,0.15); color: #f59e0b; border-color: rgba(245,158,11,0.24); }
+  .badge-asignacion    { background: rgba(139,92,246,0.14); color: #c4b5fd; border-color: rgba(139,92,246,0.24); }
+  .badge-devolucion    { background: rgba(34,211,238,0.12); color: #7dd3fc; border-color: rgba(34,211,238,0.24); }
+  .badge-transferencia { background: rgba(59,130,246,0.15); color: #93c5fd; border-color: rgba(59,130,246,0.28); }
+  .badge-alta          { background: rgba(34,197,94,0.14);  color: #86efac; border-color: rgba(34,197,94,0.26); }
+  .badge-baja          { background: rgba(239,68,68,0.15);  color: #fca5a5; border-color: rgba(239,68,68,0.24); }
+
+  /* Movement cell */
+  .mov-row {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+  }
+  .mov-origin {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    min-width: 160px;
+  }
+  .mov-origin small {
+    display: block;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.22rem;
+  }
+  .mov-arrow {
+    color: #6b7280;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
+  .mov-dest {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 0.92rem;
+  }
+
+  /* Notes */
+  .notes {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    max-width: 260px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
+
+<!-- HEADER -->
+<div class="page-header">
+  <div>
+    <h1>Historial de Movimientos</h1>
+    <p>Log global de transacciones del sistema</p>
+  </div>
+  <button class="btn-register" onclick="openMovementModal()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+    Registrar Movimiento
+  </button>
+</div>
+
+<!-- STATS -->
+<div class="stats-grid">
+  <div class="stat-card blue">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="stat-value">15</div>
+      <div class="stat-label">Movimientos Totales</div>
+    </div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    </div>
+    <div>
+      <div class="stat-value">0</div>
+      <div class="stat-label">Este Mes</div>
+    </div>
+  </div>
+  <div class="stat-card purple">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    </div>
+    <div>
+      <div class="stat-value">5</div>
+      <div class="stat-label">Asignaciones</div>
+    </div>
+  </div>
+  <div class="stat-card orange">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+    </div>
+    <div>
+      <div class="stat-value">1</div>
+      <div class="stat-label">Mantenimientos</div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-panel">
+  <div class="filters-row">
+    <div class="filter-group">
+      <label>Activo</label>
+      <select class="filter-select">
+        <option value="">Todos los activos</option>
+        <option>Laptop Dell XPS 13</option>
+        <option>Monitor LG 27"</option>
+        <option>Impresora HP LaserJet Pro</option>
+        <option>iPad Pro 12.9"</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Tipo de Movimiento</label>
+      <select class="filter-select">
+        <option value="">Todos los tipos</option>
+        <option>Asignación</option>
+        <option>Mantenimiento</option>
+        <option>Devolución</option>
+        <option>Transferencia</option>
+        <option>Alta</option>
+        <option>Baja</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Empleado</label>
+      <select class="filter-select">
+        <option value="">Todos los empleados</option>
+        <option>Juan Pérez</option>
+        <option>María López</option>
+        <option>Carlos Ruiz</option>
+        <option>Ana Torres</option>
+      </select>
+    </div>
+    <div class="filter-group" style="flex:0; min-width:auto;">
+      <label>&nbsp;</label>
+      <button class="btn-export">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
+        Exportar
+      </button>
+    </div>
+  </div>
+  <p class="results-count">Mostrando 15 de 15 movimientos</p>
+</div>
+
+<!-- TABLE -->
+<div class="table-wrapper">
+  <div class="table-header"><h3>Movimientos Recientes</h3></div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Activo</th>
+          <th>Tipo</th>
+          <th>Movimiento</th>
+          <th>Observaciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="date-main">20/3/2024</div>
+            <div class="date-time">11:00 a.m.</div>
+          </td>
+          <td>
+            <div class="asset-name">Impresora HP LaserJet Pro</div>
+            <div class="asset-code">PRN-2024-004</div>
+          </td>
+          <td>
+            <span class="badge badge-mantenimiento">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              Mantenimiento
+            </span>
+          </td>
+          <td>
+            <div class="mov-row">
+              <div class="mov-origin">Oficina Principal - Sala Común</div>
+              <span class="mov-arrow">→</span>
+              <div class="mov-dest">Taller de Mantenimiento</div>
+            </div>
+          </td>
+          <td><div class="notes">Revisión preventiva y limpieza general del equipo. Cambio de rodillos internos programado.</div></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="date-main">15/3/2024</div>
+            <div class="date-time">11:00 a.m.</div>
+          </td>
+          <td>
+            <div class="asset-name">iPad Pro 12.9"</div>
+            <div class="asset-code">TAB-2024-005</div>
+          </td>
+          <td>
+            <span class="badge badge-transferencia">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              Transferencia
+            </span>
+          </td>
+          <td>
+            <div class="mov-row">
+              <div class="mov-origin">
+                Oficina Principal - Piso 3
+                <small>Recursos Humanos</small>
+              </div>
+              <span class="mov-arrow">→</span>
+              <div class="mov-dest">María López</div>
+            </div>
+          </td>
+          <td><div class="notes">Transferencia entre departamentos aprobada por gerencia. Incluye accesorios y funda original.</div></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="date-main">5/3/2024</div>
+            <div class="date-time">09:00 a.m.</div>
+          </td>
+          <td>
+            <div class="asset-name">iPad Pro 12.9"</div>
+            <div class="asset-code">TAB-2024-005</div>
+          </td>
+          <td>
+            <span class="badge badge-asignacion">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+              Asignación
+            </span>
+          </td>
+          <td>
+            <div class="mov-row">
+              <div class="mov-origin">
+                Almacén General
+                <small>Sistemas</small>
+              </div>
+              <span class="mov-arrow">→</span>
+              <div class="mov-dest">Carlos Ruiz</div>
+            </div>
+          </td>
+          <td><div class="notes">Asignación para presentaciones y uso en campo. Registro firmado en acta de entrega.</div></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="date-main">15 Abr 2024</div>
+            <div class="date-time">14:30</div>
+          </td>
+          <td>
+            <div class="asset-name">Laptop Dell XPS 13</div>
+            <div class="asset-code">ACT-001</div>
+          </td>
+          <td>
+            <span class="badge badge-mantenimiento">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              Mantenimiento
+            </span>
+          </td>
+          <td>
+            <div class="mov-row">
+              <div class="mov-origin">Oficina Principal</div>
+              <span class="mov-arrow">→</span>
+              <div class="mov-dest">Sala de TI</div>
+            </div>
+          </td>
+          <td><div class="notes">Mantenimiento preventivo: actualización Windows 11 y limpieza interna del equipo.</div></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="date-main">12 Abr 2024</div>
+            <div class="date-time">09:15</div>
+          </td>
+          <td>
+            <div class="asset-name">Monitor LG 27"</div>
+            <div class="asset-code">ACT-002</div>
+          </td>
+          <td>
+            <span class="badge badge-asignacion">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+              Asignación
+            </span>
+          </td>
+          <td>
+            <div class="mov-row">
+              <div class="mov-origin">
+                Almacén
+                <small>Departamento de Diseño</small>
+              </div>
+              <span class="mov-arrow">→</span>
+              <div class="mov-dest">María García</div>
+            </div>
+          </td>
+          <td><div class="notes">Monitor asignado al nuevo diseñador gráfico. Calibración de color y perfil ICC configurados.</div></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="date-main">08 Abr 2024</div>
+            <div class="date-time">11:20</div>
+          </td>
+          <td>
+            <div class="asset-name">Laptop Dell XPS 13</div>
+            <div class="asset-code">ACT-001</div>
+          </td>
+          <td>
+            <span class="badge badge-asignacion">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+              Asignación
+            </span>
+          </td>
+          <td>
+            <div class="mov-row">
+              <div class="mov-origin">Almacén</div>
+              <span class="mov-arrow">→</span>
+              <div class="mov-dest">Carlos López</div>
+            </div>
+          </td>
+          <td><div class="notes">Laptop asignada al gerente de proyecto. Acceso VPN y credenciales corporativas configurados.</div></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="date-main">05 Abr 2024</div>
+            <div class="date-time">13:10</div>
+          </td>
+          <td>
+            <div class="asset-name">Monitor LG 27"</div>
+            <div class="asset-code">ACT-002</div>
+          </td>
+          <td>
+            <span class="badge badge-transferencia">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              Transferencia
+            </span>
+          </td>
+          <td>
+            <div class="mov-row">
+              <div class="mov-origin">
+                Oficina Diseño
+                <small>Sala de Conferencias</small>
+              </div>
+              <span class="mov-arrow">→</span>
+              <div class="mov-dest">Presentación</div>
+            </div>
+          </td>
+          <td><div class="notes">Monitor trasladado temporalmente para presentación de proyecto. Se devolverá a su ubicación original.</div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal para registrar nuevo movimiento -->
+<div class="modal" id="movementModal">
+  <div class="modal-overlay" onclick="closeMovementModal()"></div>
+  <div class="modal-content" style="max-width: 620px;">
+    <div class="modal-header">
+      <h2>Registrar Movimiento</h2>
+      <button class="modal-close" onclick="closeMovementModal()" aria-label="Cerrar modal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="movementForm" class="asset-form" onsubmit="handleMovementForm(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="movementAsset">Activo</label>
+            <select id="movementAsset" required>
+              <option value="">-- Seleccione un activo --</option>
+              <option value="Laptop Dell XPS 13">Laptop Dell XPS 13</option>
+              <option value="Monitor LG 27&quot;">Monitor LG 27"</option>
+              <option value="Impresora HP LaserJet Pro">Impresora HP LaserJet Pro</option>
+              <option value="iPad Pro 12.9&quot;">iPad Pro 12.9"</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="movementType">Tipo de Movimiento</label>
+            <select id="movementType" required>
+              <option value="">-- Seleccione tipo de movimiento --</option>
+              <option value="Asignación">Asignación</option>
+              <option value="Mantenimiento">Mantenimiento</option>
+              <option value="Devolución">Devolución</option>
+              <option value="Transferencia">Transferencia</option>
+              <option value="Alta">Alta</option>
+              <option value="Baja">Baja</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="movementEmployee">Empleado</label>
+            <select id="movementEmployee" required>
+              <option value="">-- Seleccione un empleado --</option>
+              <option value="Juan Pérez">Juan Pérez</option>
+              <option value="María López">María López</option>
+              <option value="Carlos Ruiz">Carlos Ruiz</option>
+              <option value="Ana Torres">Ana Torres</option>
+              <option value="Lucía Fernández">Lucía Fernández</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="movementOrigin">Origen</label>
+            <select id="movementOrigin" required>
+              <option value="">-- Seleccione origen --</option>
+              <option value="Oficina Principal">Oficina Principal</option>
+              <option value="Almacén General">Almacén General</option>
+              <option value="Sala de TI">Sala de TI</option>
+              <option value="Departamento de Diseño">Departamento de Diseño</option>
+              <option value="Taller de Mantenimiento">Taller de Mantenimiento</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="movementDestination">Destino</label>
+            <select id="movementDestination" required>
+              <option value="">-- Seleccione destino --</option>
+              <option value="Taller de Mantenimiento">Taller de Mantenimiento</option>
+              <option value="Sala de TI">Sala de TI</option>
+              <option value="Presentación">Presentación</option>
+              <option value="Recursos Humanos">Recursos Humanos</option>
+              <option value="Sala de Conferencias">Sala de Conferencias</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label for="movementNotes">Observaciones / Notas</label>
+            <textarea id="movementNotes" rows="4" placeholder="Describa el motivo o detalles del movimiento..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeMovementModal()">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar movimiento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</main>
+
+</body>
+</html>
