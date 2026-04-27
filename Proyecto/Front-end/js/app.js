@@ -187,6 +187,105 @@ function confirmDelete(itemName) {
     return confirm(`¿Estás seguro de que deseas eliminar "${itemName}"? Esta acción no se puede deshacer.`);
 }
 
+// Movimiento modal functions
+function openMovementModal() {
+    const modal = document.getElementById('movementModal');
+    const form = document.getElementById('movementForm');
+    if (!modal || !form) return;
+    form.reset();
+    modal.classList.add('active');
+}
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        const modal = document.getElementById('movementModal');
+        if (modal && modal.classList.contains('active')) {
+            closeMovementModal();
+        }
+    }
+});
+
+function closeMovementModal() {
+    const modal = document.getElementById('movementModal');
+    if (!modal) return;
+    modal.classList.remove('active');
+}
+
+function handleMovementForm(event) {
+    event.preventDefault();
+    const asset = document.getElementById('movementAsset')?.value.trim();
+    const type = document.getElementById('movementType')?.value.trim();
+    const employee = document.getElementById('movementEmployee')?.value.trim();
+    const origin = document.getElementById('movementOrigin')?.value.trim();
+    const destination = document.getElementById('movementDestination')?.value.trim();
+    const notes = document.getElementById('movementNotes')?.value.trim();
+    if (!asset || !type || !employee || !origin || !destination) {
+        showToast('Completa los campos requeridos antes de guardar.', 'warning');
+        return;
+    }
+
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const formattedTime = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    const badgeClass = {
+        'Mantenimiento': 'badge-mantenimiento',
+        'Asignación': 'badge-asignacion',
+        'Devolución': 'badge-devolucion',
+        'Transferencia': 'badge-transferencia',
+        'Alta': 'badge-alta',
+        'Baja': 'badge-baja'
+    }[type] || 'badge-transferencia';
+
+    const codePrefix = asset.match(/\b([A-Z])/)?.[1] || 'ACT';
+    const assetCode = `${codePrefix}${now.getFullYear().toString().slice(-2)}-${Math.floor(Math.random() * 900 + 100)}`;
+    const tableBody = document.querySelector('.table-wrapper tbody');
+    if (tableBody) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+              <div class="date-main">${formattedDate}</div>
+              <div class="date-time">${formattedTime}</div>
+            </td>
+            <td>
+              <div class="asset-name">${asset}</div>
+              <div class="asset-code">${assetCode}</div>
+            </td>
+            <td>
+              <span class="badge ${badgeClass}">${type}</span>
+            </td>
+            <td>
+              <div class="mov-row">
+                <div class="mov-origin">${origin}<small>${employee}</small></div>
+                <span class="mov-arrow">→</span>
+                <div class="mov-dest">${destination}</div>
+              </div>
+            </td>
+            <td><div class="notes">${notes}</div></td>
+        `;
+        tableBody.prepend(row);
+    }
+
+    const results = document.querySelector('.results-count');
+    if (results) {
+        const match = results.textContent.match(/Mostrando\s+(\d+)\s+de\s+(\d+)\s+movimientos/);
+        if (match) {
+            const total = parseInt(match[2], 10) + 1;
+            results.textContent = `Mostrando ${total} de ${total} movimientos`;
+        }
+    }
+
+    const totalCard = document.querySelector('.stats-grid .stat-card .stat-value');
+    if (totalCard) {
+        const currentTotal = parseInt(totalCard.textContent.replace(/\D/g, ''), 10);
+        if (!isNaN(currentTotal)) {
+            totalCard.textContent = currentTotal + 1;
+        }
+    }
+
+    closeMovementModal();
+    showToast('Movimiento registrado correctamente', 'success');
+}
+
 // Format date function
 function formatDate(date) {
     const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
