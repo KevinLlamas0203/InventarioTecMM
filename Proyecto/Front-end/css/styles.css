@@ -1883,3 +1883,16 @@ iframe {
     height: 100%;
     border: none;
 } 
+
+/* Elemento bloqueado */
+.nav-item.bloqueado {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+/* Opcional: Agrega un icono de candado */
+.nav-item.bloqueado::after {
+    content: ' 🔒';
+    font-size: 12px;
+}

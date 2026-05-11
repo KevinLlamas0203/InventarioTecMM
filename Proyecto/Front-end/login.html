@@ -157,49 +157,54 @@
             this.classList.toggle('active');
         });
 
-        // ============================================
-        // VALIDACIÓN CON FLASK API
-        // ============================================
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+// ============================================
+// VALIDACIÓN CON FLASK API
+// ============================================
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-            const submitBtn  = this.querySelector('.btn-primary');
-            const errorMsg   = document.getElementById('errorMsg');
-            const errorText  = document.getElementById('errorText');
-            const email      = document.getElementById('username').value.trim();
-            const password   = document.getElementById('password').value.trim();
+    const submitBtn  = this.querySelector('.btn-primary');
+    const errorMsg   = document.getElementById('errorMsg');
+    const errorText  = document.getElementById('errorText');
+    const email      = document.getElementById('username').value.trim();
+    const password   = document.getElementById('password').value.trim();
 
-            // Ocultar error previo y mostrar loading
-            errorMsg.classList.remove('visible');
-            submitBtn.classList.add('loading');
+    // Ocultar error previo y mostrar loading
+    errorMsg.classList.remove('visible');
+    submitBtn.classList.add('loading');
 
-            try {
-                // 👇 Llamada a la API de Flask
-                const response = await fetch('http://localhost:5000/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email, password: password })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // ✅ Credenciales correctas → redirigir al dashboard
-                    window.location.href = 'pagesAdmin/dashboard_admin.html';
-                } else {
-                    // ❌ Credenciales incorrectas → mostrar mensaje de error
-                    errorText.textContent = data.message;
-                    errorMsg.classList.add('visible');
-                    submitBtn.classList.remove('loading');
-                }
-
-            } catch (error) {
-                // Error de red (Flask no está corriendo)
-                errorText.textContent = 'No se pudo conectar con el servidor. Asegúrate de que Flask esté corriendo.';
-                errorMsg.classList.add('visible');
-                submitBtn.classList.remove('loading');
-            }
+    try {
+        // 👇 Llamada a la API de Flask
+        const response = await fetch('http://localhost:5000/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, password: password })
         });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // ✅ GUARDAR DATOS EN LOCALSTORAGE
+            localStorage.setItem('usuario_id', data.usuario.id);
+            localStorage.setItem('nombre_usuario', data.usuario.nombre);
+            localStorage.setItem('nivel_usuario', data.usuario.nivel);
+            
+            // ✅ Redirigir al dashboard
+            window.location.href = 'pagesAdmin/dashboard_admin.html';
+        } else {
+            // ❌ Credenciales incorrectas → mostrar mensaje de error
+            errorText.textContent = data.message;
+            errorMsg.classList.add('visible');
+            submitBtn.classList.remove('loading');
+        }
+
+    } catch (error) {
+        // Error de red (Flask no está corriendo)
+        errorText.textContent = 'No se pudo conectar con el servidor. Asegúrate de que Flask esté corriendo.';
+        errorMsg.classList.add('visible');
+        submitBtn.classList.remove('loading');
+    }
+});
 
         // ============================================
         // Floating shapes animation
