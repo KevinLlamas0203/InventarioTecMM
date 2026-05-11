@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Consumibles - Sistema de Inventario</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-header-left: #0f172a;
+            --bg-header-right: #1e293b;
+            --text-main: #eff6ff;
+            --text-muted: rgba(255,255,255,0.72);
+            --panel-bg: rgba(255,255,255,0.05);
+            --panel-border: rgba(255,255,255,0.1);
+            --tab-bg: rgba(255,255,255,0.04);
+            --tab-hover: rgba(255,255,255,0.08);
+            --active-gradient: linear-gradient(135deg,#4f46e5 0%,#7c3aed 55%,#ec4899 100%);
+            --active-shadow: 0 10px 30px rgba(100,100,255,0.35);
+            --danger: #ef4444;
+            --warning-color: #f59e0b;
+            --success-color: #10b981;
+            --info-color: #3b82f6;
+        }
+
+        /* ── Layout overrides for dark theme ── */
+        body.dashboard-page { background: #0b1120; color: var(--text-main); }
+
+        .main-content { background: transparent; }
+
+        .content-header {
+            background: transparent;
+            border-bottom: 1px solid var(--panel-border);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-title { color: var(--text-main); font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 1.75rem; margin: 0; }
+        .page-subtitle { color: var(--text-muted); margin: 0; font-size: 0.9rem; }
+
+        .header-right { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            display: flex; align-items: center; gap: 0.5rem;
+            background: var(--active-gradient);
+            color: #fff; border: none; padding: 0.6rem 1.2rem;
+            border-radius: 0.75rem; cursor: pointer; font-size: 0.9rem;
+            font-family: 'DM Sans', sans-serif; font-weight: 600;
+            box-shadow: var(--active-shadow);
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-primary svg { width: 16px; height: 16px; }
+
+        .btn-secondary {
+            display: flex; align-items: center; gap: 0.5rem;
+            background: var(--panel-bg); color: var(--text-main);
+            border: 1px solid var(--panel-border); padding: 0.6rem 1.2rem;
+            border-radius: 0.75rem; cursor: pointer; font-size: 0.9rem;
+            font-family: 'DM Sans', sans-serif;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .btn-secondary:hover { background: var(--tab-hover); transform: translateY(-1px); }
+        .btn-secondary svg { width: 16px; height: 16px; }
+
+        /* ── Stats ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem 2rem;
+        }
+
+        .stat-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 1.25rem;
+            padding: 1.25rem 1.5rem;
+            display: flex; gap: 1rem; align-items: center;
+            backdrop-filter: blur(12px);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+
+        .stat-icon {
+            width: 44px; height: 44px; border-radius: 0.75rem;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .stat-card.success .stat-icon { background: rgba(16,185,129,0.15); color: var(--success-color); }
+        .stat-card.warning .stat-icon { background: rgba(245,158,11,0.15); color: var(--warning-color); }
+        .stat-card.info .stat-icon    { background: rgba(59,130,246,0.15); color: var(--info-color); }
+        .stat-card.primary .stat-icon { background: rgba(139,92,246,0.15); color: #a78bfa; }
+        .stat-icon svg { width: 22px; height: 22px; }
+
+        .stat-content { display: flex; flex-direction: column; gap: 0.2rem; }
+        .stat-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; font-family: 'Archivo', sans-serif; color: var(--text-main); }
+        .stat-change { font-size: 0.75rem; color: var(--text-muted); }
+        .stat-change.positive { color: var(--success-color); }
+        .stat-change.negative { color: var(--warning-color); }
+
+        /* ── Toolbar ── */
+        .toolbar {
+            display: flex; gap: 0.75rem; align-items: center;
+            padding: 0 2rem 1rem; flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative; flex: 1; min-width: 220px;
+        }
+        .search-icon {
+            position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%);
+            width: 16px; height: 16px; color: var(--text-muted); pointer-events: none;
+        }
+        .search-input {
+            width: 100%; padding: 0.6rem 0.9rem 0.6rem 2.4rem;
+            background: var(--panel-bg); border: 1px solid var(--panel-border);
+            border-radius: 0.75rem; color: var(--text-main);
+            font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+            outline: none; transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        .search-input::placeholder { color: var(--text-muted); }
+        .search-input:focus { border-color: #7c3aed; }
+
+        .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .filter-select {
+            background: var(--panel-bg); border: 1px solid var(--panel-border);
+            color: var(--text-main); padding: 0.6rem 0.9rem;
+            border-radius: 0.75rem; font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem; outline: none; cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .filter-select:focus { border-color: #7c3aed; }
+        .filter-select option { background: #1e293b; }
+
+        /* ── Alert Banner ── */
+        .alert-banner {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.85rem 2rem; margin: 0 2rem 1rem;
+            border-radius: 0.9rem;
+            font-size: 0.88rem; font-family: 'DM Sans', sans-serif;
+        }
+        .alert-banner.warning {
+            background: rgba(245,158,11,0.12);
+            border: 1px solid rgba(245,158,11,0.3);
+            color: #fcd34d;
+        }
+        .alert-banner svg { flex-shrink: 0; }
+        .alert-close { margin-left: auto; background: none; border: none; cursor: pointer; color: inherit; padding: 0; display: flex; }
+        .alert-close svg { width: 16px; height: 16px; }
+
+        /* ── Table Card ── */
+        .table-card {
+            margin: 0 2rem 2rem;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+        }
+
+        .table-wrapper { overflow-x: auto; }
+
+        .data-table {
+            width: 100%; border-collapse: collapse;
+            font-family: 'DM Sans', sans-serif; font-size: 0.875rem;
+        }
+        .data-table thead { background: rgba(255,255,255,0.04); }
+        .data-table th {
+            padding: 0.9rem 1rem; text-align: left;
+            color: var(--text-muted); font-weight: 600; font-size: 0.78rem;
+            text-transform: uppercase; letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--panel-border);
+            white-space: nowrap;
+        }
+        .data-table td {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-main); vertical-align: middle;
+        }
+        .data-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+        .data-table tbody tr:last-child td { border-bottom: none; }
+
+        .table-checkbox { accent-color: #7c3aed; cursor: pointer; }
+
+        /* ── Consumible cells ── */
+        .consumible-code {
+            font-family: 'Archivo', monospace; font-size: 0.78rem;
+            color: #a78bfa; background: rgba(139,92,246,0.1);
+            padding: 0.2rem 0.5rem; border-radius: 0.4rem;
+            white-space: nowrap;
+        }
+
+        .consumible-info { display: flex; flex-direction: column; gap: 0.15rem; }
+        .consumible-name { font-weight: 600; color: var(--text-main); }
+        .consumible-specs { font-size: 0.78rem; color: var(--text-muted); }
+
+        /* ── Badges ── */
+        .badge {
+            display: inline-block; padding: 0.2rem 0.6rem;
+            border-radius: 0.5rem; font-size: 0.75rem; font-weight: 600;
+            white-space: nowrap;
+        }
+        .badge-cables      { background: rgba(99,102,241,0.2); color: #818cf8; }
+        .badge-perifericos { background: rgba(236,72,153,0.2); color: #f472b6; }
+        .badge-papeleria   { background: rgba(245,158,11,0.2); color: #fbbf24; }
+        .badge-limpieza    { background: rgba(16,185,129,0.2); color: #34d399; }
+        .badge-componentes { background: rgba(59,130,246,0.2); color: #60a5fa; }
+        .badge-default     { background: rgba(148,163,184,0.2); color: #94a3b8; }
+
+        /* ── Stock ── */
+        .stock-info { display: flex; flex-direction: column; gap: 0.3rem; min-width: 80px; }
+        .stock-number { font-weight: 700; font-size: 0.95rem; }
+        .stock-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+        .stock-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+
+        .stock-info.critical .stock-number { color: var(--danger); }
+        .stock-info.critical .stock-fill   { background: var(--danger); }
+        .stock-info.low .stock-number      { color: var(--warning-color); }
+        .stock-info.low .stock-fill        { background: var(--warning-color); }
+        .stock-info.medium .stock-number   { color: var(--info-color); }
+        .stock-info.medium .stock-fill     { background: var(--info-color); }
+        .stock-info.high .stock-number     { color: var(--success-color); }
+        .stock-info.high .stock-fill       { background: var(--success-color); }
+
+        .stock-status {
+            display: inline-block; padding: 0.2rem 0.6rem;
+            border-radius: 0.5rem; font-size: 0.75rem; font-weight: 600;
+        }
+        .stock-status.critical { background: rgba(239,68,68,0.15);  color: #fca5a5; }
+        .stock-status.low      { background: rgba(245,158,11,0.15); color: #fcd34d; }
+        .stock-status.medium   { background: rgba(59,130,246,0.15); color: #93c5fd; }
+        .stock-status.high     { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+
+        /* ── Action buttons ── */
+        .action-buttons { display: flex; gap: 0.35rem; }
+        .btn-action {
+            width: 30px; height: 30px; border-radius: 0.5rem;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted); cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+        .btn-action:hover { background: rgba(139,92,246,0.2); color: #a78bfa; border-color: rgba(139,92,246,0.4); }
+        .btn-action.danger:hover { background: rgba(239,68,68,0.2); color: #fca5a5; border-color: rgba(239,68,68,0.4); }
+        .btn-action svg { width: 14px; height: 14px; }
+
+        /* ── Table footer / pagination ── */
+        .table-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem 1.25rem; border-top: 1px solid var(--panel-border);
+            flex-wrap: wrap; gap: 0.75rem;
+        }
+        .table-info { font-size: 0.82rem; color: var(--text-muted); }
+        .table-info strong { color: var(--text-main); }
+
+        .pagination { display: flex; gap: 0.35rem; align-items: center; }
+        .pagination-btn {
+            min-width: 32px; height: 32px; border-radius: 0.5rem; padding: 0 0.5rem;
+            background: var(--tab-bg); border: 1px solid var(--panel-border);
+            color: var(--text-muted); cursor: pointer; font-size: 0.82rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+        .pagination-btn:hover:not(:disabled) { background: var(--tab-hover); color: var(--text-main); }
+        .pagination-btn.active { background: var(--active-gradient); color: #fff; border-color: transparent; }
+        .pagination-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .pagination-btn svg { width: 14px; height: 14px; }
+        .pagination-dots { color: var(--text-muted); padding: 0 0.25rem; }
+
+        /* ── Loading / Empty states ── */
+        .table-loading, .table-empty {
+            text-align: center; padding: 3rem;
+            color: var(--text-muted); font-size: 0.9rem;
+        }
+        .spinner {
+            width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #7c3aed; border-radius: 50%;
+            animation: spin 0.7s linear infinite; margin: 0 auto 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Modals ── */
+        .modal {
+            display: none; position: fixed; inset: 0; z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .modal.open { display: flex; }
+
+        .modal-overlay {
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            position: relative; z-index: 1;
+            background: #131c30; border: 1px solid var(--panel-border);
+            border-radius: 1.5rem; width: 100%; max-width: 560px;
+            max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            animation: slideUp 0.25s ease;
+        }
+        .modal-content.modal-small { max-width: 420px; }
+        @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+        .modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1.5rem 1.75rem 1rem;
+            border-bottom: 1px solid var(--panel-border);
+        }
+        .modal-header h2 { margin: 0; font-family: 'Archivo', sans-serif; font-size: 1.15rem; color: var(--text-main); }
+
+        .modal-close {
+            background: none; border: none; cursor: pointer; color: var(--text-muted);
+            display: flex; padding: 0.25rem; border-radius: 0.5rem;
+            transition: color 0.2s, background 0.2s;
+        }
+        .modal-close:hover { color: var(--text-main); background: var(--tab-hover); }
+        .modal-close svg { width: 20px; height: 20px; }
+
+        .modal-body { padding: 1.25rem 1.75rem 1.75rem; }
+
+        /* ── Forms ── */
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 520px) { .form-row { grid-template-columns: 1fr; } }
+
+        .form-group { display: flex; flex-direction: column; gap: 0.45rem; margin-bottom: 0.85rem; }
+        .form-group label {
+            font-size: 0.82rem; font-weight: 600; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--panel-border);
+            border-radius: 0.65rem; color: var(--text-main);
+            padding: 0.65rem 0.85rem;
+            font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+            outline: none; transition: border-color 0.2s;
+            width: 100%; box-sizing: border-box;
+        }
+        .form-group input::placeholder, .form-group textarea::placeholder { color: rgba(255,255,255,0.3); }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #7c3aed; }
+        .form-group select option { background: #1e293b; }
+        .form-group input:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .modal-actions {
+            display: flex; justify-content: flex-end; gap: 0.75rem;
+            margin-top: 1.25rem; padding-top: 1rem;
+            border-top: 1px solid var(--panel-border);
+        }
+
+        /* ── Toast ── */
+        #toast-container {
+            position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999;
+            display: flex; flex-direction: column; gap: 0.5rem;
+        }
+        .toast {
+            padding: 0.75rem 1.2rem; border-radius: 0.75rem;
+            font-family: 'DM Sans', sans-serif; font-size: 0.875rem;
+            color: #fff; min-width: 220px;
+            animation: toastIn 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        .toast.success { background: #065f46; border: 1px solid #10b981; }
+        .toast.error   { background: #7f1d1d; border: 1px solid #ef4444; }
+        .toast.info    { background: #1e3a5f; border: 1px solid #3b82f6; }
+        @keyframes toastIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+
+        /* ── Sidebar active style ── */
+        .sidebar .nav-section .nav-item.active {
+            background: linear-gradient(135deg,#3f57f2 0%,#8b4ff1 100%);
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body class="dashboard-page">
+<div class="dashboard-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="5" y="5" width="30" height="30" rx="6" fill="currentColor" opacity="0.2"/>
+                    <path d="M13 16h14M13 20h14M13 24h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="28" cy="24" r="2" fill="currentColor"/>
+                </svg>
+                <span class="brand-name">Sistema de Inventario</span>
+            </div>
+            <button class="sidebar-toggle" aria-label="Toggle sidebar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M3 12h18M3 6h18M3 18h18" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <span class="nav-section-title">Principal</span>
+                <a href="dashboard_admin.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="3" width="7" height="7" stroke-width="2" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" stroke-width="2" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" stroke-width="2" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" stroke-width="2" rx="1"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-section-title">Gestión</span>
+                <a href="ModuloActivo.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
+                        <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>Módulo de Activos</span>
+                    <span class="nav-badge">245</span>
+                </a>
+                <a href="consumibles.html" class="nav-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2"/>
+                        <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/>
+                    </svg>
+                    <span>Consumibles</span>
+                    <span class="nav-badge warning" id="badge-bajo">–</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-section-title">Reportes</span>
+                <a href="reportes.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/>
+                        <polyline points="14 2 14 8 20 8" stroke-width="2"/>
+                        <line x1="16" y1="13" x2="8" y2="13" stroke-width="2"/>
+                        <line x1="16" y1="17" x2="8" y2="17" stroke-width="2"/>
+                    </svg>
+                    <span>Reportes</span>
+                </a>
+                <a href="auditoria.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                        <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+                    </svg>
+                    <span>Auditoría</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-section-title">Configuración</span>
+                <a href="usuarios.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/>
+                        <circle cx="9" cy="7" r="4" stroke-width="2"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/>
+                    </svg>
+                    <span>Usuarios</span>
+                </a>
+                <a href="ajustes.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <span>Ajustes</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">AD</div>
+                <div class="user-info">
+                    <span class="user-name">Admin ISC</span>
+                    <span class="user-role">Administrador</span>
+                </div>
+            </div>
+            <button class="btn-icon logout-btn" aria-label="Cerrar sesión">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="content-header">
+            <div class="header-left">
+                <h1 class="page-title">Gestión de Consumibles</h1>
+                <p class="page-subtitle">Control de stock y reposición de materiales</p>
+            </div>
+            <div class="header-right">
+                <button class="btn-secondary" id="btn-export">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>Exportar CSV</span>
+                </button>
+                <button class="btn-primary" onclick="openConsumibleModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>Nuevo Consumible</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card success">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Total Unidades</span>
+                    <span class="stat-value" id="stat-total">–</span>
+                    <span class="stat-change">en inventario</span>
+                </div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/>
+                        <line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Stock Bajo / Crítico</span>
+                    <span class="stat-value" id="stat-bajo">–</span>
+                    <span class="stat-change negative">Requieren reposición</span>
+                </div>
+            </div>
+            <div class="stat-card info">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="2" y="7" width="20" height="14" rx="2" stroke-width="2"/>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" stroke-width="2"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Categorías</span>
+                    <span class="stat-value" id="stat-categorias">–</span>
+                    <span class="stat-change">Tipos diferentes</span>
+                </div>
+            </div>
+            <div class="stat-card primary">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="12" y1="1" x2="12" y2="23" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Valor Total</span>
+                    <span class="stat-value" id="stat-valor">–</span>
+                    <span class="stat-change positive">Inventario actual</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                    <path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <input type="text" placeholder="Buscar consumible..." class="search-input" id="searchInput">
+            </div>
+            <div class="filters">
+                <select class="filter-select" id="categoryFilter">
+                    <option value="">Todas las categorías</option>
+                </select>
+                <select class="filter-select" id="stockFilter">
+                    <option value="">Todos los niveles</option>
+                    <option value="critico">Crítico (&lt; mínimo)</option>
+                    <option value="bajo">Bajo (≤ mínimo×1.5)</option>
+                    <option value="medio">Medio</option>
+                    <option value="alto">Alto</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Alert Banner -->
+        <div class="alert-banner warning" id="alertBanner" style="display:none;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/>
+                <line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <div class="alert-content" id="alertText"></div>
+            <button class="alert-close" onclick="document.getElementById('alertBanner').style.display='none'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="table-checkbox" id="selectAll"></th>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Stock Actual</th>
+                            <th>Stock Mín.</th>
+                            <th>Unidad</th>
+                            <th>Precio Unit.</th>
+                            <th>Ubicación</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="consumiblesTable">
+                        <tr>
+                            <td colspan="11">
+                                <div class="table-loading">
+                                    <div class="spinner"></div>
+                                    Cargando consumibles...
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-footer">
+                <div class="table-info" id="tableInfo">–</div>
+                <div class="pagination" id="paginationContainer"></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ═══ Modal: Nuevo / Editar Consumible ═══ -->
+<div class="modal" id="consumibleModal">
+    <div class="modal-overlay" onclick="closeConsumibleModal()"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Registrar Nuevo Consumible</h2>
+            <button class="modal-close" onclick="closeConsumibleModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="edit-id">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nombre del consumible *</label>
+                    <input type="text" id="f-nombre" placeholder="Ej: Cable HDMI 2.0">
+                </div>
+                <div class="form-group">
+                    <label>Categoría *</label>
+                    <select id="f-categoria">
+                        <option value="">Seleccionar categoría</option>
+                        <option>Cables y Conectores</option>
+                        <option>Periféricos</option>
+                        <option>Papelería</option>
+                        <option>Limpieza</option>
+                        <option>Componentes</option>
+                        <option>Otro</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Descripción / Especificaciones</label>
+                <textarea id="f-descripcion" rows="2" placeholder="Detalles técnicos del consumible..."></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Unidad de medida *</label>
+                    <select id="f-unidad">
+                        <option value="">Seleccionar unidad</option>
+                        <option>Pieza</option>
+                        <option>Paquete</option>
+                        <option>Caja</option>
+                        <option>Metro</option>
+                        <option>Litro</option>
+                        <option>Rollo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ubicación</label>
+                    <input type="text" id="f-ubicacion" placeholder="Ej: Almacén A-12">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Stock inicial</label>
+                    <input type="number" id="f-stock-actual" placeholder="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Stock mínimo</label>
+                    <input type="number" id="f-stock-minimo" placeholder="10" min="0">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Precio unitario ($)</label>
+                    <input type="number" id="f-precio" step="0.01" placeholder="0.00" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Fecha de registro</label>
+                    <input type="date" id="f-fecha">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeConsumibleModal()">Cancelar</button>
+                <button class="btn-primary" id="btn-guardar" onclick="guardarConsumible()">Guardar Consumible</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Modal: Añadir / Restar Stock ═══ -->
+<div class="modal" id="stockModal">
+    <div class="modal-overlay" onclick="closeStockModal()"></div>
+    <div class="modal-content modal-small">
+        <div class="modal-header">
+            <h2>Actualizar Stock</h2>
+            <button class="modal-close" onclick="closeStockModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="stock-id">
+            <div class="form-group">
+                <label>Consumible</label>
+                <input type="text" id="stock-nombre" disabled>
+            </div>
+            <div class="form-group">
+                <label>Operación</label>
+                <select id="stock-operacion">
+                    <option value="sumar">Añadir unidades</option>
+                    <option value="restar">Restar unidades</option>
+                    <option value="set">Establecer cantidad exacta</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Cantidad</label>
+                <input type="number" id="stock-cantidad" placeholder="0" min="1">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeStockModal()">Cancelar</button>
+                <button class="btn-primary" onclick="aplicarStock()">Aplicar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script>
+/* ════════════════════════════════════════
+   CONFIGURACIÓN — ajusta esta URL a tu Flask
+   ════════════════════════════════════════ */
+const API_BASE = 'http://localhost:5000'; // ← cambia si tu Flask corre en otro puerto/host
+
+/* ════════ Estado global ════════ */
+let allData   = [];   // todos los consumibles de la BD
+let filtered  = [];   // después de aplicar filtros
+let page      = 1;
+const PER_PAGE = 10;
+
+/* ════════ Fetch helpers ════════ */
+async function apiFetch(path, options = {}) {
+    const res = await fetch(API_BASE + path, {
+        headers: { 'Content-Type': 'application/json' },
+        ...options
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
+    return json;
+}
+
+/* ════════ Toast ════════ */
+function showToast(msg, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.textContent = msg;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+}
+
+/* ════════ Stock level helpers ════════ */
+function getStockLevel(actual, minimo) {
+    if (actual < minimo) return 'critical';
+    if (actual <= minimo * 1.5) return 'low';
+    if (actual <= minimo * 3) return 'medium';
+    return 'high';
+}
+function getStockLabel(level) {
+    return { critical: 'Crítico', low: 'Bajo', medium: 'Medio', high: 'Alto' }[level];
+}
+function getStockPct(actual, minimo) {
+    const max = Math.max(minimo * 4, actual);
+    return Math.min(100, Math.round((actual / max) * 100));
+}
+
+/* ════════ Badge helper ════════ */
+const CATEGORY_MAP = {
+    'cables y conectores': 'cables',
+    'periféricos': 'perifericos',
+    'papelería': 'papeleria',
+    'limpieza': 'limpieza',
+    'componentes': 'componentes'
+};
+function categoryClass(cat) {
+    return CATEGORY_MAP[(cat || '').toLowerCase()] || 'default';
+}
+
+/* ════════ Render table ════════ */
+function renderTable() {
+    const tbody = document.getElementById('consumiblesTable');
+    const start = (page - 1) * PER_PAGE;
+    const pageData = filtered.slice(start, start + PER_PAGE);
+
+    if (pageData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="11"><div class="table-empty">No se encontraron consumibles.</div></td></tr>`;
+        renderPagination();
+        updateTableInfo();
+        return;
+    }
+
+    tbody.innerHTML = pageData.map(c => {
+        const level = getStockLevel(c.stock_actual, c.stock_minimo);
+        const pct   = getStockPct(c.stock_actual, c.stock_minimo);
+        const catCls = categoryClass(c.categoria);
+        const precio = c.precio_unitario != null ? `$${Number(c.precio_unitario).toFixed(2)}` : '–';
+
+        return `<tr>
+            <td><input type="checkbox" class="table-checkbox" data-id="${c.consumible_id}"></td>
+            <td><span class="consumible-code">#${c.consumible_id}</span></td>
+            <td>
+                <div class="consumible-info">
+                    <span class="consumible-name">${escHtml(c.nombre)}</span>
+                    ${c.descripcion ? `<span class="consumible-specs">${escHtml(c.descripcion)}</span>` : ''}
+                </div>
+            </td>
+            <td><span class="badge badge-${catCls}">${escHtml(c.categoria || '–')}</span></td>
+            <td>
+                <div class="stock-info ${level}">
+                    <span class="stock-number">${c.stock_actual}</span>
+                    <div class="stock-bar"><div class="stock-fill" style="width:${pct}%"></div></div>
+                </div>
+            </td>
+            <td>${c.stock_minimo}</td>
+            <td>${escHtml(c.unidad || '–')}</td>
+            <td>${precio}</td>
+            <td>${escHtml(c.ubicacion || '–')}</td>
+            <td><span class="stock-status ${level}">${getStockLabel(level)}</span></td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn-action" title="Actualizar stock" onclick="openStockModal(${c.consumible_id}, '${escHtml(c.nombre)}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/></svg>
+                    </button>
+                    <button class="btn-action" title="Editar" onclick="openEditModal(${c.consumible_id})">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/></svg>
+                    </button>
+                    <button class="btn-action danger" title="Eliminar" onclick="eliminarConsumible(${c.consumible_id}, '${escHtml(c.nombre)}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6" stroke-width="2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke-width="2"/><path d="M10 11v6M14 11v6" stroke-width="2"/></svg>
+                    </button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+
+    renderPagination();
+    updateTableInfo();
+}
+
+function escHtml(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function updateTableInfo() {
+    const start = (page - 1) * PER_PAGE + 1;
+    const end   = Math.min(page * PER_PAGE, filtered.length);
+    document.getElementById('tableInfo').innerHTML =
+        filtered.length === 0
+            ? 'Sin resultados'
+            : `Mostrando <strong>${start}–${end}</strong> de <strong>${filtered.length}</strong> consumibles`;
+}
+
+function renderPagination() {
+    const total = Math.ceil(filtered.length / PER_PAGE);
+    const container = document.getElementById('paginationContainer');
+    if (total <= 1) { container.innerHTML = ''; return; }
+
+    let html = `<button class="pagination-btn" onclick="goPage(${page-1})" ${page===1?'disabled':''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6" stroke-width="2"/></svg></button>`;
+
+    for (let i = 1; i <= total; i++) {
+        if (i === 1 || i === total || (i >= page - 1 && i <= page + 1)) {
+            html += `<button class="pagination-btn ${i===page?'active':''}" onclick="goPage(${i})">${i}</button>`;
+        } else if (i === page - 2 || i === page + 2) {
+            html += `<span class="pagination-dots">…</span>`;
+        }
+    }
+
+    html += `<button class="pagination-btn" onclick="goPage(${page+1})" ${page===total?'disabled':''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6" stroke-width="2"/></svg></button>`;
+    container.innerHTML = html;
+}
+
+function goPage(p) {
+    const total = Math.ceil(filtered.length / PER_PAGE);
+    if (p < 1 || p > total) return;
+    page = p;
+    renderTable();
+}
+
+/* ════════ Stats ════════ */
+function updateStats() {
+    const total  = allData.reduce((s, c) => s + (c.stock_actual || 0), 0);
+    const bajo   = allData.filter(c => c.stock_actual <= c.stock_minimo * 1.5).length;
+    const cats   = new Set(allData.map(c => (c.categoria || '').toLowerCase())).size;
+    const valor  = allData.reduce((s, c) => s + (c.stock_actual || 0) * (c.precio_unitario || 0), 0);
+
+    document.getElementById('stat-total').textContent     = total.toLocaleString();
+    document.getElementById('stat-bajo').textContent      = bajo;
+    document.getElementById('stat-categorias').textContent = cats;
+    document.getElementById('stat-valor').textContent     = `$${valor.toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+    document.getElementById('badge-bajo').textContent     = bajo;
+
+    const banner = document.getElementById('alertBanner');
+    if (bajo > 0) {
+        document.getElementById('alertText').innerHTML =
+            `<strong>Atención:</strong> ${bajo} consumible${bajo > 1 ? 's' : ''} con stock bajo o crítico requiere${bajo > 1 ? 'n' : ''} reposición.`;
+        banner.style.display = 'flex';
+    } else {
+        banner.style.display = 'none';
+    }
+}
+
+/* ════════ Category filter options ════════ */
+function populateCategoryFilter() {
+    const cats = [...new Set(allData.map(c => c.categoria).filter(Boolean))].sort();
+    const sel  = document.getElementById('categoryFilter');
+    sel.innerHTML = '<option value="">Todas las categorías</option>' +
+        cats.map(c => `<option value="${escHtml(c)}">${escHtml(c)}</option>`).join('');
+}
+
+/* ════════ Filters ════════ */
+function applyFilters() {
+    const search  = document.getElementById('searchInput').value.toLowerCase().trim();
+    const cat     = document.getElementById('categoryFilter').value.toLowerCase();
+    const stockLv = document.getElementById('stockFilter').value;
+
+    filtered = allData.filter(c => {
+        const matchSearch = !search ||
+            (c.nombre || '').toLowerCase().includes(search) ||
+            (c.descripcion || '').toLowerCase().includes(search) ||
+            (c.categoria || '').toLowerCase().includes(search) ||
+            (c.ubicacion || '').toLowerCase().includes(search) ||
+            String(c.consumible_id).includes(search);
+
+        const matchCat = !cat || (c.categoria || '').toLowerCase() === cat;
+
+        const level = getStockLevel(c.stock_actual, c.stock_minimo);
+        const matchStock = !stockLv || level === stockLv;
+
+        return matchSearch && matchCat && matchStock;
+    });
+
+    page = 1;
+    renderTable();
+}
+
+/* ════════ Load all data ════════ */
+async function loadConsumibles() {
+    document.getElementById('consumiblesTable').innerHTML =
+        `<tr><td colspan="11"><div class="table-loading"><div class="spinner"></div>Cargando consumibles...</div></td></tr>`;
+    try {
+        allData  = await apiFetch('/consumibles');
+        filtered = [...allData];
+        populateCategoryFilter();
+        updateStats();
+        renderTable();
+    } catch (err) {
+        showToast('Error al cargar consumibles: ' + err.message, 'error');
+        document.getElementById('consumiblesTable').innerHTML =
+            `<tr><td colspan="11"><div class="table-empty">Error al cargar datos. Verifica la conexión con el servidor.</div></td></tr>`;
+    }
+}
+
+/* ════════ Modals: Consumible ════════ */
+function openConsumibleModal() {
+    document.getElementById('edit-id').value   = '';
+    document.getElementById('modalTitle').textContent = 'Registrar Nuevo Consumible';
+    document.getElementById('btn-guardar').textContent = 'Guardar Consumible';
+    ['nombre','descripcion','ubicacion'].forEach(id => document.getElementById(`f-${id}`).value = '');
+    ['categoria','unidad'].forEach(id => document.getElementById(`f-${id}`).value = '');
+    document.getElementById('f-stock-actual').value = '';
+    document.getElementById('f-stock-minimo').value = '';
+    document.getElementById('f-precio').value = '';
+    document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
+    document.getElementById('consumibleModal').classList.add('open');
+}
+
+async function openEditModal(id) {
+    try {
+        const c = await apiFetch(`/consumibles/${id}`);
+        document.getElementById('edit-id').value        = c.consumible_id;
+        document.getElementById('modalTitle').textContent = 'Editar Consumible';
+        document.getElementById('btn-guardar').textContent = 'Actualizar Consumible';
+        document.getElementById('f-nombre').value       = c.nombre || '';
+        document.getElementById('f-descripcion').value  = c.descripcion || '';
+        document.getElementById('f-categoria').value    = c.categoria || '';
+        document.getElementById('f-unidad').value       = c.unidad || '';
+        document.getElementById('f-stock-actual').value = c.stock_actual ?? '';
+        document.getElementById('f-stock-minimo').value = c.stock_minimo ?? '';
+        document.getElementById('f-precio').value       = c.precio_unitario ?? '';
+        document.getElementById('f-ubicacion').value    = c.ubicacion || '';
+        document.getElementById('f-fecha').value        = c.fecha_registro || '';
+        document.getElementById('consumibleModal').classList.add('open');
+    } catch (err) {
+        showToast('No se pudo cargar el consumible: ' + err.message, 'error');
+    }
+}
+
+function closeConsumibleModal() {
+    document.getElementById('consumibleModal').classList.remove('open');
+}
+
+async function guardarConsumible() {
+    const editId = document.getElementById('edit-id').value;
+    const body = {
+        nombre:          document.getElementById('f-nombre').value.trim(),
+        descripcion:     document.getElementById('f-descripcion').value.trim(),
+        categoria:       document.getElementById('f-categoria').value,
+        unidad:          document.getElementById('f-unidad').value,
+        stock_actual:    Number(document.getElementById('f-stock-actual').value) || 0,
+        stock_minimo:    Number(document.getElementById('f-stock-minimo').value) || 0,
+        precio_unitario: parseFloat(document.getElementById('f-precio').value) || null,
+        ubicacion:       document.getElementById('f-ubicacion').value.trim(),
+        fecha_registro:  document.getElementById('f-fecha').value || null
+    };
+
+    if (!body.nombre || !body.categoria || !body.unidad) {
+        showToast('Nombre, categoría y unidad son obligatorios.', 'error'); return;
+    }
+
+    try {
+        if (editId) {
+            await apiFetch(`/consumibles/${editId}`, { method: 'PUT', body: JSON.stringify(body) });
+            showToast('Consumible actualizado correctamente.', 'success');
+        } else {
+            await apiFetch('/consumibles', { method: 'POST', body: JSON.stringify(body) });
+            showToast('Consumible creado correctamente.', 'success');
+        }
+        closeConsumibleModal();
+        await loadConsumibles();
+    } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+    }
+}
+
+/* ════════ Modals: Stock ════════ */
+function openStockModal(id, nombre) {
+    document.getElementById('stock-id').value     = id;
+    document.getElementById('stock-nombre').value = nombre;
+    document.getElementById('stock-cantidad').value = '';
+    document.getElementById('stock-operacion').value = 'sumar';
+    document.getElementById('stockModal').classList.add('open');
+}
+
+function closeStockModal() {
+    document.getElementById('stockModal').classList.remove('open');
+}
+
+async function aplicarStock() {
+    const id       = document.getElementById('stock-id').value;
+    const cantidad = Number(document.getElementById('stock-cantidad').value);
+    const operacion= document.getElementById('stock-operacion').value;
+
+    if (!cantidad || cantidad < 1) { showToast('Ingresa una cantidad válida.', 'error'); return; }
+
+    try {
+        const res = await apiFetch(`/consumibles/${id}/stock`, {
+            method: 'PATCH',
+            body: JSON.stringify({ cantidad, operacion })
+        });
+        showToast(`Stock actualizado. Nuevo stock: ${res.stock_actual}`, 'success');
+        closeStockModal();
+        await loadConsumibles();
+    } catch (err) {
+        showToast('Error al actualizar stock: ' + err.message, 'error');
+    }
+}
+
+/* ════════ Delete ════════ */
+async function eliminarConsumible(id, nombre) {
+    if (!confirm(`¿Eliminar "${nombre}"? Esta acción no se puede deshacer.`)) return;
+    try {
+        await apiFetch(`/consumibles/${id}`, { method: 'DELETE' });
+        showToast('Consumible eliminado.', 'success');
+        await loadConsumibles();
+    } catch (err) {
+        showToast('Error al eliminar: ' + err.message, 'error');
+    }
+}
+
+/* ════════ Export CSV ════════ */
+document.getElementById('btn-export').addEventListener('click', () => {
+    if (!filtered.length) { showToast('No hay datos para exportar.', 'info'); return; }
+    const headers = ['ID','Nombre','Descripción','Categoría','Stock Actual','Stock Mínimo','Unidad','Precio Unit.','Ubicación','Fecha Registro'];
+    const rows = filtered.map(c => [
+        c.consumible_id, c.nombre, c.descripcion, c.categoria,
+        c.stock_actual, c.stock_minimo, c.unidad, c.precio_unitario, c.ubicacion, c.fecha_registro
+    ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','));
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `consumibles_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    showToast('CSV exportado.', 'success');
+});
+
+/* ════════ Select All ════════ */
+document.getElementById('selectAll').addEventListener('change', function() {
+    document.querySelectorAll('#consumiblesTable .table-checkbox').forEach(cb => cb.checked = this.checked);
+});
+
+/* ════════ Search & Filters ════════ */
+let searchDebounce;
+document.getElementById('searchInput').addEventListener('input', () => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(applyFilters, 280);
+});
+document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+document.getElementById('stockFilter').addEventListener('change', applyFilters);
+
+/* ════════ Init ════════ */
+loadConsumibles();
+</script>
+
+<!-- Scripts comunes -->
+<script src="../js/app.js"></script>
+<script src="../js/theme-toggle.js"></script>
+
+</body>
+</html>
