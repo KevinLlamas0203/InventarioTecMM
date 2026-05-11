@@ -51,8 +51,14 @@ def login():
         conn = get_db_connection()
         cur  = conn.cursor()
 
+        # Consulta usuarios + nivel_acceso
         cur.execute(
-            "SELECT email FROM credenciales WHERE email = %s AND pasword = %s",
+            """
+            SELECT u.id_usuario, u.nombre, c.email, u.nivel_acceso
+            FROM credenciales c
+            JOIN usuarios u ON c.fk_id_usuario = u.id_usuario
+            WHERE c.email = %s AND c.pasword = %s
+            """,
             (email, password)
         )
         user = cur.fetchone()
@@ -61,7 +67,18 @@ def login():
         conn.close()
 
         if user:
-            return jsonify({'success': True, 'message': 'Acceso correcto.'})
+            user_id, nombre, correo, nivel_acceso = user
+            
+            return jsonify({
+                'success': True, 
+                'message': 'Acceso correcto.',
+                'usuario': {
+                    'id': user_id,
+                    'nombre': nombre,
+                    'email': correo,
+                    'nivel': nivel_acceso  # Retorna 1, 2 o 3
+                }
+            })
         else:
             return jsonify({'success': False, 'message': 'Correo electrónico o contraseña incorrectos.'}), 401
 
