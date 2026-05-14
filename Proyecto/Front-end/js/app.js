@@ -1,7 +1,9 @@
 // ISC Inventory System - Main JavaScript
 
-// Sidebar toggle functionality
-document.addEventListener('DOMContentLoaded', function() {
+function initApp() {
+    if (window.__iscAppInitialized) return;
+    window.__iscAppInitialized = true;
+
     const sidebarToggle = document.querySelector('.sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
     
@@ -119,7 +121,13 @@ document.addEventListener('DOMContentLoaded', function() {
             applyFilters();
         });
     });
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
 
 // Debounce function for search
 function debounce(func, wait) {

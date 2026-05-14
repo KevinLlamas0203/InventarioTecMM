@@ -5,10 +5,10 @@ from dotenv import load_dotenv
 import sys
 import os
 
-load_dotenv()
+base_dir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(base_dir, '.env'))
 
 # Agregar la carpeta Modules/Activos al path para encontrar los blueprints
-base_dir = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(base_dir, "Modules", "Activos"))
 
 from createActivos import create_bp

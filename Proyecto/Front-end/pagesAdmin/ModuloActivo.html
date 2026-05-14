@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Módulo de Activos - Sistema de Inventario</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/movimientos.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -341,16 +342,47 @@
             async function loadTab(tabName) {
                 content.classList.add('loading');
                 content.innerHTML = '';
+                // Limpiar clases de secciones previas
+                content.classList.remove('activos-page', 'movimientos-page', 'asignaciones-page');
                 try {
                     const response = await fetch(fileMap[tabName]);
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const html = await response.text();
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
+
                     const mainContent = doc.querySelector('.main-content') || doc.querySelector('main');
                     const fragmentHtml = mainContent ? mainContent.innerHTML : doc.body.innerHTML;
+
+                    // Agregar clase específica según la sección
+                    const classMap = {
+                        catalogo: 'activos-page',
+                        movimientos: 'movimientos-page',
+                        resguardos: 'asignaciones-page'
+                    };
+
+                    if (classMap[tabName]) {
+                        content.classList.add(classMap[tabName]);
+                    }
+
                     content.classList.remove('loading');
                     content.innerHTML = fragmentHtml;
+
+                    // Re-ejecutar scripts inline y externos del documento cargado
+                    const scripts = Array.from(doc.querySelectorAll('script'));
+                    scripts.forEach(script => {
+                        const newScript = document.createElement('script');
+                        if (script.type) newScript.type = script.type;
+
+                        if (script.src) {
+                            newScript.src = new URL(script.src, response.url).href;
+                            newScript.async = false;
+                        } else {
+                            newScript.textContent = script.textContent;
+                        }
+
+                        document.body.appendChild(newScript);
+                    });
                 } catch (error) {
                     content.classList.remove('loading');
                     content.innerHTML = `<div style="padding:2rem;text-align:center;color:rgba(255,255,255,0.8);">No se pudo cargar la sección. Intenta de nuevo más tarde.</div>`;

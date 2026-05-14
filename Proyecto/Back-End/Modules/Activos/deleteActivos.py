@@ -14,7 +14,7 @@ def delete_activo(activo_id):
         conn = get_connection()
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM activos WHERE activo_id = %s", (activo_id,))
+        cur.execute("DELETE FROM activos WHERE id_activo = %s", (activo_id,))
 
         if cur.rowcount == 0:
             conn.rollback()
