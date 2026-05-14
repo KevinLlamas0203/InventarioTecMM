@@ -588,10 +588,10 @@
                 </select>
                 <select class="filter-select" id="stockFilter">
                     <option value="">Todos los niveles</option>
-                    <option value="critico">Crítico (&lt; mínimo)</option>
-                    <option value="bajo">Bajo (≤ mínimo×1.5)</option>
-                    <option value="medio">Medio</option>
-                    <option value="alto">Alto</option>
+                    <option value="critical">Crítico (&lt; mínimo)</option>
+                    <option value="low">Bajo (≤ mínimo×1.5)</option>
+                    <option value="medium">Medio</option>
+                    <option value="high">Alto</option>
                 </select>
             </div>
         </div>
@@ -623,8 +623,6 @@
                             <th>Categoría</th>
                             <th>Stock Actual</th>
                             <th>Stock Mín.</th>
-                            <th>Unidad</th>
-                            <th>Precio Unit.</th>
                             <th>Ubicación</th>
                             <th>Estado</th>
                             <th>Acciones</th>
@@ -632,7 +630,7 @@
                     </thead>
                     <tbody id="consumiblesTable">
                         <tr>
-                            <td colspan="11">
+                            <td colspan="9">
                                 <div class="table-loading">
                                     <div class="spinner"></div>
                                     Cargando consumibles...
@@ -687,23 +685,9 @@
                 <label>Descripción / Especificaciones</label>
                 <textarea id="f-descripcion" rows="2" placeholder="Detalles técnicos del consumible..."></textarea>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Unidad de medida *</label>
-                    <select id="f-unidad">
-                        <option value="">Seleccionar unidad</option>
-                        <option>Pieza</option>
-                        <option>Paquete</option>
-                        <option>Caja</option>
-                        <option>Metro</option>
-                        <option>Litro</option>
-                        <option>Rollo</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Ubicación</label>
-                    <input type="text" id="f-ubicacion" placeholder="Ej: Almacén A-12">
-                </div>
+            <div class="form-group">
+                <label>Ubicación</label>
+                <input type="text" id="f-ubicacion" placeholder="Ej: Almacén A-12">
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -715,15 +699,9 @@
                     <input type="number" id="f-stock-minimo" placeholder="10" min="0">
                 </div>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Precio unitario ($)</label>
-                    <input type="number" id="f-precio" step="0.01" placeholder="0.00" min="0">
-                </div>
-                <div class="form-group">
-                    <label>Fecha de registro</label>
-                    <input type="date" id="f-fecha">
-                </div>
+            <div class="form-group">
+                <label>Fecha de registro</label>
+                <input type="date" id="f-fecha">
             </div>
             <div class="modal-actions">
                 <button class="btn-secondary" onclick="closeConsumibleModal()">Cancelar</button>
@@ -841,7 +819,7 @@ function renderTable() {
     const pageData = filtered.slice(start, start + PER_PAGE);
 
     if (pageData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11"><div class="table-empty">No se encontraron consumibles.</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9"><div class="table-empty">No se encontraron consumibles.</div></td></tr>`;
         renderPagination();
         updateTableInfo();
         return;
@@ -851,8 +829,6 @@ function renderTable() {
         const level = getStockLevel(c.stock_actual, c.stock_minimo);
         const pct   = getStockPct(c.stock_actual, c.stock_minimo);
         const catCls = categoryClass(c.categoria);
-        const precio = c.precio_unitario != null ? `$${Number(c.precio_unitario).toFixed(2)}` : '–';
-
         return `<tr>
             <td><input type="checkbox" class="table-checkbox" data-id="${c.consumible_id}"></td>
             <td><span class="consumible-code">#${c.consumible_id}</span></td>
@@ -870,8 +846,6 @@ function renderTable() {
                 </div>
             </td>
             <td>${c.stock_minimo}</td>
-            <td>${escHtml(c.unidad || '–')}</td>
-            <td>${precio}</td>
             <td>${escHtml(c.ubicacion || '–')}</td>
             <td><span class="stock-status ${level}">${getStockLabel(level)}</span></td>
             <td>
@@ -938,12 +912,12 @@ function updateStats() {
     const total  = allData.reduce((s, c) => s + (c.stock_actual || 0), 0);
     const bajo   = allData.filter(c => c.stock_actual <= c.stock_minimo * 1.5).length;
     const cats   = new Set(allData.map(c => (c.categoria || '').toLowerCase())).size;
-    const valor  = allData.reduce((s, c) => s + (c.stock_actual || 0) * (c.precio_unitario || 0), 0);
+    const valor  = allData.length;
 
     document.getElementById('stat-total').textContent     = total.toLocaleString();
     document.getElementById('stat-bajo').textContent      = bajo;
     document.getElementById('stat-categorias').textContent = cats;
-    document.getElementById('stat-valor').textContent     = `$${valor.toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+    document.getElementById('stat-valor').textContent     = valor;
     document.getElementById('badge-bajo').textContent     = bajo;
 
     const banner = document.getElementById('alertBanner');
@@ -993,7 +967,7 @@ function applyFilters() {
 /* ════════ Load all data ════════ */
 async function loadConsumibles() {
     document.getElementById('consumiblesTable').innerHTML =
-        `<tr><td colspan="11"><div class="table-loading"><div class="spinner"></div>Cargando consumibles...</div></td></tr>`;
+        `<tr><td colspan="9"><div class="table-loading"><div class="spinner"></div>Cargando consumibles...</div></td></tr>`;
     try {
         allData  = await apiFetch('/consumibles');
         filtered = [...allData];
@@ -1003,7 +977,7 @@ async function loadConsumibles() {
     } catch (err) {
         showToast('Error al cargar consumibles: ' + err.message, 'error');
         document.getElementById('consumiblesTable').innerHTML =
-            `<tr><td colspan="11"><div class="table-empty">Error al cargar datos. Verifica la conexión con el servidor.</div></td></tr>`;
+            `<tr><td colspan="9"><div class="table-empty">Error al cargar datos. Verifica la conexión con el servidor.</div></td></tr>`;
     }
 }
 
@@ -1013,10 +987,9 @@ function openConsumibleModal() {
     document.getElementById('modalTitle').textContent = 'Registrar Nuevo Consumible';
     document.getElementById('btn-guardar').textContent = 'Guardar Consumible';
     ['nombre','descripcion','ubicacion'].forEach(id => document.getElementById(`f-${id}`).value = '');
-    ['categoria','unidad'].forEach(id => document.getElementById(`f-${id}`).value = '');
+    document.getElementById('f-categoria').value = '';
     document.getElementById('f-stock-actual').value = '';
     document.getElementById('f-stock-minimo').value = '';
-    document.getElementById('f-precio').value = '';
     document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
     document.getElementById('consumibleModal').classList.add('open');
 }
@@ -1030,10 +1003,8 @@ async function openEditModal(id) {
         document.getElementById('f-nombre').value       = c.nombre || '';
         document.getElementById('f-descripcion').value  = c.descripcion || '';
         document.getElementById('f-categoria').value    = c.categoria || '';
-        document.getElementById('f-unidad').value       = c.unidad || '';
         document.getElementById('f-stock-actual').value = c.stock_actual ?? '';
         document.getElementById('f-stock-minimo').value = c.stock_minimo ?? '';
-        document.getElementById('f-precio').value       = c.precio_unitario ?? '';
         document.getElementById('f-ubicacion').value    = c.ubicacion || '';
         document.getElementById('f-fecha').value        = c.fecha_registro || '';
         document.getElementById('consumibleModal').classList.add('open');
@@ -1049,19 +1020,17 @@ function closeConsumibleModal() {
 async function guardarConsumible() {
     const editId = document.getElementById('edit-id').value;
     const body = {
-        nombre:          document.getElementById('f-nombre').value.trim(),
-        descripcion:     document.getElementById('f-descripcion').value.trim(),
-        categoria:       document.getElementById('f-categoria').value,
-        unidad:          document.getElementById('f-unidad').value,
-        stock_actual:    Number(document.getElementById('f-stock-actual').value) || 0,
-        stock_minimo:    Number(document.getElementById('f-stock-minimo').value) || 0,
-        precio_unitario: parseFloat(document.getElementById('f-precio').value) || null,
-        ubicacion:       document.getElementById('f-ubicacion').value.trim(),
-        fecha_registro:  document.getElementById('f-fecha').value || null
+        nombre:         document.getElementById('f-nombre').value.trim(),
+        descripcion:    document.getElementById('f-descripcion').value.trim(),
+        categoria:      document.getElementById('f-categoria').value,
+        stock_actual:   Number(document.getElementById('f-stock-actual').value) || 0,
+        stock_minimo:   Number(document.getElementById('f-stock-minimo').value) || 0,
+        ubicacion:      document.getElementById('f-ubicacion').value.trim(),
+        fecha_registro: document.getElementById('f-fecha').value || null
     };
 
-    if (!body.nombre || !body.categoria || !body.unidad) {
-        showToast('Nombre, categoría y unidad son obligatorios.', 'error'); return;
+    if (!body.nombre || !body.categoria) {
+        showToast('Nombre y categoría son obligatorios.', 'error'); return;
     }
 
     try {
@@ -1127,10 +1096,10 @@ async function eliminarConsumible(id, nombre) {
 /* ════════ Export CSV ════════ */
 document.getElementById('btn-export').addEventListener('click', () => {
     if (!filtered.length) { showToast('No hay datos para exportar.', 'info'); return; }
-    const headers = ['ID','Nombre','Descripción','Categoría','Stock Actual','Stock Mínimo','Unidad','Precio Unit.','Ubicación','Fecha Registro'];
+    const headers = ['ID','Nombre','Descripción','Categoría','Stock Actual','Stock Mínimo','Ubicación','Fecha Registro'];
     const rows = filtered.map(c => [
         c.consumible_id, c.nombre, c.descripcion, c.categoria,
-        c.stock_actual, c.stock_minimo, c.unidad, c.precio_unitario, c.ubicacion, c.fecha_registro
+        c.stock_actual, c.stock_minimo, c.ubicacion, c.fecha_registro
     ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','));
     const csv = [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
