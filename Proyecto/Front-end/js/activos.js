@@ -5,6 +5,8 @@ let activosCache = [];
 
 function initActivosPage() {
     bindAssetForm();
+    bindNuevoActivoButton();
+    bindActionDelegation();
     cargarActivos();
     bindModalCloseShortcuts();
 }
@@ -30,6 +32,12 @@ function bindAssetForm() {
     });
 }
 
+function bindNuevoActivoButton() {
+    const nuevoBtn = document.getElementById('btnNuevoActivo');
+    if (!nuevoBtn) return;
+    nuevoBtn.addEventListener('click', () => openModal('crear'));
+}
+
 function bindModalCloseShortcuts() {
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape') {
@@ -41,22 +49,61 @@ function bindModalCloseShortcuts() {
     });
 }
 
+function bindActionDelegation() {
+    const tbody = document.querySelector('.data-table tbody');
+    if (!tbody) return;
+
+    tbody.addEventListener('click', event => {
+        const button = event.target.closest('[data-action]');
+        if (!button) return;
+
+        const action = button.dataset.action;
+        const id = button.dataset.id;
+        if (!action || !id) return;
+
+        event.preventDefault();
+        if (action === 'view') return verActivo(id);
+        if (action === 'edit') return abrirEditar(id);
+        if (action === 'delete') return eliminarActivo(id);
+    });
+
+    tbody.addEventListener('change', event => {
+        const select = event.target.closest('.status-select');
+        if (!select) return;
+
+        const id = select.dataset.id;
+        if (!id) return;
+        cambiarEstadoRapido(id, select.value, select);
+    });
+}
+
 function openModal(modo = 'crear') {
     const modal = document.getElementById('assetModal');
-    if (!modal) return;
-
-    const titulo = modal.querySelector('.modal-header h2');
-    const btn = document.getElementById('btnGuardar');
-
-    if (modo === 'crear') {
-        titulo.textContent = 'Registrar Nuevo Activo';
-        btn.textContent = 'Guardar Activo';
-        limpiarFormulario();
-    } else {
-        titulo.textContent = 'Editar Activo';
-        btn.textContent = 'Actualizar Activo';
+    if (!modal) {
+        console.error('openModal: assetModal no existe');
+        return;
     }
 
+    const titulo = modal.querySelector('.modal-header h2');
+    const btn = modal.querySelector('#btnGuardar');
+
+    if (!titulo) {
+        console.error('openModal: no se encontró el título del modal', modal);
+    }
+    if (!btn) {
+        console.error('openModal: no se encontró el botón guardar', modal);
+    }
+
+    if (modo === 'crear') {
+        if (titulo) titulo.textContent = 'Registrar Nuevo Activo';
+        if (btn) btn.textContent = 'Guardar Activo';
+        limpiarFormulario();
+    } else {
+        if (titulo) titulo.textContent = 'Editar Activo';
+        if (btn) btn.textContent = 'Actualizar Activo';
+    }
+
+    modal.style.setProperty('display', 'flex', 'important');
     modal.classList.add('active');
 }
 
@@ -64,18 +111,28 @@ function closeModal() {
     const modal = document.getElementById('assetModal');
     if (!modal) return;
     modal.classList.remove('active');
+    modal.style.removeProperty('display');
     limpiarFormulario();
 }
 
 function limpiarFormulario() {
-    document.getElementById('activoId').value = '';
-    document.getElementById('inputNombre').value = '';
-    document.getElementById('inputCategoria').value = '';
-    document.getElementById('inputEstado').value = '';
-    document.getElementById('inputDescripcion').value = '';
-    document.getElementById('inputUbicacion').value = '';
-    document.getElementById('inputAsignadoA').value = '';
-    document.getElementById('inputFechaAlta').value = '';
+    const activoIdEl = document.getElementById('activoId');
+    const nombreEl = document.getElementById('inputNombre');
+    const categoriaEl = document.getElementById('inputCategoria');
+    const estadoEl = document.getElementById('inputEstado');
+    const descripcionEl = document.getElementById('inputDescripcion');
+    const ubicacionEl = document.getElementById('inputUbicacion');
+    const asignadoEl = document.getElementById('inputAsignadoA');
+    const fechaAltaEl = document.getElementById('inputFechaAlta');
+
+    if (activoIdEl) activoIdEl.value = '';
+    if (nombreEl) nombreEl.value = '';
+    if (categoriaEl) categoriaEl.value = '';
+    if (estadoEl) estadoEl.value = '';
+    if (descripcionEl) descripcionEl.value = '';
+    if (ubicacionEl) ubicacionEl.value = '';
+    if (asignadoEl) asignadoEl.value = '';
+    if (fechaAltaEl) fechaAltaEl.value = '';
 }
 
 async function cargarActivos(resetPagina = true) {
@@ -149,7 +206,7 @@ function renderPagina() {
                     </td>
                     <td><span class="badge ${badgeCategoria}">${escapeHtml(a.categoria)}</span></td>
                     <td>
-                        <select class="status-select ${badgeEstado}" onchange="cambiarEstadoRapido(${a.activo_id}, this.value, this)">
+                        <select class="status-select ${badgeEstado}" data-id="${a.activo_id}">
                             <option value="Disponible" ${a.estado === 'Disponible' ? 'selected' : ''}>Disponible</option>
                             <option value="En uso" ${a.estado === 'En uso' ? 'selected' : ''}>En uso</option>
                             <option value="Mantenimiento" ${a.estado === 'Mantenimiento' ? 'selected' : ''}>Mantenimiento</option>
@@ -161,19 +218,19 @@ function renderPagina() {
                     <td>${fechaMostrar}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="btn-action" title="Ver detalles" onclick="verActivo(${a.activo_id})">
+                            <button class="btn-action" title="Ver detalles" data-action="view" data-id="${a.activo_id}">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
                                     <circle cx="12" cy="12" r="3" stroke-width="2"/>
                                 </svg>
                             </button>
-                            <button class="btn-action" title="Editar" onclick="abrirEditar(${a.activo_id})">
+                            <button class="btn-action" title="Editar" data-action="edit" data-id="${a.activo_id}">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/>
                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/>
                                 </svg>
                             </button>
-                            <button class="btn-action" title="Eliminar" onclick="eliminarActivo(${a.activo_id})">
+                            <button class="btn-action" title="Eliminar" data-action="delete" data-id="${a.activo_id}">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                     <polyline points="3 6 5 6 21 6" stroke-width="2"/>
                                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/>
@@ -380,27 +437,45 @@ async function verActivo(activoId) {
             fechaMostrar = `${d}/${m}/${y}`;
         }
 
-        document.getElementById('detailId').textContent = `#${a.activo_id}`;
-        document.getElementById('detailNombre').textContent = a.nombre || '—';
-        document.getElementById('detailDescripcion').textContent = a.descripcion || '—';
-        document.getElementById('detailUbicacion').textContent = a.ubicacion || '—';
-        document.getElementById('detailAsignado').textContent = a.asignado_a || 'Sin asignar';
-        document.getElementById('detailFecha').textContent = fechaMostrar;
+        const detailIdEl = document.getElementById('detailId');
+        const detailNombreEl = document.getElementById('detailNombre');
+        const detailDescripcionEl = document.getElementById('detailDescripcion');
+        const detailUbicacionEl = document.getElementById('detailUbicacion');
+        const detailAsignadoEl = document.getElementById('detailAsignado');
+        const detailFechaEl = document.getElementById('detailFecha');
+        const detailCategoriaEl = document.getElementById('detailCategoria');
+        const detailEstadoEl = document.getElementById('detailEstado');
+        const detailBtnEditarEl = document.getElementById('detailBtnEditar');
 
-        const catBadge = document.getElementById('detailCategoria');
-        catBadge.textContent = a.categoria || '—';
-        catBadge.className = `badge ${badgeCategoria}`;
+        if (detailIdEl) detailIdEl.textContent = `#${a.activo_id}`;
+        if (detailNombreEl) detailNombreEl.textContent = a.nombre || '—';
+        if (detailDescripcionEl) detailDescripcionEl.textContent = a.descripcion || '—';
+        if (detailUbicacionEl) detailUbicacionEl.textContent = a.ubicacion || '—';
+        if (detailAsignadoEl) detailAsignadoEl.textContent = a.asignado_a || 'Sin asignar';
+        if (detailFechaEl) detailFechaEl.textContent = fechaMostrar;
 
-        const estBadge = document.getElementById('detailEstado');
-        estBadge.textContent = a.estado || '—';
-        estBadge.className = `badge ${badgeEstado}`;
+        if (detailCategoriaEl) {
+            detailCategoriaEl.textContent = a.categoria || '—';
+            detailCategoriaEl.className = `badge ${badgeCategoria}`;
+        }
 
-        document.getElementById('detailBtnEditar').onclick = () => {
-            closeDetailModal();
-            abrirEditar(a.activo_id);
-        };
+        if (detailEstadoEl) {
+            detailEstadoEl.textContent = a.estado || '—';
+            detailEstadoEl.className = `badge ${badgeEstado}`;
+        }
 
-        document.getElementById('detailModal').classList.add('active');
+        if (detailBtnEditarEl) {
+            detailBtnEditarEl.onclick = () => {
+                closeDetailModal();
+                abrirEditar(a.activo_id);
+            };
+        }
+
+        const detailModal = document.getElementById('detailModal');
+        if (detailModal) {
+            detailModal.style.setProperty('display', 'flex', 'important');
+            detailModal.classList.add('active');
+        }
     } catch (err) {
         console.error(err);
         alert(err.message || 'Error al obtener detalle del activo');
@@ -408,18 +483,29 @@ async function verActivo(activoId) {
 }
 
 function closeDetailModal() {
-    document.getElementById('detailModal').classList.remove('active');
+    const detailModal = document.getElementById('detailModal');
+    if (!detailModal) return;
+    detailModal.classList.remove('active');
+    detailModal.style.removeProperty('display');
 }
 
 function obtenerDatosFormulario() {
+    const nombreEl = document.getElementById('inputNombre');
+    const descripcionEl = document.getElementById('inputDescripcion');
+    const categoriaEl = document.getElementById('inputCategoria');
+    const estadoEl = document.getElementById('inputEstado');
+    const ubicacionEl = document.getElementById('inputUbicacion');
+    const asignadoEl = document.getElementById('inputAsignadoA');
+    const fechaAltaEl = document.getElementById('inputFechaAlta');
+
     return {
-        nombre: document.getElementById('inputNombre').value.trim(),
-        descripcion: document.getElementById('inputDescripcion').value.trim() || null,
-        categoria: document.getElementById('inputCategoria').value,
-        estado: document.getElementById('inputEstado').value,
-        ubicacion: document.getElementById('inputUbicacion').value.trim() || null,
-        asignado_a: document.getElementById('inputAsignadoA').value || null,
-        fecha_alta: document.getElementById('inputFechaAlta').value || null
+        nombre: nombreEl?.value.trim() || '',
+        descripcion: descripcionEl?.value.trim() || null,
+        categoria: categoriaEl?.value || '',
+        estado: estadoEl?.value || '',
+        ubicacion: ubicacionEl?.value.trim() || null,
+        asignado_a: asignadoEl?.value || null,
+        fecha_alta: fechaAltaEl?.value || null
     };
 }
 
@@ -432,3 +518,13 @@ function escapeHtml(text) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 }
+
+// Expose globals for inline handlers and event delegation fallback
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.closeDetailModal = closeDetailModal;
+window.verActivo = verActivo;
+window.abrirEditar = abrirEditar;
+window.eliminarActivo = eliminarActivo;
+window.irPagina = irPagina;
+window.cambiarEstadoRapido = cambiarEstadoRapido;

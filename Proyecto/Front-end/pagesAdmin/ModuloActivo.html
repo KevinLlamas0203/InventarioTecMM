@@ -352,7 +352,10 @@
                     const doc = parser.parseFromString(html, 'text/html');
 
                     const mainContent = doc.querySelector('.main-content') || doc.querySelector('main');
-                    const fragmentHtml = mainContent ? mainContent.innerHTML : doc.body.innerHTML;
+                    const modals = Array.from(doc.querySelectorAll('.modal'))
+                        .map(modal => modal.outerHTML)
+                        .join('');
+                    const fragmentHtml = mainContent ? mainContent.innerHTML + modals : doc.body.innerHTML;
 
                     // Agregar clase específica según la sección
                     const classMap = {
@@ -371,11 +374,17 @@
                     // Re-ejecutar scripts inline y externos del documento cargado
                     const scripts = Array.from(doc.querySelectorAll('script'));
                     scripts.forEach(script => {
+                        const src = script.src ? new URL(script.src, response.url).href : null;
+                        if (src && src.endsWith('/js/app.js')) {
+                            // Ya se carga el script global de app.js en la página principal
+                            return;
+                        }
+
                         const newScript = document.createElement('script');
                         if (script.type) newScript.type = script.type;
 
-                        if (script.src) {
-                            newScript.src = new URL(script.src, response.url).href;
+                        if (src) {
+                            newScript.src = src;
                             newScript.async = false;
                         } else {
                             newScript.textContent = script.textContent;

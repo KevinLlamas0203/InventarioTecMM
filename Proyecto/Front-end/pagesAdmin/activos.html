@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GestiÃ³n de Activos - Sistema de Inventario</title>    <link rel="stylesheet" href="../css/styles.css">
+    <title>Gestión de Activos - Sistema de Inventario</title>
+    <link rel="stylesheet" href="../css/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap" rel="stylesheet">
@@ -63,8 +64,8 @@
                 </div>
                 
                 <div class="nav-section">
-                    <span class="nav-section-title">GestiÃ³n</span>
-                    <a href="ModuloActivo.html" class="nav-item active">
+                    <span class="nav-section-title">Gestión</span>
+                    <a href="activos.html" class="nav-item active">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
                             <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
@@ -100,12 +101,12 @@
                             <circle cx="12" cy="12" r="10" stroke-width="2"/>
                             <polyline points="12 6 12 12 16 14" stroke-width="2"/>
                         </svg>
-                        <span>AuditorÃ­a</span>
+                        <span>Auditoría</span>
                     </a>
                 </div>
                 
                 <div class="nav-section">
-                    <span class="nav-section-title">ConfiguraciÃ³n</span>
+                    <span class="nav-section-title">Configuración</span>
                     <a href="usuarios.html" class="nav-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/>
@@ -132,7 +133,7 @@
                         <span class="user-role">Administrador</span>
                     </div>
                 </div>
-                <button class="btn-icon logout-btn" aria-label="Cerrar sesiÃ³n">
+                <button class="btn-icon logout-btn" aria-label="Cerrar sesión">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-width="2" stroke-linecap="round"/>
                     </svg>
@@ -144,8 +145,8 @@
         <main class="main-content">
             <header class="content-header">
                 <div class="header-left">
-                    <h1 class="page-title">GestiÃ³n de Activos</h1>
-                    <p class="page-subtitle">AdministraciÃ³n completa del inventario de hardware y software</p>
+                    <h1 class="page-title">Gestión de Activos</h1>
+                    <p class="page-subtitle">Administración completa del inventario de hardware y software</p>
                 </div>
                 <div class="header-right">
                     <button class="btn-secondary">
@@ -156,7 +157,7 @@
                         </svg>
                         <span>Imprimir</span>
                     </button>
-                    <button class="btn-primary" onclick="openModal('crear')">
+                    <button class="btn-primary" id="btnNuevoActivo" type="button" onclick="openModal('crear')">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
                         </svg>
@@ -172,12 +173,12 @@
                         <circle cx="11" cy="11" r="8" stroke-width="2"/>
                         <path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
                     </svg>
-                    <input type="text" placeholder="Buscar por ID, nombre, categorÃ­a..." class="search-input">
+                    <input type="text" placeholder="Buscar por ID, nombre, categoría..." class="search-input">
                 </div>
                 
                 <div class="filters">
                     <select id="filtroCategoria" class="filter-select">
-                        <option value="">Todas las categorÃ­as</option>
+                        <option value="">Todas las categorías</option>
                         <option value ="Hardware">Hardware</option>
                         <option value = "Software">Software</option>
                         <option value = "Infraestructura">Infraestructura</option>
@@ -209,9 +210,9 @@
                                 <th><input type="checkbox" class="table-checkbox"></th>
                                 <th>ID</th>
                                 <th>Nombre</th>
-                                <th>CategorÃ­a</th>
+                                <th>Categoría</th>
                                 <th>Estado</th>
-                                <th>UbicaciÃ³n</th>
+                                <th>Ubicación</th>
                                 <th>Asignado a</th>
                                 <th>Fecha Alta</th>
                                 <th>Acciones</th>
@@ -271,14 +272,14 @@
                         </div>
                         <div class="form-group">
                             <label>ID del activo</label>
-                            <input type="text" placeholder="Generado automÃ¡ticamente" disabled>
+                            <input type="text" placeholder="Generado automáticamente" disabled>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>CategorÃ­a</label>
+                            <label>Categoría</label>
                             <select id="inputCategoria" required>
-                                <option value="">Seleccionar categorÃ­a</option>
+                                <option value="">Seleccionar categoría</option>
                                 <option>Hardware</option>
                                 <option>Software</option>
                                 <option>Infraestructura</option>
@@ -296,13 +297,13 @@
                     </div>
                     <div class="form-group">
                         <label>Especificaciones</label>
-                        <textarea id="inputDescripcion" rows="3" placeholder="Detalles tÃ©cnicos del activo..."></textarea>
+                        <textarea id="inputDescripcion" rows="3" placeholder="Detalles técnicos del activo..."></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>UbicaciÃ³n</label>
+                            <label>Ubicación</label>
                             <select id="inputUbicacion" required>
-                                <option value="">Seleccionar ubicaciÃ³n</option>
+                                <option value="">Seleccionar ubicación</option>
                                 <option value="Edificio A - Lab 101">Edificio A - Lab 101</option>
                                 <option value="Edificio A - Lab 102">Edificio A - Lab 102</option>
                                 <option value="Edificio B - Lab 201">Edificio B - Lab 201</option>
@@ -314,10 +315,10 @@
                             <label>Asignado a</label>
                             <select id="inputAsignadoA">
                                 <option value="">No asignado</option>
-                                <option value="Ana GarcÃ­a">Ana GarcÃ­a</option>
+                                <option value="Ana García">Ana García</option>
                                 <option value="Carlos Ruiz">Carlos Ruiz</option>
-                                <option value="MarÃ­a LÃ³pez">MarÃ­a LÃ³pez</option>
-                                <option value="David RamÃ­rez">David RamÃ­rez</option>
+                                <option value="María López">María López</option>
+                                <option value="David Ramírez">David Ramírez</option>
                             </select>
                         </div>
                     </div>
@@ -336,9 +337,7 @@
         </div>
     </div>
 
-    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-         MODAL DE DETALLES DEL ACTIVO
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+    <!-- Modal de Detalles del Activo -->
     <div class="modal" id="detailModal">
         <div class="modal-overlay" onclick="closeDetailModal()"></div>
         <div class="modal-content" style="max-width:560px">
@@ -355,25 +354,25 @@
             </div>
             <div class="modal-body">
                 <div style="margin-bottom:1.25rem">
-                    <p style="font-size:1.15rem;font-weight:700;margin:0 0 .35rem" id="detailNombre">â€”</p>
-                    <p style="font-size:.875rem;color:#6b7280;margin:0" id="detailDescripcion">â€”</p>
+                    <p style="font-size:1.15rem;font-weight:700;margin:0 0 .35rem" id="detailNombre">—</p>
+                    <p style="font-size:.875rem;color:#6b7280;margin:0" id="detailDescripcion">—</p>
                 </div>
                 <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem">
-                    <span id="detailCategoria" class="badge">â€”</span>
-                    <span id="detailEstado" class="badge">â€”</span>
+                    <span id="detailCategoria" class="badge">—</span>
+                    <span id="detailEstado" class="badge">—</span>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
                     <div style="display:flex;flex-direction:column;gap:.2rem">
-                        <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#6b7280">UbicaciÃ³n</span>
-                        <span style="font-size:.925rem;font-weight:500" id="detailUbicacion">â€”</span>
+                        <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#6b7280">Ubicación</span>
+                        <span style="font-size:.925rem;font-weight:500" id="detailUbicacion">—</span>
                     </div>
                     <div style="display:flex;flex-direction:column;gap:.2rem">
                         <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#6b7280">Asignado a</span>
-                        <span style="font-size:.925rem;font-weight:500" id="detailAsignado">â€”</span>
+                        <span style="font-size:.925rem;font-weight:500" id="detailAsignado">—</span>
                     </div>
                     <div style="display:flex;flex-direction:column;gap:.2rem">
                         <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#6b7280">Fecha de alta</span>
-                        <span style="font-size:.925rem;font-weight:500" id="detailFecha">â€”</span>
+                        <span style="font-size:.925rem;font-weight:500" id="detailFecha">—</span>
                     </div>
                 </div>
             </div>
