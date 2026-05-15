@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditoría - Sistema de Inventario</title>
+    <title>Historial - Sistema de Inventario</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,8 +14,8 @@
     <link rel="manifest" href="../../images/favicon_io/site.webmanifest">
     <link rel="shortcut icon" href="../../images/favicon_io/favicon.ico">
     <style>
-        /* ── Audit-specific styles ── */
-        .audit-stats {
+        /* ── Historial-specific styles ── */
+        .historial-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: var(--spacing-lg);
@@ -214,12 +214,12 @@
                         </svg>
                         <span>Reportes</span>
                     </a>
-                    <a href="auditoria.html" class="nav-item active">
+                    <a href="historial.html" class="nav-item active">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <circle cx="12" cy="12" r="10" stroke-width="2"/>
                             <polyline points="12 6 12 12 16 14" stroke-width="2"/>
                         </svg>
-                        <span>Auditoría</span>
+                        <span>Historial</span>
                     </a>
                 </div>
 
@@ -263,23 +263,23 @@
         <main class="main-content">
             <header class="content-header">
                 <div class="header-left">
-                    <h1 class="page-title">Registro de Auditoría</h1>
+                    <h1 class="page-title">Registro de Historial</h1>
                     <p class="page-subtitle">Historial completo de cambios y actividades del sistema</p>
                 </div>
                 <div class="header-right">
-                    <button class="btn-secondary" onclick="exportarAuditoria()">
+                    <button class="btn-secondary" onclick="exportarHistorial()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/>
                             <polyline points="7 10 12 15 17 10" stroke-width="2"/>
                             <line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/>
                         </svg>
-                        <span>Exportar Log</span>
+                        <span>Exportar Historial</span>
                     </button>
                 </div>
             </header>
 
             <!-- ── Stats ── -->
-            <div class="audit-stats">
+            <div class="historial-stats">
                 <div class="stat-card success">
                     <div class="stat-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/></svg>
@@ -329,7 +329,7 @@
                         <circle cx="11" cy="11" r="8" stroke-width="2"/>
                         <path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
                     </svg>
-                    <input type="text" placeholder="Buscar por usuario, módulo o detalles…" class="search-input" id="auditSearch">
+                    <input type="text" placeholder="Buscar por usuario, módulo o detalles…" class="search-input" id="historialSearch">
                 </div>
                 <div class="filters">
                     <select class="filter-select" id="filterAccion">
@@ -359,7 +359,7 @@
                 </div>
             </div>
 
-            <!-- ── Audit Table ── -->
+            <!-- ── Historial Table ── -->
             <div class="card table-card">
                 <div class="table-wrapper">
                     <table class="data-table">
@@ -375,7 +375,7 @@
                                 <th>Acciones</th>
                             </tr>
                         </thead>
-                        <tbody id="auditBody">
+                        <tbody id="historialBody">
                             <!-- Row 1 -->
                             <tr data-accion="Creación" data-usuario="Admin ISC" data-modulo="Activos">
                                 <td><input type="checkbox" class="table-checkbox"></td>
@@ -623,13 +623,13 @@
         });
 
         // ── Filtering ──
-        function applyAuditFilters() {
-            const search  = document.getElementById('auditSearch').value.toLowerCase();
+        function applyHistorialFilters() {
+            const search  = document.getElementById('historialSearch').value.toLowerCase();
             const accion  = document.getElementById('filterAccion').value;
             const usuario = document.getElementById('filterUsuario').value;
             const modulo  = document.getElementById('filterModulo').value;
 
-            document.querySelectorAll('#auditBody tr').forEach(row => {
+            document.querySelectorAll('#historialBody tr').forEach(row => {
                 const text   = row.textContent.toLowerCase();
                 const rAcc   = row.dataset.accion   || '';
                 const rUser  = row.dataset.usuario  || '';
@@ -644,14 +644,14 @@
             });
         }
 
-        ['auditSearch', 'filterAccion', 'filterUsuario', 'filterModulo', 'filterFecha'].forEach(id => {
+        ['historialSearch', 'filterAccion', 'filterUsuario', 'filterModulo', 'filterFecha'].forEach(id => {
             const el = document.getElementById(id);
-            if (el) el.addEventListener('input', applyAuditFilters);
+            if (el) el.addEventListener('input', applyHistorialFilters);
         });
 
         // Select all
         document.getElementById('selectAll').addEventListener('change', function() {
-            document.querySelectorAll('#auditBody .table-checkbox').forEach(cb => cb.checked = this.checked);
+            document.querySelectorAll('#historialBody .table-checkbox').forEach(cb => cb.checked = this.checked);
         });
 
         // ── Detail Modal ──
@@ -707,8 +707,8 @@
 
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-        function exportarAuditoria() {
-            showToast('Exportando log de auditoría en CSV…', 'info');
+        function exportarHistorial() {
+            showToast('Exportando log de historial en CSV…', 'info');
             setTimeout(() => showToast('Log exportado correctamente.', 'success'), 1800);
         }
 
