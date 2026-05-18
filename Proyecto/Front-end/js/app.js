@@ -1,6 +1,6 @@
 // ISC Inventory System - Main JavaScript
 
-function initApp() {
+function initGlobalApp() {
     if (window.__iscAppInitialized) return;
     window.__iscAppInitialized = true;
 
@@ -74,12 +74,15 @@ function initApp() {
             setTimeout(() => alert.remove(), 300);
         }, 5000);
     });
-    
+}
+
+function initPageFeatures() {
     // Select all checkbox functionality
     const selectAllCheckbox = document.querySelector('thead .table-checkbox');
     const rowCheckboxes = document.querySelectorAll('tbody .table-checkbox');
     
-    if (selectAllCheckbox) {
+    if (selectAllCheckbox && !selectAllCheckbox.dataset.iscInit) {
+        selectAllCheckbox.dataset.iscInit = 'true';
         selectAllCheckbox.addEventListener('change', function() {
             rowCheckboxes.forEach(checkbox => {
                 checkbox.checked = this.checked;
@@ -87,8 +90,9 @@ function initApp() {
         });
     }
     
-    // Update select all checkbox when individual checkboxes change
     rowCheckboxes.forEach(checkbox => {
+        if (checkbox.dataset.iscInit) return;
+        checkbox.dataset.iscInit = 'true';
         checkbox.addEventListener('change', function() {
             const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
             const someChecked = Array.from(rowCheckboxes).some(cb => cb.checked);
@@ -102,7 +106,8 @@ function initApp() {
     
     // Search input functionality
     const searchInput = document.querySelector('.search-input');
-    if (searchInput) {
+    if (searchInput && !searchInput.dataset.iscInit) {
+        searchInput.dataset.iscInit = 'true';
         searchInput.addEventListener('input', debounce(function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const tableRows = document.querySelectorAll('tbody tr');
@@ -117,10 +122,17 @@ function initApp() {
     // Filter functionality
     const filterSelects = document.querySelectorAll('.filter-select');
     filterSelects.forEach(select => {
+        if (select.dataset.iscInit) return;
+        select.dataset.iscInit = 'true';
         select.addEventListener('change', function() {
             applyFilters();
         });
     });
+}
+
+function initApp() {
+    initGlobalApp();
+    initPageFeatures();
 }
 
 if (document.readyState === 'loading') {

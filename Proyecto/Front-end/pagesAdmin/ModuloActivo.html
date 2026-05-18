@@ -370,6 +370,9 @@
 
                     content.classList.remove('loading');
                     content.innerHTML = fragmentHtml;
+                    if (typeof initApp === 'function') {
+                        initApp();
+                    }
 
                     // Re-ejecutar scripts inline y externos del documento cargado
                     const scripts = Array.from(doc.querySelectorAll('script'));
