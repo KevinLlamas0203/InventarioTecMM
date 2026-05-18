@@ -1,4 +1,6 @@
-﻿const API_URL = "http://127.0.0.1:5000";
+﻿function getApiUrl() {
+    return window.API_URL || "http://127.0.0.1:5000";
+}
 const PER_PAGE = 4;
 let paginaActual = 1;
 let activosCache = [];
@@ -137,7 +139,7 @@ function limpiarFormulario() {
 
 async function cargarActivos(resetPagina = true) {
     try {
-        const res = await fetch(`${API_URL}/activos`);
+        const res = await fetch(`${getApiUrl()}/activos`);
         const activos = await res.json();
         if (!res.ok) {
             throw new Error(activos.error || 'No se pudo cargar la lista de activos');
@@ -337,7 +339,7 @@ function irPagina(p) {
 
 async function crearActivo() {
     try {
-        const res = await fetch(`${API_URL}/activos`, {
+        const res = await fetch(`${getApiUrl()}/activos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(obtenerDatosFormulario())
@@ -357,7 +359,7 @@ async function crearActivo() {
 
 async function cambiarEstadoRapido(id, nuevoEstado, selectElement) {
     try {
-        const resGet = await fetch(`${API_URL}/activos/${id}`);
+        const resGet = await fetch(`${getApiUrl()}/activos/${id}`);
         if (!resGet.ok) {
             const data = await resGet.json();
             throw new Error(data.error || 'No se pudo obtener el activo');
@@ -366,7 +368,7 @@ async function cambiarEstadoRapido(id, nuevoEstado, selectElement) {
         const currentAsset = await resGet.json();
         currentAsset.estado = nuevoEstado;
 
-        const resPut = await fetch(`${API_URL}/activos/${id}`, {
+        const resPut = await fetch(`${getApiUrl()}/activos/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(currentAsset)
@@ -393,7 +395,7 @@ async function cambiarEstadoRapido(id, nuevoEstado, selectElement) {
 
 async function abrirEditar(activoId) {
     try {
-        const res = await fetch(`${API_URL}/activos/${activoId}`);
+        const res = await fetch(`${getApiUrl()}/activos/${activoId}`);
         if (!res.ok) {
             const data = await res.json();
             throw new Error(data.error || 'Activo no encontrado');
@@ -418,7 +420,7 @@ async function abrirEditar(activoId) {
 
 async function actualizarActivo(activoId) {
     try {
-        const res = await fetch(`${API_URL}/activos/${activoId}`, {
+        const res = await fetch(`${getApiUrl()}/activos/${activoId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(obtenerDatosFormulario())
@@ -440,7 +442,7 @@ async function eliminarActivo(activoId) {
     if (!confirm(`¿Estás seguro de eliminar el activo #${activoId}? Esta acción no se puede deshacer.`)) return;
 
     try {
-        const res = await fetch(`${API_URL}/activos/${activoId}`, { method: 'DELETE' });
+        const res = await fetch(`${getApiUrl()}/activos/${activoId}`, { method: 'DELETE' });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'No se pudo eliminar el activo');
 
@@ -454,7 +456,7 @@ async function eliminarActivo(activoId) {
 
 async function verActivo(activoId) {
     try {
-        const res = await fetch(`${API_URL}/activos/${activoId}`);
+        const res = await fetch(`${getApiUrl()}/activos/${activoId}`);
         if (!res.ok) {
             const data = await res.json();
             throw new Error(data.error || 'Activo no encontrado');

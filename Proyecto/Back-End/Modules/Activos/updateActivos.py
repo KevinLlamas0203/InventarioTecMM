@@ -1,6 +1,6 @@
 # Blueprint registrado en appActivos.py
 from flask import Blueprint, request, jsonify
-from db_helpers import get_connection, get_or_create_fk_id, get_user_id
+from Activos.db_helpers import get_connection, get_or_create_fk_id, get_user_id
 
 update_bp = Blueprint("update_bp", __name__)
 

@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 import psycopg2
-from db_helpers import get_connection, get_or_create_fk_id, get_user_id
+from Activos.db_helpers import get_connection, get_or_create_fk_id, get_user_id
 
 create_bp = Blueprint("create_bp", __name__)
 

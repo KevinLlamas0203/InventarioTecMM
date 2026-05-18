@@ -1,5 +1,7 @@
 // ISC Inventory System - Main JavaScript
 
+window.API_URL = window.API_URL || "http://127.0.0.1:5000";
+
 function initGlobalApp() {
     if (window.__iscAppInitialized) return;
     window.__iscAppInitialized = true;

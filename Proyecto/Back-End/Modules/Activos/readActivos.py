@@ -1,6 +1,6 @@
 # Blueprint registrado en appActivos.py
 from flask import Blueprint, jsonify
-from db_helpers import get_connection
+from Activos.db_helpers import get_connection
 
 read_bp = Blueprint("read_bp", __name__)
 
