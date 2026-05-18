@@ -7,8 +7,9 @@ import os
 
 load_dotenv()
 
-# Agregar la carpeta Modules/Activos al path para encontrar los blueprints
 base_dir = os.path.abspath(os.path.dirname(__file__))
+
+# ── Módulo Activos ────────────────────────────────────────────────────────────
 sys.path.append(os.path.join(base_dir, "Modules", "Activos"))
 
 from createActivos import create_bp
@@ -16,21 +17,36 @@ from readActivos   import read_bp
 from updateActivos import update_bp
 from deleteActivos import delete_bp
 
+# ── Módulo Usuarios ───────────────────────────────────────────────────────────
+sys.path.append(os.path.join(base_dir, "Modules", "Usuarios"))
+
+from createUsuario import create_usr_bp
+from readUsuario   import read_usr_bp
+from updateUsuario import update_usr_bp
+from deleteUsuario import delete_usr_bp
+
 app = Flask(__name__)
 CORS(app)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# ── Registrar blueprints de Activos ──────────────────────────────────────────
+
+# ── Conexión a DB ─────────────────────────────────────────────────────────────
+def get_db_connection():
+    return psycopg2.connect(DATABASE_URL)
+
+
+# ── Blueprints: Activos ───────────────────────────────────────────────────────
 app.register_blueprint(create_bp)
 app.register_blueprint(read_bp)
 app.register_blueprint(update_bp)
 app.register_blueprint(delete_bp)
 
-
-# ── Conexión a DB ─────────────────────────────────────────────────────────────
-def get_db_connection():
-    return psycopg2.connect(DATABASE_URL)
+# ── Blueprints: Usuarios ──────────────────────────────────────────────────────
+app.register_blueprint(create_usr_bp)
+app.register_blueprint(read_usr_bp)
+app.register_blueprint(update_usr_bp)
+app.register_blueprint(delete_usr_bp)
 
 
 # ── LOGIN ─────────────────────────────────────────────────────────────────────
@@ -51,7 +67,6 @@ def login():
         conn = get_db_connection()
         cur  = conn.cursor()
 
-        # Consulta usuarios + nivel_acceso
         cur.execute(
             """
             SELECT u.id_usuario, u.nombre, c.email, u.nivel_acceso
@@ -68,15 +83,14 @@ def login():
 
         if user:
             user_id, nombre, correo, nivel_acceso = user
-            
             return jsonify({
-                'success': True, 
+                'success': True,
                 'message': 'Acceso correcto.',
                 'usuario': {
-                    'id': user_id,
+                    'id':     user_id,
                     'nombre': nombre,
-                    'email': correo,
-                    'nivel': nivel_acceso  # Retorna 1, 2 o 3
+                    'email':  correo,
+                    'nivel':  nivel_acceso
                 }
             })
         else:
