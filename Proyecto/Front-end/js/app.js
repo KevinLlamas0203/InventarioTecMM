@@ -166,11 +166,12 @@ function applyFilters() {
     const status = statusFilter.value;
     
     tableRows.forEach(row => {
-        const rowCategory = row.querySelector('.badge')?.textContent;
-        const rowStatus = row.querySelector('.status')?.textContent;
+        const rowCategory = row.querySelector('.badge')?.textContent?.trim() || '';
+        const statusSelect = row.querySelector('.status-select');
+        const rowStatus = statusSelect ? statusSelect.value.trim() : row.querySelector('.status')?.textContent?.trim() || '';
         
-        const categoryMatch = !category || category === 'Todas las categorías' || rowCategory === category;
-        const statusMatch = !status || status === 'Todos los estados' || rowStatus === status;
+        const categoryMatch = !category || rowCategory === category;
+        const statusMatch = !status || rowStatus === status;
         
         row.style.display = (categoryMatch && statusMatch) ? '' : 'none';
     });

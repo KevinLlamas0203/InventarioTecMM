@@ -154,7 +154,50 @@ async function cargarActivos(resetPagina = true) {
 function renderTabla(activos) {
     activosCache = activos;
     paginaActual = 1;
+    populateSelectsFromActivos(activos);
     renderPagina();
+}
+
+function populateSelectsFromActivos(activos) {
+    const unique = (values) => Array.from(new Set(values.filter(v => v && v.toString().trim() !== ''))).sort();
+    const categories = unique(activos.map(a => a.categoria));
+    const states = unique(activos.map(a => a.estado));
+    const locations = unique(activos.map(a => a.ubicacion));
+    const assignees = unique(activos.map(a => a.asignado_a));
+
+    const filtroCategoria = document.getElementById('filtroCategoria');
+    const filtroEstado = document.getElementById('filtroEstado');
+    const inputCategoria = document.getElementById('inputCategoria');
+    const inputEstado = document.getElementById('inputEstado');
+    const inputUbicacion = document.getElementById('inputUbicacion');
+    const inputAsignadoA = document.getElementById('inputAsignadoA');
+
+    const setOptions = (select, values, defaultOption) => {
+        if (!select) return;
+        const currentValue = select.value;
+        select.innerHTML = '';
+        select.appendChild(new Option(defaultOption.text, defaultOption.value));
+        values.forEach(value => select.appendChild(new Option(value, value)));
+        if (values.includes(currentValue)) {
+            select.value = currentValue;
+        }
+    };
+
+    setOptions(filtroCategoria, categories, { value: '', text: 'Todas las categorías' });
+    setOptions(filtroEstado, states, { value: '', text: 'Todos los estados' });
+    setOptions(inputCategoria, categories, { value: '', text: 'Seleccionar categoría' });
+    setOptions(inputEstado, states, { value: '', text: 'Seleccionar estado' });
+    setOptions(inputUbicacion, locations, { value: '', text: 'Seleccionar ubicación' });
+
+    if (inputAsignadoA) {
+        const currentValue = inputAsignadoA.value;
+        inputAsignadoA.innerHTML = '';
+        inputAsignadoA.appendChild(new Option('No asignado', ''));
+        assignees.forEach(value => inputAsignadoA.appendChild(new Option(value, value)));
+        if (assignees.includes(currentValue)) {
+            inputAsignadoA.value = currentValue;
+        }
+    }
 }
 
 function renderPagina() {
