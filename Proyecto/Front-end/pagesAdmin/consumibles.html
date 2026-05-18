@@ -1193,24 +1193,35 @@ function closeStockModal() {
 
 async function aplicarStock() {
     const id        = document.getElementById('stock-id').value;
-    const cantidad  = Number(document.getElementById('stock-cantidad').value);
+    const rawVal    = document.getElementById('stock-cantidad').value;
+    const cantidad  = Number(rawVal);
     const operacion = document.getElementById('stock-operacion').value;
 
-    if (!cantidad || cantidad < 1) {
-        showToast('Ingresa una cantidad válida.', 'error');
+    /* Para "set" se permite 0; para sumar/restar se requiere >= 1 */
+    const esSet = operacion === 'set';
+    if (rawVal === '' || isNaN(cantidad) || cantidad < 0 || (!esSet && cantidad < 1)) {
+        showToast(esSet ? 'Ingresa una cantidad válida (≥ 0).' : 'Ingresa una cantidad válida (≥ 1).', 'error');
         return;
     }
+
+    const btn = document.getElementById('btn-aplicar-stock');
+    btn.disabled = true;
+    btn.textContent = 'Aplicando...';
 
     try {
         const res = await apiFetch(`/consumibles/${id}/stock`, {
             method: 'PATCH',
             body: JSON.stringify({ cantidad, operacion })
         });
-        showToast(`Stock actualizado. Nuevo stock: ${res.stock_actual}`, 'success');
+        const nuevoStock = res?.stock_actual ?? res?.nuevo_stock ?? res?.stock ?? '–';
+        showToast(`Stock actualizado. Nuevo stock: ${nuevoStock}`, 'success');
         closeStockModal();
         await loadConsumibles();
     } catch (err) {
         showToast('Error al actualizar stock: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Aplicar';
     }
 }
 
