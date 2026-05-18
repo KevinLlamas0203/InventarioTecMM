@@ -1,8 +1,22 @@
 # Blueprint registrado en appActivos.py
 from flask import Blueprint, request, jsonify
-from Activos.db_helpers import get_connection, get_or_create_fk_id, get_user_id
+from datetime import datetime
+from Activos.db_helpers import get_connection, get_or_create_fk_id, get_fk_id, get_user_id
 
 update_bp = Blueprint("update_bp", __name__)
+
+def has_table(cur, table_name):
+    cur.execute(
+        """
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_name = %s
+        )
+        """,
+        (table_name,)
+    )
+    return cur.fetchone()[0]
 
 @update_bp.route("/activos/<int:activo_id>", methods=["PUT"])
 def update_activo(activo_id):
@@ -16,6 +30,8 @@ def update_activo(activo_id):
     estado      = data.get("estado")
     ubicacion   = data.get("ubicacion")
     asignado_a  = data.get("asignado_a")
+    tipo_movimiento = data.get("tipo_movimiento")
+    observaciones = data.get("observaciones")
     fecha_alta  = data.get("fecha_alta")   # Formato: YYYY-MM-DD
 
     if not all([nombre, categoria, estado]):
@@ -38,6 +54,18 @@ def update_activo(activo_id):
             conn.close()
             return jsonify({"error": f"Usuario asignado no encontrado: {asignado_a}"}), 400
 
+        fk_tipo_movimiento = None
+        if tipo_movimiento:
+            if isinstance(tipo_movimiento, int):
+                fk_tipo_movimiento = tipo_movimiento
+            else:
+                fk_tipo_movimiento = get_fk_id(cur, "tipos_movimiento", "id_tipo_movimiento", "nombre_tipo", tipo_movimiento)
+                if fk_tipo_movimiento is None and has_table(cur, "tipo_movimientos"):
+                    fk_tipo_movimiento = get_fk_id(cur, "tipo_movimientos", "id_tipo_movimiento", "nombre", tipo_movimiento)
+            if fk_tipo_movimiento is None:
+                conn.close()
+                return jsonify({"error": f"Tipo de movimiento no válido: {tipo_movimiento}"}), 400
+
         cur.execute("""
             UPDATE activos
             SET nombre        = %s,
@@ -55,6 +83,21 @@ def update_activo(activo_id):
             cur.close()
             conn.close()
             return jsonify({"error": f"Activo con ID {activo_id} no encontrado"}), 404
+
+        if fk_tipo_movimiento is not None:
+            movement_columns = ["fk_id_activo", "fk_id_usuario", "fk_id_ubicacion", "fk_id_estado", "fk_id_tipo_movimiento", "fecha_movimiento"]
+            movement_values = [activo_id, fk_usuario, fk_ubicacion, fk_estado, fk_tipo_movimiento, datetime.utcnow()]
+            placeholders = ["%s"] * len(movement_values)
+
+            if observaciones:
+                movement_columns.append("observaciones")
+                movement_values.append(observaciones.strip())
+                placeholders.append("%s")
+
+            cur.execute(
+                f"INSERT INTO movimientos ({', '.join(movement_columns)}) VALUES ({', '.join(placeholders)})",
+                tuple(movement_values)
+            )
 
         conn.commit()
         cur.close()

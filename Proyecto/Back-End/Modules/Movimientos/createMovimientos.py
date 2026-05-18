@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 import psycopg2
 from datetime import datetime
-from Activos.db_helpers import get_connection, get_or_create_fk_id, get_user_id
+from Activos.db_helpers import get_connection, get_or_create_fk_id, get_fk_id, get_user_id
 
 create_bp = Blueprint("create_movimientos_bp", __name__)
 
@@ -45,12 +45,14 @@ def create_movimiento():
     tipo_movimiento = data.get("tipo_movimiento")
     ubicacion = data.get("ubicacion")
     empleado = data.get("empleado")
+    estado = data.get("estado")
     observaciones = data.get("observaciones")
     fecha_movimiento = data.get("fecha_movimiento")
 
     required = {
         "activo_id": activo_id,
         "tipo_movimiento": tipo_movimiento,
+        "estado": estado,
     }
     missing = [k for k, v in required.items() if v is None or (isinstance(v, str) and v.strip() == "")]
     if missing:
@@ -58,8 +60,9 @@ def create_movimiento():
 
     empleado = empleado.strip() if isinstance(empleado, str) else None
     ubicacion = ubicacion.strip() if isinstance(ubicacion, str) else None
+    estado = estado.strip() if isinstance(estado, str) else None
     observaciones = observaciones.strip() if isinstance(observaciones, str) else None
-    tipo_movimiento = tipo_movimiento.strip() if isinstance(tipo_movimiento, str) else None
+    tipo_movimiento = tipo_movimiento.strip() if isinstance(tipo_movimiento, str) else tipo_movimiento
     fecha_movimiento = fecha_movimiento.strip() if isinstance(fecha_movimiento, str) else None
     if not fecha_movimiento:
         fecha_movimiento = datetime.utcnow()
@@ -71,13 +74,43 @@ def create_movimiento():
                 if empleado and fk_usuario is None:
                     return jsonify({"error": f"Usuario no encontrado: {empleado}"}), 400
 
-                use_tipo_movimientos = has_table(cur, "tipo_movimientos") and has_column(cur, "movimientos", "fk_id_tipo_movimiento")
-                tipo_table = "tipo_movimientos" if use_tipo_movimientos else "estados"
-                tipo_id_column = "id_tipo_movimiento" if tipo_table == "tipo_movimientos" else "id_estado"
-                mov_type_fk_col = "fk_id_tipo_movimiento" if use_tipo_movimientos else "fk_id_estado"
+                fk_estado = None
+                if estado is not None:
+                    if isinstance(estado, str) and estado.isdigit():
+                        fk_estado = int(estado)
+                    else:
+                        fk_estado = get_fk_id(cur, "estados", "id_estado", "nombre", estado)
+                    if fk_estado is None:
+                        return jsonify({"error": f"Estado no válido: {estado}"}), 400
 
-                fk_tipo_movimiento = get_or_create_fk_id(cur, tipo_table, tipo_id_column, "nombre", tipo_movimiento)
                 fk_ubicacion = get_or_create_fk_id(cur, "ubicaciones", "id_ubicacion", "nombre", ubicacion)
+
+                tipo_table = None
+                tipo_id_column = None
+                tipo_name_column = None
+                mov_type_fk_col = None
+
+                if has_table(cur, "tipos_movimiento") and has_column(cur, "movimientos", "fk_id_tipo_movimiento"):
+                    tipo_table = "tipos_movimiento"
+                    tipo_id_column = "id_tipo_movimiento"
+                    tipo_name_column = "nombre_tipo"
+                    mov_type_fk_col = "fk_id_tipo_movimiento"
+                elif has_table(cur, "tipo_movimientos") and has_column(cur, "movimientos", "fk_id_tipo_movimiento"):
+                    tipo_table = "tipo_movimientos"
+                    tipo_id_column = "id_tipo_movimiento"
+                    tipo_name_column = "nombre"
+                    mov_type_fk_col = "fk_id_tipo_movimiento"
+
+                fk_tipo_movimiento = None
+                if tipo_movimiento is not None and tipo_table is not None:
+                    if isinstance(tipo_movimiento, int):
+                        fk_tipo_movimiento = tipo_movimiento
+                    elif isinstance(tipo_movimiento, str) and tipo_movimiento.isdigit():
+                        fk_tipo_movimiento = int(tipo_movimiento)
+                    else:
+                        fk_tipo_movimiento = get_fk_id(cur, tipo_table, tipo_id_column, tipo_name_column, tipo_movimiento)
+                    if fk_tipo_movimiento is None:
+                        return jsonify({"error": f"Tipo de movimiento no válido: {tipo_movimiento}"}), 400
 
                 columns = ["fk_id_activo", "fk_id_ubicacion", "fecha_movimiento"]
                 values = [activo_id, fk_ubicacion, fecha_movimiento]
@@ -88,12 +121,17 @@ def create_movimiento():
                     values.append(fk_usuario)
                     placeholders.append("%s")
 
+                if fk_estado is not None:
+                    columns.append("fk_id_estado")
+                    values.append(fk_estado)
+                    placeholders.append("%s")
+
                 if fk_tipo_movimiento is not None:
                     columns.append(mov_type_fk_col)
                     values.append(fk_tipo_movimiento)
                     placeholders.append("%s")
 
-                if has_column(cur, "movimientos", "tipo_movimiento"):
+                if has_column(cur, "movimientos", "tipo_movimiento") and tipo_movimiento is not None:
                     columns.append("tipo_movimiento")
                     values.append(tipo_movimiento)
                     placeholders.append("%s")

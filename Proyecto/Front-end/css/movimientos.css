@@ -416,85 +416,76 @@
 /* ─── MODAL STYLES ─── */
 .movimientos-page .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   z-index: 9999;
   display: none;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 1rem;
+  padding: 2rem 1rem;
+  overflow-y: auto;
 }
 .movimientos-page .modal.active {
   display: flex;
 }
 .movimientos-page .modal-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(8px);
   animation: fadeIn 0.25s ease;
 }
 .movimientos-page .modal-content {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  width: 100%;
-  max-width: 620px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  width: min(100%, 620px);
   position: relative;
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-xl);
   animation: slideUp 0.3s ease;
   overflow: hidden;
+  max-height: calc(100vh - 3rem);
 }
 .movimientos-page .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.02);
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
 }
 .movimientos-page .modal-header h2 {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--color-text);
   margin: 0;
 }
 .movimientos-page .modal-close {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--text-muted);
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
 }
 .movimientos-page .modal-close:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--text);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
 }
 .movimientos-page .modal-close svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
 }
 .movimientos-page .modal-body {
   padding: 1.5rem;
-  max-height: 70vh;
+  max-height: calc(100vh - 220px);
   overflow-y: auto;
 }
 .movimientos-page .asset-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+  display: block;
 }
 .movimientos-page .form-row {
   display: grid;
@@ -512,23 +503,22 @@
   gap: 0.5rem;
 }
 .movimientos-page .form-group label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
   font-family: var(--font-body);
 }
 .movimientos-page .form-group select,
 .movimientos-page .form-group textarea {
   width: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-sm);
-  padding: 0.75rem 0.95rem;
-  color: var(--text);
-  font-size: 0.92rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  color: var(--color-text);
+  font-size: 1rem;
   font-family: var(--font-body);
-  appearance: none;
-  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+  transition: all var(--transition-base);
 }
 .movimientos-page .form-group textarea {
   resize: vertical;
@@ -537,53 +527,57 @@
 .movimientos-page .form-group select:focus,
 .movimientos-page .form-group textarea:focus {
   outline: none;
-  border-color: rgba(124, 58, 237, 0.6);
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18);
+  border-color: var(--color-primary);
+  background: var(--color-surface-raised);
+  box-shadow: 0 0 0 3px rgba(63, 75, 245, 0.18);
 }
 .movimientos-page .form-group select option {
-  background: #0f172a;
-  color: #f1f5f9;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 .movimientos-page .modal-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
-  padding-top: 0.5rem;
-  margin-top: 0.5rem;
-  border-top: 1px solid var(--border);
+  gap: 1rem;
+  padding-top: 1rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--color-border);
 }
 .movimientos-page .btn-secondary {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: var(--text-soft);
-  padding: 0.7rem 1.25rem;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  font-family: var(--font-body);
-  cursor: pointer;
-  transition: all 0.22s ease;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: 500;
+  transition: all var(--transition-fast);
 }
 .movimientos-page .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.25);
+  background: var(--color-surface-raised);
+  border-color: var(--color-text-muted);
 }
 .movimientos-page .btn-primary {
-  background: var(--accent-gradient);
-  border: none;
-  color: #fff;
-  padding: 0.7rem 1.5rem;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 700;
-  font-family: var(--font-body);
-  cursor: pointer;
-  transition: all 0.22s ease;
-  box-shadow: 0 8px 24px rgba(100, 100, 255, 0.3);
+  width: auto;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-primary);
+  border-radius: var(--radius-md);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  transition: all var(--transition-base);
+  box-shadow: 0 4px 12px rgba(63, 75, 245, 0.3);
 }
 .movimientos-page .btn-primary:hover {
+  background: var(--color-primary-dark);
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(100, 100, 255, 0.4);
+  box-shadow: 0 6px 20px rgba(63, 75, 245, 0.4);
 }
 
 @keyframes fadeIn {

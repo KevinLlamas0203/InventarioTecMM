@@ -82,7 +82,7 @@ async function populateTypeSelect() {
         }
         tipos.forEach(tipo => {
             const option = document.createElement('option');
-            option.value = tipo.nombre;
+            option.value = tipo.id;
             option.textContent = tipo.nombre;
             select.appendChild(option);
         });
@@ -91,12 +91,35 @@ async function populateTypeSelect() {
     }
 }
 
+async function populateStateSelect() {
+    const select = document.getElementById('movementState');
+    if (!select) return;
+    select.innerHTML = '<option value="">-- Seleccione estado final --</option>';
+
+    try {
+        const response = await fetch(`${getApiUrl()}/movimientos/estados`);
+        const estados = await response.json();
+        if (!response.ok) {
+            throw new Error(estados.error || 'No se pudieron cargar los estados');
+        }
+        estados.forEach(estado => {
+            const option = document.createElement('option');
+            option.value = estado.id;
+            option.textContent = estado.nombre;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error cargando estados para movimientos:', error);
+    }
+}
+
 async function refreshMovementFormOptions() {
     await Promise.all([
         populateAssetSelect(),
         populateEmployeeSelect(),
         populateLocationSelect(),
-        populateTypeSelect()
+        populateTypeSelect(),
+        populateStateSelect()
     ]);
 }
 
@@ -144,6 +167,7 @@ function renderMovimientos(movimientos) {
         }[m.tipo_movimiento] || 'badge-transferencia';
         const empleado = m.empleado || 'Sin empleado';
         const ubicacion = m.ubicacion || 'Sin ubicación';
+        const estadoFinal = m.estado_final || '—';
         const movimientoHTML = `
             <div class="mov-row">
                 <div class="mov-origin">${escapeHtml(ubicacion)}<small>${escapeHtml(empleado)}</small></div>
@@ -162,6 +186,7 @@ function renderMovimientos(movimientos) {
                 <td>
                     <span class="badge ${tipoClass}">${escapeHtml(m.tipo_movimiento)}</span>
                 </td>
+                <td>${escapeHtml(estadoFinal)}</td>
                 <td>${movimientoHTML}</td>
                 <td><div class="notes">${escapeHtml(m.observaciones || '—')}</div></td>
             </tr>`;
@@ -231,6 +256,7 @@ function bindMovementForm() {
         const activoId = document.getElementById('movementAsset')?.value;
         const tipoMov = document.getElementById('movementType')?.value;
         const empleado = document.getElementById('movementEmployee')?.value;
+        const estadoFinal = document.getElementById('movementState')?.value;
         const ubicacion = document.getElementById('movementDestination')?.value || document.getElementById('movementOrigin')?.value;
         const observaciones = document.getElementById('movementNotes')?.value;
         const submitButton = form.querySelector('[type="submit"]');
@@ -250,6 +276,7 @@ function bindMovementForm() {
                 body: JSON.stringify({
                     activo_id: parseInt(activoId, 10),
                     tipo_movimiento: tipoMov,
+                    estado: estadoFinal,
                     empleado: empleado,
                     ubicacion: ubicacion,
                     observaciones: observaciones

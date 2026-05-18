@@ -37,12 +37,13 @@ def movimiento_to_dict(row):
     return {
         "id_movimiento": row[0],
         "tipo_movimiento": row[1],
-        "fecha_movimiento": row[2].isoformat() if row[2] else None,
-        "activo_id": row[3],
-        "activo_nombre": row[4],
-        "empleado": row[5],
-        "ubicacion": row[6],
-        "observaciones": row[7],
+        "estado_final": row[2],
+        "fecha_movimiento": row[3].isoformat() if row[3] else None,
+        "activo_id": row[4],
+        "activo_nombre": row[5],
+        "empleado": row[6],
+        "ubicacion": row[7],
+        "observaciones": row[8],
     }
 
 
@@ -91,11 +92,18 @@ def get_movimientos_ubicaciones():
         return jsonify({"error": str(e)}), 500
 
 
-def get_tipo_movimientos(cur):
-    tipo_table = "tipo_movimientos" if has_table(cur, "tipo_movimientos") else "estados"
-    cur.execute(
-        f"SELECT nombre FROM {tipo_table} ORDER BY nombre"
-    )
+def get_tipo_movimiento_rows(cur):
+    if has_table(cur, "tipos_movimiento"):
+        cur.execute("SELECT id_tipo_movimiento, nombre_tipo FROM tipos_movimiento ORDER BY nombre_tipo")
+        return cur.fetchall()
+    if has_table(cur, "tipo_movimientos"):
+        cur.execute("SELECT id_tipo_movimiento, nombre FROM tipo_movimientos ORDER BY nombre")
+        return cur.fetchall()
+    return []
+
+
+def get_estado_rows(cur):
+    cur.execute("SELECT id_estado, nombre FROM estados ORDER BY nombre")
     return cur.fetchall()
 
 
@@ -104,10 +112,23 @@ def get_movimientos_tipo_movimientos():
     try:
         conn = get_connection()
         cur = conn.cursor()
-        rows = get_tipo_movimientos(cur)
+        rows = get_tipo_movimiento_rows(cur)
         cur.close()
         conn.close()
-        return jsonify([{"nombre": row[0]} for row in rows]), 200
+        return jsonify([{"id": row[0], "nombre": row[1]} for row in rows]), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@read_bp.route("/movimientos/tipos_movimiento", methods=["GET"])
+def get_movimientos_tipos_movimiento():
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        rows = get_tipo_movimiento_rows(cur)
+        cur.close()
+        conn.close()
+        return jsonify([{"id": row[0], "nombre": row[1]} for row in rows]), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -117,10 +138,10 @@ def get_movimientos_estados():
     try:
         conn = get_connection()
         cur = conn.cursor()
-        rows = get_tipo_movimientos(cur)
+        rows = get_estado_rows(cur)
         cur.close()
         conn.close()
-        return jsonify([{"nombre": row[0]} for row in rows]), 200
+        return jsonify([{"id": row[0], "nombre": row[1]} for row in rows]), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -131,21 +152,17 @@ def get_all_movimientos():
         conn = get_connection()
         cur = conn.cursor()
 
-        use_tipo_movimientos = has_table(cur, "tipo_movimientos") and has_column(cur, "movimientos", "fk_id_tipo_movimiento")
+        use_tipo_movimientos = has_table(cur, "tipos_movimiento") and has_column(cur, "movimientos", "fk_id_tipo_movimiento")
         has_tipo_movimiento_col = has_column(cur, "movimientos", "tipo_movimiento")
+        has_tipo_movimientos_legacy = has_table(cur, "tipo_movimientos") and has_column(cur, "movimientos", "fk_id_tipo_movimiento")
+        has_fk_estado = has_column(cur, "movimientos", "fk_id_estado")
 
         if use_tipo_movimientos:
+            tipo_join = "LEFT JOIN tipos_movimiento tm ON m.fk_id_tipo_movimiento = tm.id_tipo_movimiento"
+            tipo_expr = "tm.nombre_tipo AS tipo_movimiento"
+        elif has_tipo_movimientos_legacy:
             tipo_join = "LEFT JOIN tipo_movimientos tm ON m.fk_id_tipo_movimiento = tm.id_tipo_movimiento"
-            if has_tipo_movimiento_col:
-                tipo_expr = "COALESCE(tm.nombre, m.tipo_movimiento) AS tipo_movimiento"
-            else:
-                tipo_expr = "tm.nombre AS tipo_movimiento"
-        elif has_column(cur, "movimientos", "fk_id_estado"):
-            tipo_join = "LEFT JOIN estados e ON m.fk_id_estado = e.id_estado"
-            if has_tipo_movimiento_col:
-                tipo_expr = "COALESCE(e.nombre, m.tipo_movimiento) AS tipo_movimiento"
-            else:
-                tipo_expr = "e.nombre AS tipo_movimiento"
+            tipo_expr = "tm.nombre AS tipo_movimiento"
         elif has_tipo_movimiento_col:
             tipo_join = ""
             tipo_expr = "m.tipo_movimiento AS tipo_movimiento"
@@ -153,11 +170,15 @@ def get_all_movimientos():
             tipo_join = ""
             tipo_expr = "NULL AS tipo_movimiento"
 
+        estado_join = "LEFT JOIN estados e ON m.fk_id_estado = e.id_estado" if has_fk_estado else ""
+        estado_expr = "e.nombre AS estado_final" if has_fk_estado else "NULL AS estado_final"
+
         cur.execute(
             f"""
             SELECT
                 m.id_movimiento,
                 {tipo_expr},
+                {estado_expr},
                 m.fecha_movimiento,
                 a.id_activo,
                 a.nombre AS activo_nombre,
@@ -169,6 +190,7 @@ def get_all_movimientos():
             LEFT JOIN usuarios u ON m.fk_id_usuario = u.id_usuario
             LEFT JOIN ubicaciones ub ON m.fk_id_ubicacion = ub.id_ubicacion
             {tipo_join}
+            {estado_join}
             ORDER BY m.fecha_movimiento DESC
             """
         )
