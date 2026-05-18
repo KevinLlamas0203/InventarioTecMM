@@ -342,6 +342,7 @@
             async function loadTab(tabName) {
                 content.classList.add('loading');
                 content.innerHTML = '';
+                document.querySelectorAll('[data-injected-modal="true"]').forEach(modal => modal.remove());
                 // Limpiar clases de secciones previas
                 content.classList.remove('activos-page', 'movimientos-page', 'asignaciones-page');
                 try {
@@ -352,10 +353,10 @@
                     const doc = parser.parseFromString(html, 'text/html');
 
                     const mainContent = doc.querySelector('.main-content') || doc.querySelector('main');
-                    const modals = Array.from(doc.querySelectorAll('.modal'))
-                        .map(modal => modal.outerHTML)
-                        .join('');
-                    const fragmentHtml = mainContent ? mainContent.innerHTML + modals : doc.body.innerHTML;
+                    const modals = Array.from(doc.querySelectorAll('.modal'));
+                    const contentClone = mainContent ? mainContent.cloneNode(true) : doc.body.cloneNode(true);
+                    contentClone.querySelectorAll('.modal').forEach(modal => modal.remove());
+                    const fragmentHtml = contentClone.innerHTML;
 
                     // Agregar clase específica según la sección
                     const classMap = {
@@ -370,6 +371,14 @@
 
                     content.classList.remove('loading');
                     content.innerHTML = fragmentHtml;
+                    modals.forEach(modal => {
+                        if (modal.id) {
+                            document.getElementById(modal.id)?.remove();
+                        }
+                        const modalClone = modal.cloneNode(true);
+                        modalClone.dataset.injectedModal = 'true';
+                        document.body.appendChild(modalClone);
+                    });
 
                     // Cargar estilos específicos de la página inyectada (si los tiene)
                     const linkTags = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));

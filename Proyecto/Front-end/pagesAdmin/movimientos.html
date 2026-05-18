@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Historial de Movimientos</title>
+<link rel="stylesheet" href="../css/styles.css">
 <link rel="stylesheet" href="../css/movimientos.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -148,7 +149,7 @@
 <!-- Modal para registrar nuevo movimiento -->
 <div class="modal" id="movementModal">
   <div class="modal-overlay" onclick="closeMovementModal()"></div>
-  <div class="modal-content" style="max-width: 620px;">
+  <div class="modal-content">
     <div class="modal-header">
       <h2>Registrar Movimiento</h2>
       <button class="modal-close" onclick="closeMovementModal()" aria-label="Cerrar modal">
@@ -186,23 +187,23 @@
               <option value="">-- Seleccione estado final --</option>
             </select>
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label for="movementOrigin">Origen</label>
             <select id="movementOrigin" required>
               <option value="">-- Seleccione origen --</option>
             </select>
           </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group" style="grid-column: 1 / -1;">
+          <div class="form-group">
             <label for="movementDestination">Destino</label>
             <select id="movementDestination" required>
               <option value="">-- Seleccione destino --</option>
             </select>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group" style="grid-column: 1 / -1;">
+        <div class="form-row form-row-full">
+          <div class="form-group">
             <label for="movementNotes">Observaciones / Notas</label>
             <textarea id="movementNotes" rows="4" placeholder="Describa el motivo o detalles del movimiento..." required></textarea>
           </div>
