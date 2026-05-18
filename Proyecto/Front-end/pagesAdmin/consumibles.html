@@ -92,9 +92,9 @@
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
-        .stat-card.success .stat-icon { background: rgba(16,185,129,0.15); color: var(--success-color); }
-        .stat-card.warning .stat-icon { background: rgba(245,158,11,0.15); color: var(--warning-color); }
-        .stat-card.info    .stat-icon { background: rgba(59,130,246,0.15); color: var(--info-color); }
+        .stat-card.success .stat-icon { background: rgba(16,185,129,0.30); color: #34d399; }
+        .stat-card.warning .stat-icon { background: rgba(245,158,11,0.30); color: #fbbf24; }
+        .stat-card.info    .stat-icon { background: rgba(59,130,246,0.30); color: #60a5fa; }
         .stat-icon svg { width: 22px; height: 22px; }
 
         .stat-content { display: flex; flex-direction: column; gap: 0.2rem; }
@@ -279,6 +279,47 @@
             align-items: center; justify-content: center;
         }
         .modal.active { display: flex; }
+
+        /* Validación de campos */
+        .form-group input.invalid,
+        .form-group select.invalid,
+        .form-group textarea.invalid {
+            border-color: #ef4444 !important;
+            background: rgba(239,68,68,0.07) !important;
+        }
+        .form-group .field-error {
+            font-size: 0.75rem; color: #fca5a5;
+            margin-top: 0.15rem; display: none;
+        }
+        .form-group.has-error .field-error { display: block; }
+
+        /* Modal confirmación eliminar */
+        .confirm-modal-icon {
+            width: 52px; height: 52px; border-radius: 50%;
+            background: rgba(239,68,68,0.15);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        .confirm-modal-icon svg { width: 26px; height: 26px; color: #ef4444; }
+        .confirm-modal-title {
+            font-family: 'Archivo', sans-serif; font-size: 1.1rem;
+            font-weight: 700; color: var(--text-main);
+            text-align: center; margin: 0 0 0.4rem;
+        }
+        .confirm-modal-desc {
+            font-size: 0.875rem; color: var(--text-muted);
+            text-align: center; margin: 0 0 1.5rem; line-height: 1.5;
+        }
+        .confirm-modal-desc strong { color: var(--text-main); }
+        .btn-danger {
+            display: flex; align-items: center; gap: 0.5rem;
+            background: #ef4444; color: #fff; border: none;
+            padding: 0.6rem 1.2rem; border-radius: 0.75rem;
+            cursor: pointer; font-size: 0.9rem;
+            font-family: 'DM Sans', sans-serif; font-weight: 600;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .btn-danger:hover { background: #dc2626; transform: translateY(-1px); }
         .modal-overlay {
             position: absolute; inset: 0;
             background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
@@ -626,6 +667,7 @@
                 <div class="form-group">
                     <label>Nombre del consumible *</label>
                     <input type="text" id="f-nombre" placeholder="Ej: Cable HDMI 2.0">
+                    <span class="field-error">El nombre es obligatorio.</span>
                 </div>
                 <div class="form-group">
                     <label>Categoría *</label>
@@ -638,6 +680,7 @@
                         <option>Componentes</option>
                         <option>Otro</option>
                     </select>
+                    <span class="field-error">Selecciona una categoría.</span>
                 </div>
             </div>
             <div class="form-group">
@@ -652,10 +695,12 @@
                 <div class="form-group">
                     <label>Stock inicial</label>
                     <input type="number" id="f-stock-actual" placeholder="0" min="0">
+                    <span class="field-error">Ingresa un número válido (≥ 0).</span>
                 </div>
                 <div class="form-group">
                     <label>Stock mínimo</label>
                     <input type="number" id="f-stock-minimo" placeholder="10" min="0">
+                    <span class="field-error">Ingresa un número válido (≥ 0).</span>
                 </div>
             </div>
             <div class="form-group">
@@ -703,6 +748,37 @@
             <div class="modal-actions">
                 <button class="btn-secondary" id="btn-cancelar-stock">Cancelar</button>
                 <button class="btn-primary" id="btn-aplicar-stock">Aplicar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Modal: Confirmar Eliminación ═══ -->
+<div class="modal" id="confirmModal">
+    <div class="modal-overlay" id="confirmModalOverlay"></div>
+    <div class="modal-content modal-small">
+        <div class="modal-header">
+            <h2>Confirmar eliminación</h2>
+            <button class="modal-close" id="btn-close-confirm-modal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="confirm-modal-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    <path d="M10 11v6M14 11v6"/>
+                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                </svg>
+            </div>
+            <p class="confirm-modal-title">¿Eliminar consumible?</p>
+            <p class="confirm-modal-desc">Vas a eliminar <strong id="confirm-nombre"></strong>. Esta acción no se puede deshacer.</p>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="btn-cancelar-confirm">Cancelar</button>
+                <button class="btn-danger" id="btn-confirmar-eliminar">Eliminar</button>
             </div>
         </div>
     </div>
@@ -976,6 +1052,16 @@ async function loadConsumibles() {
 /* ════════════════════════════════════════
    MODAL CONSUMIBLE
    ════════════════════════════════════════ */
+function clearFormErrors() {
+    ['f-nombre','f-categoria','f-stock-actual','f-stock-minimo'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.classList.remove('invalid');
+            el.closest('.form-group').classList.remove('has-error');
+        }
+    });
+}
+
 function resetConsumibleForm() {
     document.getElementById('edit-id').value         = '';
     document.getElementById('f-nombre').value        = '';
@@ -988,6 +1074,7 @@ function resetConsumibleForm() {
 }
 
 function openConsumibleModal() {
+    clearFormErrors();
     resetConsumibleForm();
     document.getElementById('modalTitle').textContent      = 'Registrar Nuevo Consumible';
     document.getElementById('btn-guardar').textContent     = 'Guardar Consumible';
@@ -1018,21 +1105,54 @@ function closeConsumibleModal() {
 }
 
 async function guardarConsumible() {
+    /* ── Validación visual ── */
+    let valid = true;
+
+    function setFieldError(id, hasError) {
+        const el = document.getElementById(id);
+        const group = el.closest('.form-group');
+        if (hasError) {
+            el.classList.add('invalid');
+            group.classList.add('has-error');
+            valid = false;
+        } else {
+            el.classList.remove('invalid');
+            group.classList.remove('has-error');
+        }
+    }
+
+    const nombre       = document.getElementById('f-nombre').value.trim();
+    const categoria    = document.getElementById('f-categoria').value;
+    const stockActual  = document.getElementById('f-stock-actual').value;
+    const stockMinimo  = document.getElementById('f-stock-minimo').value;
+
+    setFieldError('f-nombre',      !nombre);
+    setFieldError('f-categoria',   !categoria);
+    setFieldError('f-stock-actual', stockActual !== '' && (isNaN(Number(stockActual)) || Number(stockActual) < 0));
+    setFieldError('f-stock-minimo', stockMinimo !== '' && (isNaN(Number(stockMinimo)) || Number(stockMinimo) < 0));
+
+    if (!valid) {
+        showToast('Corrige los campos marcados en rojo.', 'error');
+        return;
+    }
+
+    /* Limpiar errores si todo OK */
+    ['f-nombre','f-categoria','f-stock-actual','f-stock-minimo'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('invalid');
+        el.closest('.form-group').classList.remove('has-error');
+    });
+
     const editId = document.getElementById('edit-id').value;
     const body = {
-        nombre:         document.getElementById('f-nombre').value.trim(),
+        nombre,
         descripcion:    document.getElementById('f-descripcion').value.trim(),
-        categoria:      document.getElementById('f-categoria').value,
-        stock_actual:   Number(document.getElementById('f-stock-actual').value) || 0,
-        stock_minimo:   Number(document.getElementById('f-stock-minimo').value) || 0,
+        categoria,
+        stock_actual:   Number(stockActual) || 0,
+        stock_minimo:   Number(stockMinimo) || 0,
         ubicacion:      document.getElementById('f-ubicacion').value.trim(),
         fecha_registro: document.getElementById('f-fecha').value || null
     };
-
-    if (!body.nombre || !body.categoria) {
-        showToast('Nombre y categoría son obligatorios.', 'error');
-        return;
-    }
 
     const btn = document.getElementById('btn-guardar');
     btn.disabled = true;
@@ -1094,12 +1214,27 @@ async function aplicarStock() {
     }
 }
 
-/* ════════ Eliminar ════════ */
-async function eliminarConsumible(id, nombre) {
-    if (!confirm(`¿Eliminar "${nombre}"? Esta acción no se puede deshacer.`)) return;
+/* ════════ Eliminar (modal propio) ════════ */
+let _pendingDelete = null;
+
+function eliminarConsumible(id, nombre) {
+    _pendingDelete = { id, nombre };
+    document.getElementById('confirm-nombre').textContent = nombre;
+    document.getElementById('confirmModal').classList.add('active');
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirmModal').classList.remove('active');
+    _pendingDelete = null;
+}
+
+async function confirmarEliminar() {
+    if (!_pendingDelete) return;
+    const { id, nombre } = _pendingDelete;
+    closeConfirmModal();
     try {
         await apiFetch(`/consumibles/${id}`, { method: 'DELETE' });
-        showToast('Consumible eliminado.', 'success');
+        showToast(`"${nombre}" eliminado correctamente.`, 'success');
         await loadConsumibles();
     } catch (err) {
         showToast('Error al eliminar: ' + err.message, 'error');
@@ -1128,6 +1263,12 @@ document.getElementById('stockModalOverlay').addEventListener('click', closeStoc
 
 /* Modal stock — aplicar */
 document.getElementById('btn-aplicar-stock').addEventListener('click', aplicarStock);
+
+/* Modal confirmar eliminar */
+document.getElementById('btn-close-confirm-modal').addEventListener('click', closeConfirmModal);
+document.getElementById('btn-cancelar-confirm').addEventListener('click', closeConfirmModal);
+document.getElementById('confirmModalOverlay').addEventListener('click', closeConfirmModal);
+document.getElementById('btn-confirmar-eliminar').addEventListener('click', confirmarEliminar);
 
 /* Select All */
 document.getElementById('selectAll').addEventListener('change', function () {
