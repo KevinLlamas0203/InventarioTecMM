@@ -5,16 +5,18 @@ from dotenv import load_dotenv
 import sys
 import os
 
-load_dotenv()
-
-# Agregar la carpeta Modules/Activos al path para encontrar los blueprints
 base_dir = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(os.path.join(base_dir, "Modules", "Activos"))
+load_dotenv(os.path.join(base_dir, '.env'))
 
-from createActivos import create_bp
-from readActivos   import read_bp
-from updateActivos import update_bp
-from deleteActivos import delete_bp
+# Agregar la carpeta Modules al path para encontrar los blueprints
+sys.path.append(os.path.join(base_dir, "Modules"))
+
+from Activos.createActivos import create_bp
+from Activos.readActivos   import read_bp
+from Activos.updateActivos import update_bp
+from Activos.deleteActivos import delete_bp
+from Movimientos.createMovimientos import create_bp as create_movimientos_bp
+from Movimientos.readMovimientos import read_bp as read_movimientos_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -26,6 +28,8 @@ app.register_blueprint(create_bp)
 app.register_blueprint(read_bp)
 app.register_blueprint(update_bp)
 app.register_blueprint(delete_bp)
+app.register_blueprint(create_movimientos_bp)
+app.register_blueprint(read_movimientos_bp)
 
 
 # ── Conexión a DB ─────────────────────────────────────────────────────────────

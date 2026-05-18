@@ -1,7 +1,11 @@
 // ISC Inventory System - Main JavaScript
 
-// Sidebar toggle functionality
-document.addEventListener('DOMContentLoaded', function() {
+window.API_URL = window.API_URL || "http://127.0.0.1:5000";
+
+function initGlobalApp() {
+    if (window.__iscAppInitialized) return;
+    window.__iscAppInitialized = true;
+
     const sidebarToggle = document.querySelector('.sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
     
@@ -72,12 +76,15 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => alert.remove(), 300);
         }, 5000);
     });
-    
+}
+
+function initPageFeatures() {
     // Select all checkbox functionality
     const selectAllCheckbox = document.querySelector('thead .table-checkbox');
     const rowCheckboxes = document.querySelectorAll('tbody .table-checkbox');
     
-    if (selectAllCheckbox) {
+    if (selectAllCheckbox && !selectAllCheckbox.dataset.iscInit) {
+        selectAllCheckbox.dataset.iscInit = 'true';
         selectAllCheckbox.addEventListener('change', function() {
             rowCheckboxes.forEach(checkbox => {
                 checkbox.checked = this.checked;
@@ -85,8 +92,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Update select all checkbox when individual checkboxes change
     rowCheckboxes.forEach(checkbox => {
+        if (checkbox.dataset.iscInit) return;
+        checkbox.dataset.iscInit = 'true';
         checkbox.addEventListener('change', function() {
             const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
             const someChecked = Array.from(rowCheckboxes).some(cb => cb.checked);
@@ -100,7 +108,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Search input functionality
     const searchInput = document.querySelector('.search-input');
-    if (searchInput) {
+    if (searchInput && !searchInput.dataset.iscInit) {
+        searchInput.dataset.iscInit = 'true';
         searchInput.addEventListener('input', debounce(function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const tableRows = document.querySelectorAll('tbody tr');
@@ -115,11 +124,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Filter functionality
     const filterSelects = document.querySelectorAll('.filter-select');
     filterSelects.forEach(select => {
+        if (select.dataset.iscInit) return;
+        select.dataset.iscInit = 'true';
         select.addEventListener('change', function() {
             applyFilters();
         });
     });
-});
+}
+
+function initApp() {
+    initGlobalApp();
+    initPageFeatures();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
 
 // Debounce function for search
 function debounce(func, wait) {
@@ -146,11 +168,12 @@ function applyFilters() {
     const status = statusFilter.value;
     
     tableRows.forEach(row => {
-        const rowCategory = row.querySelector('.badge')?.textContent;
-        const rowStatus = row.querySelector('.status')?.textContent;
+        const rowCategory = row.querySelector('.badge')?.textContent?.trim() || '';
+        const statusSelect = row.querySelector('.status-select');
+        const rowStatus = statusSelect ? statusSelect.value.trim() : row.querySelector('.status')?.textContent?.trim() || '';
         
-        const categoryMatch = !category || category === 'Todas las categorías' || rowCategory === category;
-        const statusMatch = !status || status === 'Todos los estados' || rowStatus === status;
+        const categoryMatch = !category || rowCategory === category;
+        const statusMatch = !status || rowStatus === status;
         
         row.style.display = (categoryMatch && statusMatch) ? '' : 'none';
     });

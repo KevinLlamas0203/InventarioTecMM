@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Módulo de Activos - Sistema de Inventario</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/movimientos.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -341,21 +342,114 @@
             async function loadTab(tabName) {
                 content.classList.add('loading');
                 content.innerHTML = '';
+                // Limpiar clases de secciones previas
+                content.classList.remove('activos-page', 'movimientos-page', 'asignaciones-page');
                 try {
                     const response = await fetch(fileMap[tabName]);
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const html = await response.text();
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
+
                     const mainContent = doc.querySelector('.main-content') || doc.querySelector('main');
-                    const fragmentHtml = mainContent ? mainContent.innerHTML : doc.body.innerHTML;
+                    const modals = Array.from(doc.querySelectorAll('.modal'))
+                        .map(modal => modal.outerHTML)
+                        .join('');
+                    const fragmentHtml = mainContent ? mainContent.innerHTML + modals : doc.body.innerHTML;
+
+                    // Agregar clase específica según la sección
+                    const classMap = {
+                        catalogo: 'activos-page',
+                        movimientos: 'movimientos-page',
+                        resguardos: 'asignaciones-page'
+                    };
+
+                    if (classMap[tabName]) {
+                        content.classList.add(classMap[tabName]);
+                    }
+
                     content.classList.remove('loading');
                     content.innerHTML = fragmentHtml;
+
+                    // Cargar estilos específicos de la página inyectada (si los tiene)
+                    const linkTags = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));
+                    linkTags.forEach(link => {
+                        const href = link.href ? new URL(link.href, response.url).href : null;
+                        if (!href) return;
+                        if (!document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) {
+                            const newLink = document.createElement('link');
+                            newLink.rel = 'stylesheet';
+                            newLink.href = href;
+                            document.head.appendChild(newLink);
+                        }
+                    });
+
+                    // Re-ejecutar scripts inline y externos del documento cargado en orden
+                    const scripts = Array.from(doc.querySelectorAll('script'));
+                    console.log(`Loading ${scripts.length} script(s) from ${tabName}`);
+                    const loadPromises = scripts.map(script => {
+                        const src = script.src ? new URL(script.src, response.url).href : null;
+                        if (src && src.endsWith('/js/app.js')) {
+                            return Promise.resolve();
+                        }
+
+                        return new Promise((resolve) => {
+                            const newScript = document.createElement('script');
+                            if (script.type) newScript.type = script.type;
+
+                            if (src) {
+                                newScript.src = src;
+                                newScript.async = false;
+                                newScript.onload = resolve;
+                                newScript.onerror = () => {
+                                    console.error('Error cargando script:', src);
+                                    resolve();
+                                };
+                                document.body.appendChild(newScript);
+                            } else {
+                                newScript.textContent = script.textContent;
+                                document.body.appendChild(newScript);
+                                resolve();
+                            }
+                        });
+                    });
+
+                    await Promise.all(loadPromises);
+
+                    if (tabName === 'movimientos') {
+                        if (typeof initMovimientosPage === 'function') {
+                            initMovimientosPage();
+                        } else {
+                            console.warn('initMovimientosPage no está definido tras cargar movimientos.js');
+                            await loadPageScript('../js/movimientos.js');
+                            if (typeof initMovimientosPage === 'function') {
+                                initMovimientosPage();
+                            }
+                        }
+                    }
+
+                    if (typeof initApp === 'function') {
+                        initApp();
+                    }
                 } catch (error) {
                     content.classList.remove('loading');
                     content.innerHTML = `<div style="padding:2rem;text-align:center;color:rgba(255,255,255,0.8);">No se pudo cargar la sección. Intenta de nuevo más tarde.</div>`;
                     console.error('Error cargando contenido:', error);
                 }
+            }
+
+            async function loadPageScript(src) {
+                return new Promise((resolve) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.async = false;
+                    script.onload = resolve;
+                    script.onerror = () => {
+                        console.error('Error cargando script adicional:', src);
+                        resolve();
+                    };
+                    document.body.appendChild(script);
+                });
             }
 
             buttons.forEach(button => {
