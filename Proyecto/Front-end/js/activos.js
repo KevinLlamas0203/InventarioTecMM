@@ -4,8 +4,18 @@
 const PER_PAGE = 4;
 let paginaActual = 1;
 let activosCache = [];
+let assetKeydownBound = false;
 
 function initActivosPage() {
+    const pageRoot = document.querySelector('.activos-page');
+    if (!pageRoot) {
+        return;
+    }
+    if (pageRoot.dataset.activosInitialized === 'true') {
+        return;
+    }
+    pageRoot.dataset.activosInitialized = 'true';
+
     bindAssetForm();
     bindNuevoActivoButton();
     bindActionDelegation();
@@ -21,7 +31,8 @@ if (document.readyState === 'loading') {
 
 function bindAssetForm() {
     const form = document.getElementById('assetForm');
-    if (!form) return;
+    if (!form || form.dataset.assetFormBound === 'true') return;
+    form.dataset.assetFormBound = 'true';
 
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
@@ -36,11 +47,15 @@ function bindAssetForm() {
 
 function bindNuevoActivoButton() {
     const nuevoBtn = document.getElementById('btnNuevoActivo');
-    if (!nuevoBtn) return;
+    if (!nuevoBtn || nuevoBtn.hasAttribute('onclick') || nuevoBtn.dataset.assetButtonBound === 'true') return;
+    nuevoBtn.dataset.assetButtonBound = 'true';
     nuevoBtn.addEventListener('click', () => openModal('crear'));
 }
 
 function bindModalCloseShortcuts() {
+    if (assetKeydownBound) return;
+    assetKeydownBound = true;
+
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape') {
             const detailModal = document.getElementById('detailModal');
@@ -52,8 +67,10 @@ function bindModalCloseShortcuts() {
 }
 
 function bindActionDelegation() {
-    const tbody = document.querySelector('.data-table tbody');
-    if (!tbody) return;
+    const pageRoot = document.querySelector('.activos-page');
+    const tbody = pageRoot?.querySelector('.data-table tbody');
+    if (!tbody || tbody.dataset.assetDelegationBound === 'true') return;
+    tbody.dataset.assetDelegationBound = 'true';
 
     tbody.addEventListener('click', event => {
         const button = event.target.closest('[data-action]');
@@ -146,29 +163,33 @@ async function cargarActivos(resetPagina = true) {
         }
 
         if (resetPagina) paginaActual = 1;
-        renderTabla(activos);
+        renderTabla(activos, resetPagina);
     } catch (err) {
         console.error('Error al cargar activos:', err);
         alert(err.message || 'No se pudo cargar la lista de activos. Revisa la conexión al servidor.');
     }
 }
 
-function renderTabla(activos) {
+function renderTabla(activos, resetPagina = true) {
     activosCache = activos;
-    paginaActual = 1;
+    if (resetPagina) paginaActual = 1;
     populateSelectsFromActivos(activos);
     renderPagina();
 }
 
 function populateSelectsFromActivos(activos) {
+    const pageRoot = document.querySelector('.activos-page');
     const unique = (values) => Array.from(new Set(values.filter(v => v && v.toString().trim() !== ''))).sort();
     const categories = unique(activos.map(a => a.categoria));
     const states = unique(activos.map(a => a.estado));
+    const allowedStates = ['Disponible', 'En uso', 'Mantenimiento', 'Dado de baja'];
+    const modalStates = allowedStates;
+    const filterStates = states;
     const locations = unique(activos.map(a => a.ubicacion));
     const assignees = unique(activos.map(a => a.asignado_a));
 
-    const filtroCategoria = document.getElementById('filtroCategoria');
-    const filtroEstado = document.getElementById('filtroEstado');
+    const filtroCategoria = pageRoot?.querySelector('#filtroCategoria');
+    const filtroEstado = pageRoot?.querySelector('#filtroEstado');
     const inputCategoria = document.getElementById('inputCategoria');
     const inputEstado = document.getElementById('inputEstado');
     const inputUbicacion = document.getElementById('inputUbicacion');
@@ -186,9 +207,9 @@ function populateSelectsFromActivos(activos) {
     };
 
     setOptions(filtroCategoria, categories, { value: '', text: 'Todas las categorías' });
-    setOptions(filtroEstado, states, { value: '', text: 'Todos los estados' });
+    setOptions(filtroEstado, filterStates, { value: '', text: 'Todos los estados' });
     setOptions(inputCategoria, categories, { value: '', text: 'Seleccionar categoría' });
-    setOptions(inputEstado, states, { value: '', text: 'Seleccionar estado' });
+    setOptions(inputEstado, modalStates, { value: '', text: 'Seleccionar estado' });
     setOptions(inputUbicacion, locations, { value: '', text: 'Seleccionar ubicación' });
 
     if (inputAsignadoA) {
@@ -211,7 +232,8 @@ function renderPagina() {
     const start = (paginaActual - 1) * PER_PAGE;
     const end = Math.min(start + PER_PAGE, totalRows);
     const slice = activos.slice(start, end);
-    const tbody = document.querySelector('.data-table tbody');
+    const pageRoot = document.querySelector('.activos-page');
+    const tbody = pageRoot?.querySelector('.data-table tbody');
 
     if (!tbody) return;
     tbody.innerHTML = '';
@@ -287,7 +309,7 @@ function renderPagina() {
         });
     }
 
-    const infoEl = document.querySelector('.table-info');
+    const infoEl = pageRoot?.querySelector('.table-info');
     if (infoEl) {
         const dispStart = totalRows === 0 ? 0 : start + 1;
         infoEl.innerHTML = `Mostrando <strong>${dispStart}–${end}</strong> de <strong>${totalRows}</strong> activos`;
@@ -297,7 +319,8 @@ function renderPagina() {
 }
 
 function renderPaginacionControles(totalPages) {
-    const container = document.querySelector('.pagination');
+    const pageRoot = document.querySelector('.activos-page');
+    const container = pageRoot?.querySelector('.pagination');
     if (!container) return;
 
     let html = '';
@@ -331,7 +354,7 @@ function renderPaginacionControles(totalPages) {
 }
 
 function irPagina(p) {
-    const totalPages = Math.ceil(activosCache.length / PER_PAGE);
+    const totalPages = Math.max(1, Math.ceil(activosCache.length / PER_PAGE));
     if (p < 1 || p > totalPages) return;
     paginaActual = p;
     renderPagina();
@@ -349,7 +372,7 @@ async function crearActivo() {
         if (!res.ok) throw new Error(data.error || 'Error al crear activo');
 
         closeModal();
-        cargarActivos();
+        await Promise.all([cargarActivos(), refreshMovimientosTable()]);
         alert(`✅ Activo creado con ID: ${data.activo_id}`);
     } catch (err) {
         console.error(err);
@@ -387,6 +410,7 @@ async function cambiarEstadoRapido(id, nuevoEstado, selectElement) {
         }[nuevoEstado] || 'status-available';
 
         selectElement.className = `status-select ${badgeEstado}`;
+        await refreshMovimientosTable();
     } catch (err) {
         console.error(err);
         alert(err.message || 'Error de conexión al cambiar estado.');
@@ -430,7 +454,7 @@ async function actualizarActivo(activoId) {
         if (!res.ok) throw new Error(data.error || 'No se pudo actualizar el activo');
 
         closeModal();
-        cargarActivos();
+        await Promise.all([cargarActivos(), refreshMovimientosTable()]);
         alert(`✅ ${data.mensaje}`);
     } catch (err) {
         console.error(err);
@@ -446,7 +470,7 @@ async function eliminarActivo(activoId) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'No se pudo eliminar el activo');
 
-        cargarActivos();
+        await Promise.all([cargarActivos(), refreshMovimientosTable()]);
         alert(`✅ ${data.mensaje}`);
     } catch (err) {
         console.error(err);
@@ -482,7 +506,7 @@ async function verActivo(activoId) {
             fechaMostrar = `${d}/${m}/${y}`;
         }
 
-        const detailIdEl = document.getElementById('detailId');
+        const detailIdEl = document.getElementById('detailActivoId');
         const detailNombreEl = document.getElementById('detailNombre');
         const detailDescripcionEl = document.getElementById('detailDescripcion');
         const detailUbicacionEl = document.getElementById('detailUbicacion');
@@ -573,3 +597,4 @@ window.abrirEditar = abrirEditar;
 window.eliminarActivo = eliminarActivo;
 window.irPagina = irPagina;
 window.cambiarEstadoRapido = cambiarEstadoRapido;
+window.initActivosPage = initActivosPage;

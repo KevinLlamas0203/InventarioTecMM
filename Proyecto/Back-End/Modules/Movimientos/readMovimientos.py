@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from Activos.db_helpers import get_connection
 
 read_bp = Blueprint("read_movimientos_bp", __name__)
@@ -152,6 +152,14 @@ def get_all_movimientos():
         conn = get_connection()
         cur = conn.cursor()
 
+        activo_id = request.args.get('activo_id', type=int)
+        tipo_movimiento = request.args.get('tipo_movimiento')
+        estado = request.args.get('estado')
+        ubicacion = request.args.get('ubicacion')
+        empleado = request.args.get('empleado')
+        fecha_desde = request.args.get('fecha_desde')
+        fecha_hasta = request.args.get('fecha_hasta')
+
         use_tipo_movimientos = has_table(cur, "tipos_movimiento") and has_column(cur, "movimientos", "fk_id_tipo_movimiento")
         has_tipo_movimiento_col = has_column(cur, "movimientos", "tipo_movimiento")
         has_tipo_movimientos_legacy = has_table(cur, "tipo_movimientos") and has_column(cur, "movimientos", "fk_id_tipo_movimiento")
@@ -160,18 +168,67 @@ def get_all_movimientos():
         if use_tipo_movimientos:
             tipo_join = "LEFT JOIN tipos_movimiento tm ON m.fk_id_tipo_movimiento = tm.id_tipo_movimiento"
             tipo_expr = "tm.nombre_tipo AS tipo_movimiento"
+            tipo_name_column = "tm.nombre_tipo"
         elif has_tipo_movimientos_legacy:
             tipo_join = "LEFT JOIN tipo_movimientos tm ON m.fk_id_tipo_movimiento = tm.id_tipo_movimiento"
             tipo_expr = "tm.nombre AS tipo_movimiento"
+            tipo_name_column = "tm.nombre"
         elif has_tipo_movimiento_col:
             tipo_join = ""
             tipo_expr = "m.tipo_movimiento AS tipo_movimiento"
+            tipo_name_column = None
         else:
             tipo_join = ""
             tipo_expr = "NULL AS tipo_movimiento"
+            tipo_name_column = None
 
         estado_join = "LEFT JOIN estados e ON m.fk_id_estado = e.id_estado" if has_fk_estado else ""
         estado_expr = "e.nombre AS estado_final" if has_fk_estado else "NULL AS estado_final"
+
+        where_clauses = []
+        query_params = []
+
+        if activo_id is not None:
+            where_clauses.append("a.id_activo = %s")
+            query_params.append(activo_id)
+
+        if tipo_movimiento:
+            tipo_clauses = []
+            if tipo_movimiento.isdigit():
+                tipo_clauses.append("m.fk_id_tipo_movimiento = %s")
+                query_params.append(int(tipo_movimiento))
+            if tipo_name_column:
+                tipo_clauses.append(f"{tipo_name_column} = %s")
+                query_params.append(tipo_movimiento)
+            tipo_clauses.append("m.tipo_movimiento = %s")
+            query_params.append(tipo_movimiento)
+            where_clauses.append(f"({' OR '.join(tipo_clauses)})")
+
+        if estado:
+            if has_fk_estado:
+                where_clauses.append("e.nombre = %s")
+                query_params.append(estado)
+            else:
+                where_clauses.append("m.estado = %s")
+                query_params.append(estado)
+
+        if ubicacion:
+            where_clauses.append("ub.nombre = %s")
+            query_params.append(ubicacion)
+
+        if empleado:
+            where_clauses.append("(u.nombre || ' ' || u.apellido_paterno || COALESCE(' ' || u.apellido_materno, '')) = %s")
+            query_params.append(empleado)
+
+        if fecha_desde:
+            where_clauses.append("m.fecha_movimiento >= %s")
+            query_params.append(fecha_desde)
+
+        if fecha_hasta:
+            where_clauses.append("m.fecha_movimiento <= %s")
+            query_params.append(fecha_hasta)
+
+        where_sql = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
 
         cur.execute(
             f"""
@@ -191,8 +248,10 @@ def get_all_movimientos():
             LEFT JOIN ubicaciones ub ON m.fk_id_ubicacion = ub.id_ubicacion
             {tipo_join}
             {estado_join}
+            {where_sql}
             ORDER BY m.fecha_movimiento DESC
-            """
+            """,
+            tuple(query_params)
         )
         rows = cur.fetchall()
         cur.close()

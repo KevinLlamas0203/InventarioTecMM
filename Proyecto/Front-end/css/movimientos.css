@@ -47,7 +47,7 @@
 #movementModal .modal-content {
   max-width: 620px;
   width: min(620px, calc(100vw - 2rem));
-  max-height: calc(100dvh - 2rem);
+  max-height: 85vh;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   display: flex;
@@ -82,19 +82,37 @@
   font-size: 0.95rem;
 }
 
-.activos-page .btn-primary,
-.asignaciones-page .btn-primary {
+.activos-page .header-right .btn-primary,
+.asignaciones-page .header-right .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
   width: auto;
+  padding: var(--spacing-md) var(--spacing-lg);
   border-radius: var(--radius-sm);
   background: var(--color-primary);
+  color: #fff;
+  border: none;
   font-weight: 500;
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  cursor: pointer;
+  white-space: nowrap;
   box-shadow: none;
+  transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.activos-page .btn-primary:hover,
-.asignaciones-page .btn-primary:hover {
+.activos-page .header-right .btn-primary:hover,
+.asignaciones-page .header-right .btn-primary:hover {
+  transform: translateY(-2px);
   background: var(--color-primary-dark);
   box-shadow: 0 6px 20px rgba(63, 75, 245, 0.4);
+}
+
+.activos-page .header-right .btn-primary svg,
+.asignaciones-page .header-right .btn-primary svg {
+  width: 18px;
+  height: 18px;
 }
 
 .activos-page .btn-secondary,
@@ -600,8 +618,10 @@
 
 .movimientos-page .asset-form .form-row,
 #movementModal .asset-form .form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.85rem;
 }
 
 .movimientos-page .asset-form .form-row-full,
@@ -633,7 +653,7 @@
 
 .movimientos-page .asset-form textarea,
 #movementModal .asset-form textarea {
-  min-height: 92px;
+  min-height: 80px;
 }
 
 .movimientos-page .modal-actions,
@@ -1177,6 +1197,18 @@
   }
 
   .movimientos-page .btn-register {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .activos-page .header-right,
+  .asignaciones-page .header-right {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .activos-page .header-right .btn-primary,
+  .asignaciones-page .header-right .btn-primary {
     width: 100%;
     justify-content: center;
   }

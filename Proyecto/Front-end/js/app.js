@@ -79,9 +79,12 @@ function initGlobalApp() {
 }
 
 function initPageFeatures() {
+    const pageRoot = document.querySelector('#tab-content') || document.querySelector('.main-content');
+    if (!pageRoot) return;
+
     // Select all checkbox functionality
-    const selectAllCheckbox = document.querySelector('thead .table-checkbox');
-    const rowCheckboxes = document.querySelectorAll('tbody .table-checkbox');
+    const selectAllCheckbox = pageRoot.querySelector('thead .table-checkbox');
+    const rowCheckboxes = pageRoot.querySelectorAll('tbody .table-checkbox');
     
     if (selectAllCheckbox && !selectAllCheckbox.dataset.iscInit) {
         selectAllCheckbox.dataset.iscInit = 'true';
@@ -107,12 +110,12 @@ function initPageFeatures() {
     });
     
     // Search input functionality
-    const searchInput = document.querySelector('.search-input');
+    const searchInput = pageRoot.querySelector('.search-input');
     if (searchInput && !searchInput.dataset.iscInit) {
         searchInput.dataset.iscInit = 'true';
         searchInput.addEventListener('input', debounce(function(e) {
             const searchTerm = e.target.value.toLowerCase();
-            const tableRows = document.querySelectorAll('tbody tr');
+            const tableRows = pageRoot.querySelectorAll('tbody tr');
             
             tableRows.forEach(row => {
                 const text = row.textContent.toLowerCase();
@@ -122,7 +125,7 @@ function initPageFeatures() {
     }
     
     // Filter functionality
-    const filterSelects = document.querySelectorAll('.filter-select');
+    const filterSelects = pageRoot.querySelectorAll('.filter-select');
     filterSelects.forEach(select => {
         if (select.dataset.iscInit) return;
         select.dataset.iscInit = 'true';
@@ -158,9 +161,12 @@ function debounce(func, wait) {
 
 // Apply filters function
 function applyFilters() {
-    const categoryFilter = document.querySelector('.filter-select:nth-of-type(1)');
-    const statusFilter = document.querySelector('.filter-select:nth-of-type(2)');
-    const tableRows = document.querySelectorAll('tbody tr');
+    const pageRoot = document.querySelector('#tab-content') || document.querySelector('.main-content');
+    if (!pageRoot) return;
+
+    const categoryFilter = pageRoot.querySelector('.filter-select:nth-of-type(1)');
+    const statusFilter = pageRoot.querySelector('.filter-select:nth-of-type(2)');
+    const tableRows = pageRoot.querySelectorAll('tbody tr');
     
     if (!categoryFilter || !statusFilter) return;
     
@@ -375,5 +381,24 @@ function cambiarTab(tab) {
     if (tab === "resguardos") {
         frame.src = "asignaciones.html";
         tabs[2].classList.add("active");
+    }
+}
+
+// Cross-module synchronization functions
+async function refreshActivosTable() {
+    if (typeof cargarActivos === 'function') {
+        await cargarActivos();
+    }
+}
+
+async function refreshMovimientosTable() {
+    if (typeof fetchMovimientos === 'function') {
+        await fetchMovimientos();
+    }
+}
+
+async function refreshAsignacionesTable() {
+    if (typeof fetchAssignments === 'function') {
+        await fetchAssignments();
     }
 }

@@ -401,6 +401,12 @@
                         if (src && src.endsWith('/js/app.js')) {
                             return Promise.resolve();
                         }
+                        if (src) {
+                            const loadedScript = document.querySelector(`script[data-dynamic-src="${src}"]`);
+                            if (loadedScript) {
+                                return Promise.resolve();
+                            }
+                        }
 
                         return new Promise((resolve) => {
                             const newScript = document.createElement('script');
@@ -408,6 +414,7 @@
 
                             if (src) {
                                 newScript.src = src;
+                                newScript.dataset.dynamicSrc = src;
                                 newScript.async = false;
                                 newScript.onload = resolve;
                                 newScript.onerror = () => {
@@ -440,6 +447,14 @@
                     if (typeof initApp === 'function') {
                         initApp();
                     }
+
+                    if (tabName === 'catalogo' && typeof initActivosPage === 'function') {
+                        initActivosPage();
+                    }
+
+                    if (tabName === 'resguardos' && typeof initAsignacionesPage === 'function') {
+                        initAsignacionesPage();
+                    }
                 } catch (error) {
                     content.classList.remove('loading');
                     content.innerHTML = `<div style="padding:2rem;text-align:center;color:rgba(255,255,255,0.8);">No se pudo cargar la sección. Intenta de nuevo más tarde.</div>`;
@@ -449,8 +464,15 @@
 
             async function loadPageScript(src) {
                 return new Promise((resolve) => {
+                    const absoluteSrc = new URL(src, window.location.href).href;
+                    const loadedScript = document.querySelector(`script[data-dynamic-src="${absoluteSrc}"]`);
+                    if (loadedScript) {
+                        resolve();
+                        return;
+                    }
                     const script = document.createElement('script');
-                    script.src = src;
+                    script.src = absoluteSrc;
+                    script.dataset.dynamicSrc = absoluteSrc;
                     script.async = false;
                     script.onload = resolve;
                     script.onerror = () => {

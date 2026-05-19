@@ -1,12 +1,31 @@
 function getApiUrl() {
-    return window.API_URL || "http://127.0.0.1:5000";
+    return window.API_URL || window.location.origin || "http://127.0.0.1:5000";
 }
+
+async function fetchJson(path) {
+    const response = await fetch(`${getApiUrl()}${path}`);
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+        throw new Error(data?.error || `Error fetching ${path}`);
+    }
+    return data;
+}
+
 console.log('movimientos.js cargado');
 let movimientosCache = [];
 let movementKeydownBound = false;
 let isMovementSubmitting = false;
 
 async function initMovimientosPage() {
+    const pageRoot = document.querySelector('.movimientos-page');
+    if (!pageRoot) {
+        return;
+    }
+    if (pageRoot.dataset.movimientosInitialized === 'true') {
+        return;
+    }
+    pageRoot.dataset.movimientosInitialized = 'true';
+
     await refreshMovementFormOptions();
     await fetchMovimientos();
     bindMovementForm();
@@ -27,11 +46,7 @@ async function populateEmployeeSelect() {
     select.innerHTML = '<option value="">-- Seleccione un empleado --</option>';
 
     try {
-        const response = await fetch(`${getApiUrl()}/movimientos/usuarios`);
-        const users = await response.json();
-        if (!response.ok) {
-            throw new Error(users.error || 'No se pudo cargar empleados');
-        }
+        const users = await fetchJson('/movimientos/usuarios');
         users.forEach(user => {
             const option = document.createElement('option');
             option.value = user.nombre_completo;
@@ -52,11 +67,7 @@ async function populateLocationSelect() {
     destinationSelect.innerHTML = '<option value="">-- Seleccione ubicación --</option>';
 
     try {
-        const response = await fetch(`${getApiUrl()}/movimientos/ubicaciones`);
-        const locations = await response.json();
-        if (!response.ok) {
-            throw new Error(locations.error || 'No se pudieron cargar ubicaciones');
-        }
+        const locations = await fetchJson('/movimientos/ubicaciones');
         const options = ['<option value="">-- Seleccione ubicación --</option>'];
         locations.forEach(location => {
             const escaped = escapeHtml(location.nombre);
@@ -75,10 +86,12 @@ async function populateTypeSelect() {
     select.innerHTML = '<option value="">-- Seleccione tipo de movimiento --</option>';
 
     try {
-        const response = await fetch(`${getApiUrl()}/movimientos/tipo_movimientos`);
-        const tipos = await response.json();
-        if (!response.ok) {
-            throw new Error(tipos.error || 'No se pudieron cargar tipos de movimiento');
+        let tipos;
+        try {
+            tipos = await fetchJson('/movimientos/tipo_movimientos');
+        } catch (firstError) {
+            console.warn('Intentando fallback a /movimientos/tipos_movimiento después de fallo:', firstError);
+            tipos = await fetchJson('/movimientos/tipos_movimiento');
         }
         tipos.forEach(tipo => {
             const option = document.createElement('option');
@@ -97,11 +110,7 @@ async function populateStateSelect() {
     select.innerHTML = '<option value="">-- Seleccione estado final --</option>';
 
     try {
-        const response = await fetch(`${getApiUrl()}/movimientos/estados`);
-        const estados = await response.json();
-        if (!response.ok) {
-            throw new Error(estados.error || 'No se pudieron cargar los estados');
-        }
+        const estados = await fetchJson('/movimientos/estados');
         estados.forEach(estado => {
             const option = document.createElement('option');
             option.value = estado.id;
@@ -124,12 +133,13 @@ async function refreshMovementFormOptions() {
 }
 
 async function fetchMovimientos() {
+    const pageRoot = document.querySelector('.movimientos-page');
+    if (!pageRoot) {
+        return;
+    }
+
     try {
-        const response = await fetch(`${getApiUrl()}/movimientos`);
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.error || 'No se pudo cargar los movimientos');
-        }
+        const data = await fetchJson('/movimientos');
         movimientosCache = data;
         renderMovimientos(data);
         updateStats(data);
@@ -140,13 +150,14 @@ async function fetchMovimientos() {
 }
 
 function renderMovimientos(movimientos) {
-    const tbody = document.querySelector('.table-wrapper tbody');
+    const pageRoot = document.querySelector('.movimientos-page');
+    const tbody = pageRoot?.querySelector('.table-wrapper tbody');
     if (!tbody) return;
 
     tbody.innerHTML = '';
 
     if (!movimientos.length) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;opacity:.6;">No se encontraron movimientos registrados</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;opacity:.6;">No se encontraron movimientos registrados</td></tr>`;
         return;
     }
 
@@ -194,6 +205,7 @@ function renderMovimientos(movimientos) {
 }
 
 function updateStats(movimientos) {
+    const pageRoot = document.querySelector('.movimientos-page');
     const totalCount = movimientos.length;
     const now = new Date();
     const currentMonth = now.getMonth();
@@ -205,11 +217,11 @@ function updateStats(movimientos) {
     const assignmentCount = movimientos.filter(m => m.tipo_movimiento === 'Asignación').length;
     const maintenanceCount = movimientos.filter(m => m.tipo_movimiento === 'Mantenimiento').length;
 
-    const totalEl = document.querySelector('.stat-card.blue .stat-value');
-    const monthEl = document.querySelector('.stat-card.green .stat-value');
-    const assignEl = document.querySelector('.stat-card.purple .stat-value');
-    const maintenanceEl = document.querySelector('.stat-card.orange .stat-value');
-    const results = document.querySelector('.results-count');
+    const totalEl = pageRoot?.querySelector('.stat-card.blue .stat-value');
+    const monthEl = pageRoot?.querySelector('.stat-card.green .stat-value');
+    const assignEl = pageRoot?.querySelector('.stat-card.purple .stat-value');
+    const maintenanceEl = pageRoot?.querySelector('.stat-card.orange .stat-value');
+    const results = pageRoot?.querySelector('.results-count');
 
     if (totalEl) totalEl.textContent = totalCount;
     if (monthEl) monthEl.textContent = monthCount;
@@ -225,11 +237,7 @@ async function populateAssetSelect() {
     select.innerHTML = '<option value="">-- Seleccione un activo --</option>';
 
     try {
-        const response = await fetch(`${getApiUrl()}/activos`);
-        const activos = await response.json();
-        if (!response.ok) {
-            throw new Error(activos.error || 'No se pudo cargar activos');
-        }
+        const activos = await fetchJson('/activos');
         activos.forEach(activo => {
             const option = document.createElement('option');
             option.value = activo.activo_id;

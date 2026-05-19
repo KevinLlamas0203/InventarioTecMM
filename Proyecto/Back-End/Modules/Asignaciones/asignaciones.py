@@ -144,7 +144,10 @@ def assignment_to_dict(row, include_extended=False):
         "notas": row[13] if len(row) > 13 else None,
     }
 
-    if assignment["fecha_fin"]:
+    estado_db = assignment.get("estado_nombre")
+    if estado_db in ("Finalizada", "Vencida"):
+        assignment["estado"] = estado_db
+    elif assignment["fecha_fin"]:
         try:
             fecha_fin = datetime.fromisoformat(assignment["fecha_fin"])
             if fecha_fin.date() < datetime.utcnow().date():

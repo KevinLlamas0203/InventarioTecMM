@@ -4,6 +4,7 @@ function getApiUrl() {
 
 let assignmentsCache = [];
 let currentExtendAssignmentId = null;
+let assignmentKeydownBound = false;
 
 function escapeHtml(text) {
     if (text === null || text === undefined) return '';
@@ -16,6 +17,15 @@ function escapeHtml(text) {
 }
 
 async function initAsignacionesPage() {
+    const pageRoot = document.querySelector('.asignaciones-page');
+    if (!pageRoot) {
+        return;
+    }
+    if (pageRoot.dataset.asignacionesInitialized === 'true') {
+        return;
+    }
+    pageRoot.dataset.asignacionesInitialized = 'true';
+
     await Promise.all([
         populateUserSelect(),
         populateAssetSelect(),
@@ -25,6 +35,7 @@ async function initAsignacionesPage() {
     ]);
     bindAssignmentForm();
     bindExtendForm();
+    bindAssignmentFilters();
     bindModalCloseShortcuts();
 }
 
@@ -117,12 +128,17 @@ async function populateStateSelect() {
 }
 
 async function fetchAssignments() {
+    const pageRoot = document.querySelector('.asignaciones-page');
+    if (!pageRoot) {
+        return;
+    }
+
     try {
         const response = await fetch(`${getApiUrl()}/asignaciones`);
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'No se pudieron cargar las asignaciones');
         assignmentsCache = data;
-        renderAssignments(data);
+        applyAssignmentFilters();
         updateStats(data);
     } catch (error) {
         console.error('Error cargando asignaciones:', error);
@@ -132,7 +148,8 @@ async function fetchAssignments() {
 }
 
 function renderAssignments(assignments) {
-    const tbody = document.getElementById('assignmentsTable');
+    const pageRoot = document.querySelector('.asignaciones-page');
+    const tbody = pageRoot?.querySelector('#assignmentsTable');
     if (!tbody) return;
     tbody.innerHTML = '';
 
@@ -142,6 +159,7 @@ function renderAssignments(assignments) {
                 <td colspan="10" style="text-align:center; padding: 2rem; opacity: .65;">No se encontraron asignaciones registradas</td>
             </tr>
         `;
+        updateResultsSummary(0);
         return;
     }
 
@@ -151,7 +169,7 @@ function renderAssignments(assignments) {
         const fechaInicio = asig.fecha_inicio ? formatDate(asig.fecha_inicio) : '—';
         const fechaFin = asig.fecha_fin ? formatDate(asig.fecha_fin) : '—';
         const badgeType = tipo.toLowerCase() === 'permanente' ? 'badge-permanente' : 'badge-temporal';
-        const statusClass = estado.toLowerCase() === 'vencida' ? 'status-warning' : estado.toLowerCase() === 'finalizada' ? 'status-muted' : 'status-active';
+        const statusClass = estado.toLowerCase() === 'vencida' ? 'status-expired' : estado.toLowerCase() === 'finalizada' ? 'status-finished' : 'status-active';
         const usuarioNombre = asig.usuario_nombre || 'Usuario desconocido';
         const usuarioEmail = asig.usuario_email || '';
         const activoNombre = asig.activo_nombre || 'Activo desconocido';
@@ -209,6 +227,8 @@ function renderAssignments(assignments) {
     if (typeof initPageFeatures === 'function') {
         initPageFeatures();
     }
+
+    updateResultsSummary(assignments.length);
 }
 
 function updateStats(assignments) {
@@ -216,17 +236,16 @@ function updateStats(assignments) {
     const active = assignments.filter(a => a.estado === 'Activa').length;
     const vencida = assignments.filter(a => a.estado === 'Vencida').length;
     const finalizada = assignments.filter(a => a.estado === 'Finalizada').length;
-    const results = document.getElementById('resultsCount');
-    const totalCount = document.getElementById('assignmentTotalCount');
-    const activeCount = document.getElementById('assignmentActiveCount');
-    const dueCount = document.getElementById('assignmentDueCount');
-    const finishedCount = document.getElementById('assignmentFinishedCount');
+    const pageRoot = document.querySelector('.asignaciones-page');
+    const totalCount = pageRoot?.querySelector('#assignmentTotalCount');
+    const activeCount = pageRoot?.querySelector('#assignmentActiveCount');
+    const dueCount = pageRoot?.querySelector('#assignmentDueCount');
+    const finishedCount = pageRoot?.querySelector('#assignmentFinishedCount');
 
     if (totalCount) totalCount.textContent = total;
     if (activeCount) activeCount.textContent = active;
     if (dueCount) dueCount.textContent = vencida;
     if (finishedCount) finishedCount.textContent = finalizada;
-    if (results) results.textContent = `Mostrando ${total} de ${total} asignaciones`;
 }
 
 function formatDate(dateValue) {
@@ -249,6 +268,53 @@ function bindAssignmentForm() {
     if (!form || form.dataset.bound === 'true') return;
     form.dataset.bound = 'true';
     form.addEventListener('submit', handleAssignmentForm);
+}
+
+function bindAssignmentFilters() {
+    const pageRoot = document.querySelector('.asignaciones-page');
+    if (!pageRoot || pageRoot.dataset.assignmentFiltersBound === 'true') return;
+    pageRoot.dataset.assignmentFiltersBound = 'true';
+
+    pageRoot.querySelector('#searchInput')?.addEventListener('input', applyAssignmentFilters);
+    pageRoot.querySelector('#statusFilter')?.addEventListener('change', applyAssignmentFilters);
+    pageRoot.querySelector('#typeFilter')?.addEventListener('change', applyAssignmentFilters);
+}
+
+function applyAssignmentFilters() {
+    const pageRoot = document.querySelector('.asignaciones-page');
+    const query = pageRoot?.querySelector('#searchInput')?.value.trim().toLowerCase() || '';
+    const status = pageRoot?.querySelector('#statusFilter')?.value || '';
+    const type = pageRoot?.querySelector('#typeFilter')?.value || '';
+
+    const filtered = assignmentsCache.filter(asig => {
+        const tipo = (asig.tipo_asignacion || (asig.fecha_fin ? 'Temporal' : 'Permanente')).toLowerCase();
+        const estado = asig.estado || 'Activa';
+        const text = [
+            asig.id_asignacion,
+            asig.usuario_nombre,
+            asig.usuario_email,
+            asig.activo_nombre,
+            asig.ubicacion,
+            tipo,
+            estado
+        ].join(' ').toLowerCase();
+
+        return (!query || text.includes(query)) &&
+            (!status || estado === status) &&
+            (!type || tipo === type.toLowerCase());
+    });
+
+    renderAssignments(filtered);
+}
+
+function updateResultsSummary(count) {
+    const pageRoot = document.querySelector('.asignaciones-page');
+    const results = pageRoot?.querySelector('#resultsCount');
+    const info = pageRoot?.querySelector('.table-info');
+    if (results) results.textContent = count;
+    if (info) {
+        info.innerHTML = `Mostrando <strong>${count}</strong> de <strong>${count}</strong> asignaciones`;
+    }
 }
 
 async function handleAssignmentForm(event) {
@@ -329,6 +395,9 @@ function toggleEndDate() {
 }
 
 function bindModalCloseShortcuts() {
+    if (assignmentKeydownBound) return;
+    assignmentKeydownBound = true;
+
     document.addEventListener('keydown', event => {
         if (event.key !== 'Escape') return;
         ['assignmentModal', 'viewModal', 'extendModal'].forEach(id => {
@@ -367,7 +436,7 @@ async function viewAssignment(id) {
             if (!response.ok) throw new Error(data.error || 'No se encontró la asignación');
         }
 
-        document.getElementById('detailId').textContent = `ASG-${String(data.id_asignacion).padStart(6, '0')}`;
+        document.getElementById('detailAssignmentId').textContent = `ASG-${String(data.id_asignacion).padStart(6, '0')}`;
         document.getElementById('detailStatus').textContent = data.estado || 'Activa';
         document.getElementById('detailType').textContent = data.tipo_asignacion || (data.fecha_fin ? 'Temporal' : 'Permanente');
         document.getElementById('detailUserName').textContent = data.usuario_nombre || 'Usuario desconocido';
@@ -465,6 +534,8 @@ async function handleExtendForm(event) {
 }
 
 async function finishAssignment(id) {
+    if (!confirm(`¿Finalizar la asignación #${id}?`)) return;
+
     try {
         const today = new Date();
         const isoToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}T00:00:00`;
@@ -496,6 +567,7 @@ window.printAssignment = printAssignment;
 window.extendAssignment = extendAssignment;
 window.closeExtendModal = closeExtendModal;
 window.finishAssignment = finishAssignment;
+window.initAsignacionesPage = initAsignacionesPage;
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initAsignacionesPage);
