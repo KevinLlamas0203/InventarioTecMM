@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Activos - Sistema de Inventario</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/movimientos.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap" rel="stylesheet">
@@ -142,7 +143,7 @@
         </aside>
         
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main-content activos-page">
             <header class="content-header">
                 <div class="header-left">
                     <h1 class="page-title">Gestión de Activos</h1>
@@ -333,7 +334,7 @@
             <div class="modal-body">
                 <div style="margin-bottom:1.25rem">
                     <p style="font-size:1.15rem;font-weight:700;margin:0 0 .35rem" id="detailNombre">—</p>
-                    <p style="font-size:.875rem;color:#6b7280;margin:0" id="detailDescripcion">—</p>
+                    <p style="font-size:.875rem;color:var(--color-text-secondary);margin:0" id="detailDescripcion">—</p>
                 </div>
                 <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem">
                     <span id="detailCategoria" class="badge">—</span>
@@ -341,20 +342,20 @@
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
                     <div style="display:flex;flex-direction:column;gap:.2rem">
-                        <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#6b7280">Ubicación</span>
+                        <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-secondary)">Ubicación</span>
                         <span style="font-size:.925rem;font-weight:500" id="detailUbicacion">—</span>
                     </div>
                     <div style="display:flex;flex-direction:column;gap:.2rem">
-                        <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#6b7280">Asignado a</span>
+                        <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-secondary)">Asignado a</span>
                         <span style="font-size:.925rem;font-weight:500" id="detailAsignado">—</span>
                     </div>
                     <div style="display:flex;flex-direction:column;gap:.2rem">
-                        <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#6b7280">Fecha de alta</span>
+                        <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-secondary)">Fecha de alta</span>
                         <span style="font-size:.925rem;font-weight:500" id="detailFecha">—</span>
                     </div>
                 </div>
             </div>
-            <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid #e5e7eb">
+            <div class="modal-actions">
                 <button class="btn-secondary" onclick="closeDetailModal()">Cerrar</button>
                 <button class="btn-primary" id="detailBtnEditar" style="display:inline-flex;align-items:center">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:15px;height:15px;margin-right:.4rem">

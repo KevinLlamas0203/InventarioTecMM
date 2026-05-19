@@ -17,6 +17,7 @@ from Activos.updateActivos import update_bp
 from Activos.deleteActivos import delete_bp
 from Movimientos.createMovimientos import create_bp as create_movimientos_bp
 from Movimientos.readMovimientos import read_bp as read_movimientos_bp
+from Asignaciones.asignaciones import asignaciones_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -30,6 +31,7 @@ app.register_blueprint(update_bp)
 app.register_blueprint(delete_bp)
 app.register_blueprint(create_movimientos_bp)
 app.register_blueprint(read_movimientos_bp)
+app.register_blueprint(asignaciones_bp)
 
 
 # ── Conexión a DB ─────────────────────────────────────────────────────────────
