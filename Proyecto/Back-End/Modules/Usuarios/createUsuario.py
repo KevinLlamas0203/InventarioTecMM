@@ -27,9 +27,8 @@ def create_usuario():
         "apellido_materno":  "Ríos",          (opcional)
         "numero_telefonico": 3121234567,
         "direccion":         "Calle 5, Col. Centro",  (opcional)
-        "correo_electronico":"maria@dominio.com",
+        "correo_electronico":"maria@dominio.com",      ← se usa en usuarios Y credenciales
         "nivel_acceso":      1,                (1=Básico, 2=Operador, 3=Admin)
-        "email_credencial":  "acceso@sistema.mx",
         "password":          "contraseña123"
     }
     """
@@ -40,8 +39,7 @@ def create_usuario():
 
     # ── Campos obligatorios ───────────────────────────────────────────────────
     campos_req = ['nombre', 'apellido_paterno', 'numero_telefonico',
-                  'correo_electronico', 'nivel_acceso',
-                  'email_credencial', 'password']
+                  'correo_electronico', 'nivel_acceso', 'password']
 
     for campo in campos_req:
         if not data.get(campo) and data.get(campo) != 0:
@@ -57,7 +55,8 @@ def create_usuario():
     direccion         = str(data.get('direccion', '') or '').strip()[:100] or None
     correo_electronico= str(data['correo_electronico']).strip()[:150]
     nivel_acceso      = int(data['nivel_acceso'])
-    email_credencial  = str(data['email_credencial']).strip()[:100]
+    # El mismo correo se usa como email de acceso en credenciales
+    email_credencial  = correo_electronico
     password          = str(data['password'])
 
     if nivel_acceso not in (1, 2, 3):
@@ -134,7 +133,7 @@ def create_usuario():
                 'apellido_paterno':   apellido_paterno,
                 'apellido_materno':   apellido_materno,
                 'numero_telefonico':  numero_telefonico,
-                'dirrecion':          direccion,
+                'dirreccion':          direccion,
                 'correo_electronico': correo_electronico,
                 'nivel_acceso':       nivel_acceso,
                 'credencial': {

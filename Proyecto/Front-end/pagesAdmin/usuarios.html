@@ -386,9 +386,70 @@
             margin: 0 0 1.5rem;
         }
 
+        /* ── Toast flotante ── */
+        #toast-global {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(1.5rem);
+            opacity: 0;
+            background: linear-gradient(135deg, rgba(20,30,55,0.97), rgba(30,20,55,0.97));
+            border: 1px solid rgba(74,222,128,0.35);
+            color: #eff6ff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 500;
+            padding: 0.85rem 1.4rem;
+            border-radius: 1rem;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(74,222,128,0.15);
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            z-index: 99999;
+            transition: opacity 350ms ease, transform 350ms ease;
+            max-width: 90vw;
+            white-space: nowrap;
+        }
+        #toast-global.toast-visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
         @media (max-width: 900px) {
             .dashboard-layout { grid-template-columns: 1fr; }
             .tabs-panel { justify-content: center; }
+        }
+
+        /* ── Select inline de nivel en tabla ── */
+        .sel-nivel-inline {
+            appearance: none;
+            -webkit-appearance: none;
+            padding: 0.28rem 1.8rem 0.28rem 0.65rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            border: none;
+            cursor: pointer;
+            outline: none;
+            background-repeat: no-repeat;
+            background-position: right 0.45rem center;
+            background-size: 0.7rem;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            transition: opacity 180ms, transform 180ms;
+        }
+        .sel-nivel-inline:hover { opacity: 0.85; transform: scale(1.04); }
+        .sel-nivel-inline.n1 { background-color: rgba(34,197,94,0.18);  color: #4ade80; }
+        .sel-nivel-inline.n2 { background-color: rgba(250,204,21,0.18);  color: #facc15; }
+        .sel-nivel-inline.n3 { background-color: rgba(239,68,68,0.18);   color: #f87171; }
+        .sel-nivel-inline option { background: #1e293b; color: #eff6ff; font-weight: 500; }
+
+        /* Spinner de guardado nivel */
+        .nivel-saving {
+            font-size: 0.75rem;
+            color: rgba(167,139,250,0.8);
+            margin-left: 0.3rem;
+            vertical-align: middle;
         }
     </style>
 </head>
@@ -579,17 +640,16 @@
                         <tr>
                             <th>ID</th>
                             <th>Nombre completo</th>
-                            <th>Tel. / Celular</th>
-                            <th>Correo electrónico</th>
+                            <th>Teléfono</th>
+                            <th>Correo / Acceso</th>
                             <th>Dirección</th>
-                            <th>Nivel acceso</th>
-                            <th style="text-align:center">Credencial</th>
+                            <th>Nivel de acceso</th>
                             <th style="text-align:center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-usuarios">
                         <tr>
-                            <td colspan="8" class="empty-state">Conectando con el servidor…</td>
+                            <td colspan="7" class="empty-state">Conectando con el servidor…</td>
                         </tr>
                     </tbody>
                 </table>
@@ -624,7 +684,9 @@
                 </div>
                 <div class="form-group">
                     <label for="f-tel">Número telefónico <span style="color:#f87171">*</span></label>
-                    <input id="f-tel" type="number" placeholder="Ej. 3121234567" />
+                    <input id="f-tel" type="tel" placeholder="Ej. 3121234567" maxlength="10"
+                           pattern="[0-9]{10}" inputmode="numeric"
+                           oninput="this.value=this.value.replace(/\D/g,'')" />
                 </div>
                 <div class="form-group full">
                     <label for="f-dir">Dirección</label>
@@ -651,15 +713,8 @@
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
-                Credenciales de acceso — tabla <em>credenciales</em>
-            </p>
 
             <div class="form-grid">
-                <div class="form-group">
-                    <label for="f-email-cred">Email de acceso <span style="color:#f87171">*</span></label>
-                    <input id="f-email-cred" type="email" placeholder="acceso@dominio.com" maxlength="100" />
-                    <span class="pwd-hint">Puede ser diferente al correo personal del usuario.</span>
-                </div>
                 <div class="form-group">
                     <label for="f-pass">Contraseña <span style="color:#f87171">*</span></label>
                     <input id="f-pass" type="password" placeholder="Mínimo 8 caracteres" maxlength="255" />
@@ -749,11 +804,11 @@
                     usuarios = data.usuarios;
                     renderTabla();
                 } else {
-                    tbody.innerHTML = `<tr><td colspan="8" class="empty-state" style="color:#f87171">
+                    tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color:#f87171">
                         Error al cargar: ${data.message}</td></tr>`;
                 }
             } catch (e) {
-                tbody.innerHTML = `<tr><td colspan="8" class="empty-state" style="color:#f87171">
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color:#f87171">
                     No se pudo conectar con el servidor Flask.<br>
                     <small style="opacity:0.7">Verifica que esté corriendo en ${API}</small></td></tr>`;
                 lblCount.textContent = 'Sin conexión';
@@ -764,14 +819,22 @@
             selNivel.addEventListener('change',  renderTabla);
             selOrden.addEventListener('change',  renderTabla);
 
-            function nivelBadge(n) {
-                const map = {
-                    1: ['n1', 'Nivel 1 — Básico'],
-                    2: ['n2', 'Nivel 2 — Operador'],
-                    3: ['n3', 'Nivel 3 — Admin']
-                };
-                const [cls, txt] = map[n] || ['n1', 'Nivel ' + n];
-                return `<span class="badge-nivel ${cls}">${txt}</span>`;
+            function nivelSelectInline(u) {
+                const clsMap = { 1: 'n1', 2: 'n2', 3: 'n3' };
+                const cls = clsMap[u.nivel_acceso] || 'n1';
+                return `
+                    <select
+                        class="sel-nivel-inline ${cls}"
+                        data-id="${u.id_usuario}"
+                        onchange="cambiarNivel(this)"
+                        title="Cambiar nivel de acceso"
+                    >
+                        <option value="1" ${u.nivel_acceso === 1 ? 'selected' : ''}>Nivel 1 — Básico</option>
+                        <option value="2" ${u.nivel_acceso === 2 ? 'selected' : ''}>Nivel 2 — Operador</option>
+                        <option value="3" ${u.nivel_acceso === 3 ? 'selected' : ''}>Nivel 3 — Admin</option>
+                    </select>
+                    <span class="nivel-saving" id="ns-${u.id_usuario}" style="display:none">✦</span>
+                `;
             }
 
             function renderTabla() {
@@ -795,7 +858,7 @@
                 lblCount.textContent = `Mostrando ${datos.length} usuario${datos.length !== 1 ? 's' : ''}`;
 
                 if (!datos.length) {
-                    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No se encontraron usuarios con esos criterios.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No se encontraron usuarios con esos criterios.</td></tr>`;
                     return;
                 }
 
@@ -809,16 +872,7 @@
                         <td>${u.numero_telefonico}</td>
                         <td style="color:rgba(167,139,250,0.85)">${u.correo_electronico}</td>
                         <td style="font-size:0.82rem;color:rgba(226,232,255,0.6)">${u.direccion || '—'}</td>
-                        <td>${nivelBadge(u.nivel_acceso)}</td>
-                        <td style="text-align:center">
-                            ${u.credencial
-                                ? `<div style="font-size:0.8rem;color:rgba(226,232,255,0.6)">
-                                       <span style="color:rgba(167,139,250,0.7)">#${u.credencial.id_credencial}</span>
-                                       &nbsp;${u.credencial.email}
-                                   </div>`
-                                : '<span style="color:rgba(248,113,113,0.7);font-size:0.8rem">Sin credencial</span>'
-                            }
-                        </td>
+                        <td>${nivelSelectInline(u)}</td>
                         <td style="text-align:center;white-space:nowrap">
                             <button class="btn-accion" title="Editar" onclick="editarUsuario(${u.id_usuario})">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -842,6 +896,51 @@
             /* Exponer renderTabla para que el delete la use */
             window._refreshTabla = renderTabla;
         }
+
+        /* ══════════════════════════════════════════════════════════
+           CAMBIAR NIVEL DIRECTO — PUT /api/usuarios/<id>
+           Se dispara al cambiar el <select> inline de la tabla
+        ══════════════════════════════════════════════════════════ */
+        window.cambiarNivel = async function (sel) {
+            const id    = Number(sel.dataset.id);
+            const nivel = Number(sel.value);
+            const clsMap = { 1: 'n1', 2: 'n2', 3: 'n3' };
+            const spinner = document.getElementById(`ns-${id}`);
+
+            /* Actualizar color del select de inmediato */
+            sel.className = `sel-nivel-inline ${clsMap[nivel] || 'n1'}`;
+
+            sel.disabled = true;
+            if (spinner) spinner.style.display = 'inline';
+
+            try {
+                const res  = await fetch(`${API}/api/usuarios/${id}`, {
+                    method:  'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ nivel_acceso: nivel })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    /* Actualizar el array local */
+                    const u = usuarios.find(x => x.id_usuario === id);
+                    if (u) u.nivel_acceso = nivel;
+                } else {
+                    alert('No se pudo cambiar el nivel: ' + data.message);
+                    /* Revertir visualmente */
+                    const u = usuarios.find(x => x.id_usuario === id);
+                    if (u) {
+                        sel.value     = u.nivel_acceso;
+                        sel.className = `sel-nivel-inline ${clsMap[u.nivel_acceso] || 'n1'}`;
+                    }
+                }
+            } catch (e) {
+                alert('Error de conexión al cambiar nivel.');
+            } finally {
+                sel.disabled = false;
+                if (spinner) spinner.style.display = 'none';
+            }
+        };
 
         /* ══════════════════════════════════════════════════════════
            ELIMINAR — DELETE /api/usuarios/<id>
@@ -905,7 +1004,9 @@
                         </div>
                         <div class="form-group">
                             <label>Número telefónico *</label>
-                            <input id="e-tel" type="number" value="${u.numero_telefonico}" />
+                            <input id="e-tel" type="tel" value="${u.numero_telefonico}"
+                                   maxlength="10" pattern="[0-9]{10}" inputmode="numeric"
+                                   oninput="this.value=this.value.replace(/\\D/g,'')" />
                         </div>
                         <div class="form-group full">
                             <label>Dirección</label>
@@ -930,15 +1031,13 @@
                             style="width:1rem;height:1rem;flex-shrink:0">
                             <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                         </svg>
-                        Credenciales <span style="font-weight:400;text-transform:none;font-size:0.75rem;opacity:0.7">(dejar vacío para no cambiar)</span>
+                        Contraseña <span style="font-weight:400;text-transform:none;font-size:0.75rem;opacity:0.7">(dejar vacío para no cambiar)</span>
+                    </p>
+                    <p class="pwd-hint" style="margin-bottom:0.8rem">
+                        Si cambias el correo electrónico, también se actualizará el email de inicio de sesión.
                     </p>
 
                     <div class="form-grid">
-                        <div class="form-group">
-                            <label>Email de acceso</label>
-                            <input id="e-email-cred" type="email"
-                                value="${u.credencial ? u.credencial.email : ''}" maxlength="100" />
-                        </div>
                         <div class="form-group">
                             <label>Nueva contraseña</label>
                             <input id="e-pass" type="password" placeholder="Mínimo 8 caracteres" maxlength="255" />
@@ -970,11 +1069,14 @@
                 const dir      = document.getElementById('e-dir').value.trim();
                 const correo   = document.getElementById('e-correo').value.trim();
                 const nivel    = document.getElementById('e-nivel').value;
-                const emailCred= document.getElementById('e-email-cred').value.trim();
                 const pass     = document.getElementById('e-pass').value;
 
                 if (!nombre || !ap || !tel || !correo) {
                     mostrarMsgModal('Completa los campos obligatorios (*).', false);
+                    return;
+                }
+                if (tel.length !== 10) {
+                    mostrarMsgModal('El número telefónico debe tener exactamente 10 dígitos.', false);
                     return;
                 }
                 if (pass && pass.length < 8) {
@@ -982,7 +1084,6 @@
                     return;
                 }
 
-                /* Construir body solo con los campos que se enviaron */
                 const body = {
                     nombre,
                     apellido_paterno:   ap,
@@ -991,9 +1092,10 @@
                     direccion:          dir || null,
                     correo_electronico: correo,
                     nivel_acceso:       Number(nivel),
+                    // El correo siempre se sincroniza con el email de credencial
+                    email_credencial:   correo,
                 };
-                if (emailCred) body.email_credencial = emailCred;
-                if (pass)      body.password          = pass;
+                if (pass) body.password = pass;
 
                 const btn = document.getElementById('btn-guardar-edit');
                 btn.disabled    = true;
@@ -1058,10 +1160,10 @@
 
             function limpiar() {
                 ['f-nombre','f-ap','f-am','f-tel','f-dir',
-                 'f-correo','f-nivel','f-email-cred','f-pass','f-pass2']
+                 'f-correo','f-nivel','f-pass','f-pass2']
                     .forEach(id => {
                         const el = document.getElementById(id);
-                        if (el) el.value = id === 'f-nivel' ? '' : '';
+                        if (el) el.value = '';
                     });
                 msg.style.display = 'none';
             }
@@ -1076,13 +1178,15 @@
                 const dir     = document.getElementById('f-dir').value.trim();
                 const correo  = document.getElementById('f-correo').value.trim();
                 const nivel   = document.getElementById('f-nivel').value;
-                const email   = document.getElementById('f-email-cred').value.trim();
                 const pass    = document.getElementById('f-pass').value;
                 const pass2   = document.getElementById('f-pass2').value;
 
-                /* Validaciones en cliente */
-                if (!nombre || !ap || !tel || !correo || !nivel || !email || !pass || !pass2) {
+                if (!nombre || !ap || !tel || !correo || !nivel || !pass || !pass2) {
                     showMsg('Por favor completa todos los campos obligatorios (*).', false);
+                    return;
+                }
+                if (tel.length !== 10) {
+                    showMsg('El número telefónico debe tener exactamente 10 dígitos.', false);
                     return;
                 }
                 if (pass !== pass2) {
@@ -1109,15 +1213,17 @@
                             direccion:          dir || null,
                             correo_electronico: correo,
                             nivel_acceso:       Number(nivel),
-                            email_credencial:   email,
                             password:           pass
+                            // El backend usa correo_electronico como email en credenciales
                         })
                     });
 
                     const data = await res.json();
 
                     if (data.success) {
-                        showMsg(`✔ ${data.message}`, true);
+                        const nombreCompleto = `${data.usuario.nombre} ${data.usuario.apellido_paterno}`;
+                        showMsg(`✔ El usuario: ${nombreCompleto} se registró correctamente.`, true);
+                        mostrarToast(`El usuario: ${nombreCompleto} se registró correctamente.`);
                         /* Agregar al array local por si el usuario vuelve a "Listar" */
                         usuarios.push(data.usuario);
                         limpiar();
@@ -1137,6 +1243,35 @@
                         </svg>Registrar usuario`;
                 }
             });
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           TOAST GLOBAL — notificación flotante de éxito
+        ══════════════════════════════════════════════════════════ */
+        function mostrarToast(mensaje) {
+            // Remover toast anterior si existe
+            const prev = document.getElementById('toast-global');
+            if (prev) prev.remove();
+
+            const toast = document.createElement('div');
+            toast.id = 'toast-global';
+            toast.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    style="width:1.2rem;height:1.2rem;flex-shrink:0;color:#4ade80">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>${mensaje}</span>
+            `;
+            document.body.appendChild(toast);
+
+            // Forzar reflow para que la transición funcione
+            void toast.offsetWidth;
+            toast.classList.add('toast-visible');
+
+            setTimeout(() => {
+                toast.classList.remove('toast-visible');
+                setTimeout(() => toast.remove(), 400);
+            }, 3500);
         }
 
     })();
