@@ -24,6 +24,7 @@ from Consumibles.updateConsumibles import update_consumible_bp
 from Consumibles.deleteConsumibles import delete_consumible_bp
 
 from Reportes.createReporte import create_reporte_bp
+from Reportes.readReporte import read_reporte_bp
 
 # ── App ───────────────────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -45,6 +46,9 @@ app.register_blueprint(update_consumible_bp)
 app.register_blueprint(delete_consumible_bp)
 
 app.register_blueprint(create_reporte_bp)
+
+app.register_blueprint(read_reporte_bp)
+
 
 # ── Conexión a DB ─────────────────────────────────────────────────────────────
 def get_db_connection():
