@@ -201,7 +201,6 @@
                             <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round" />
                         </svg>
                         <span>Módulo de Activos</span>
-                        <span class="nav-badge">245</span>
                     </a>
                     <a href="consumibles.html" class="nav-item" data-nivel="1">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -212,7 +211,6 @@
                             <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2" />
                         </svg>
                         <span>Consumibles</span>
-                        <span class="nav-badge warning">12</span>
                     </a>
 
                 </div>
@@ -345,6 +343,12 @@
                 document.querySelectorAll('[data-injected-modal="true"]').forEach(modal => modal.remove());
                 // Limpiar clases de secciones previas
                 content.classList.remove('activos-page', 'movimientos-page', 'asignaciones-page');
+                content.removeAttribute('data-activos-initialized');
+                content.removeAttribute('data-movimientos-initialized');
+                content.removeAttribute('data-asignaciones-initialized');
+                content.removeAttribute('data-asset-filters-bound');
+                content.removeAttribute('data-movement-filters-bound');
+                content.removeAttribute('data-assignment-filters-bound');
                 try {
                     const response = await fetch(fileMap[tabName]);
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);

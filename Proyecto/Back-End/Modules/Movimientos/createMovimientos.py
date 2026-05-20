@@ -1,10 +1,16 @@
-from flask import Blueprint, request, jsonify
-import psycopg2
 from datetime import datetime
-from Activos.db_helpers import get_connection, get_or_create_fk_id, get_fk_id, get_user_id
-from Activos.sync_helpers import sync_on_movement_creation
+
+import psycopg2
+from flask import Blueprint, jsonify, request
+
+from Activos.db_helpers import get_connection, get_fk_id, get_or_create_fk_id, get_user_id
+from Activos.sync_helpers import update_activo_from_assignment
 
 create_bp = Blueprint("create_movimientos_bp", __name__)
+STATE_ALIASES = {
+    "En mantenimiento": "Mantenimiento",
+    "Baja": "Dado de baja",
+}
 
 
 def has_table(cur, table_name):
@@ -16,7 +22,7 @@ def has_table(cur, table_name):
             WHERE table_name = %s
         )
         """,
-        (table_name,)
+        (table_name,),
     )
     return cur.fetchone()[0]
 
@@ -31,110 +37,147 @@ def has_column(cur, table_name, column_name):
               AND column_name = %s
         )
         """,
-        (table_name, column_name)
+        (table_name, column_name),
     )
     return cur.fetchone()[0]
+
+
+def clean_text(value, field_name, required=False, max_len=250):
+    if value is None:
+        if required:
+            raise ValueError(f"El campo {field_name} es obligatorio")
+        return None
+    if not isinstance(value, str):
+        value = str(value)
+    cleaned = " ".join(value.strip().split())
+    if required and not cleaned:
+        raise ValueError(f"El campo {field_name} es obligatorio")
+    if not cleaned:
+        return None
+    if len(cleaned) > max_len:
+        raise ValueError(f"El campo {field_name} no puede exceder {max_len} caracteres")
+    return cleaned
+
+
+def parse_int(value, field_name):
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"El campo {field_name} debe ser numerico")
+    if parsed <= 0:
+        raise ValueError(f"El campo {field_name} debe ser mayor a cero")
+    return parsed
+
+
+def resolve_estado(cur, estado):
+    if isinstance(estado, int) or (isinstance(estado, str) and estado.isdigit()):
+        cur.execute("SELECT id_estado, nombre FROM estados WHERE id_estado = %s", (int(estado),))
+        row = cur.fetchone()
+        if not row:
+            return None, None
+        return row[0], row[1]
+
+    estado_nombre = clean_text(estado, "estado", required=True, max_len=60)
+    estado_nombre = STATE_ALIASES.get(estado_nombre, estado_nombre)
+    fk_estado = get_fk_id(cur, "estados", "id_estado", "nombre", estado_nombre)
+    return fk_estado, estado_nombre if fk_estado else None
+
+
+def resolve_tipo_movimiento(cur, tipo_movimiento):
+    tipo_table = None
+    tipo_id_column = None
+    tipo_name_column = None
+
+    if has_table(cur, "tipos_movimiento"):
+        tipo_table = "tipos_movimiento"
+        tipo_id_column = "id_tipo_movimiento"
+        tipo_name_column = "nombre_tipo"
+    elif has_table(cur, "tipo_movimientos"):
+        tipo_table = "tipo_movimientos"
+        tipo_id_column = "id_tipo_movimiento"
+        tipo_name_column = "nombre"
+
+    if tipo_table is None:
+        return None, clean_text(tipo_movimiento, "tipo_movimiento", required=True, max_len=100)
+
+    if isinstance(tipo_movimiento, int) or (isinstance(tipo_movimiento, str) and tipo_movimiento.isdigit()):
+        cur.execute(
+            f"SELECT {tipo_id_column}, {tipo_name_column} FROM {tipo_table} WHERE {tipo_id_column} = %s",
+            (int(tipo_movimiento),),
+        )
+        row = cur.fetchone()
+        if not row:
+            return None, None
+        return row[0], row[1]
+
+    tipo_nombre = clean_text(tipo_movimiento, "tipo_movimiento", required=True, max_len=100)
+    fk_tipo = get_or_create_fk_id(cur, tipo_table, tipo_id_column, tipo_name_column, tipo_nombre)
+    return fk_tipo, tipo_nombre
 
 
 @create_bp.route("/movimientos", methods=["POST"])
 def create_movimiento():
     data = request.get_json(silent=True)
     if not data:
-        return jsonify({"error": "Body JSON requerido"}), 400
+        return jsonify({"error": "No se recibieron datos para registrar el movimiento."}), 400
 
-    activo_id = data.get("activo_id")
-    tipo_movimiento = data.get("tipo_movimiento")
-    ubicacion = data.get("ubicacion")
-    empleado = data.get("empleado")
-    estado = data.get("estado")
-    observaciones = data.get("observaciones")
+    try:
+        activo_id = parse_int(data.get("activo_id"), "activo_id")
+        empleado = clean_text(data.get("empleado"), "empleado", max_len=180)
+        ubicacion = clean_text(data.get("ubicacion"), "ubicacion", required=True, max_len=120)
+        observaciones = clean_text(data.get("observaciones"), "observaciones", max_len=500)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+
     fecha_movimiento = data.get("fecha_movimiento")
-
-    required = {
-        "activo_id": activo_id,
-        "tipo_movimiento": tipo_movimiento,
-        "estado": estado,
-    }
-    missing = [k for k, v in required.items() if v is None or (isinstance(v, str) and v.strip() == "")]
-    if missing:
-        return jsonify({"error": f"Campos obligatorios faltantes: {', '.join(missing)}"}), 400
-
-    empleado = empleado.strip() if isinstance(empleado, str) else None
-    ubicacion = ubicacion.strip() if isinstance(ubicacion, str) else None
-    estado = estado.strip() if isinstance(estado, str) else None
-    observaciones = observaciones.strip() if isinstance(observaciones, str) else None
-    tipo_movimiento = tipo_movimiento.strip() if isinstance(tipo_movimiento, str) else tipo_movimiento
-    fecha_movimiento = fecha_movimiento.strip() if isinstance(fecha_movimiento, str) else None
-    if not fecha_movimiento:
+    if fecha_movimiento:
+        try:
+            fecha_movimiento = datetime.fromisoformat(str(fecha_movimiento).replace("Z", "+00:00"))
+        except ValueError:
+            return jsonify({"error": "Formato de fecha de movimiento invalido"}), 400
+    else:
         fecha_movimiento = datetime.utcnow()
 
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
+                cur.execute("SELECT id_activo FROM activos WHERE id_activo = %s", (activo_id,))
+                if cur.fetchone() is None:
+                    return jsonify({"error": f"Activo con ID {activo_id} no encontrado"}), 404
+
                 fk_usuario = get_user_id(cur, empleado) if empleado else None
                 if empleado and fk_usuario is None:
                     return jsonify({"error": f"Usuario no encontrado: {empleado}"}), 400
 
-                fk_estado = None
-                if estado is not None:
-                    if isinstance(estado, str) and estado.isdigit():
-                        fk_estado = int(estado)
-                    else:
-                        fk_estado = get_fk_id(cur, "estados", "id_estado", "nombre", estado)
-                    if fk_estado is None:
-                        return jsonify({"error": f"Estado no válido: {estado}"}), 400
+                fk_estado, estado_nombre = resolve_estado(cur, data.get("estado"))
+                if fk_estado is None:
+                    return jsonify({"error": "No se puede registrar el movimiento porque el estado proporcionado no es válido."}), 400
+
+                fk_tipo_movimiento, tipo_nombre = resolve_tipo_movimiento(cur, data.get("tipo_movimiento"))
+                if tipo_nombre is None:
+                    return jsonify({"error": "No se puede registrar el movimiento porque el tipo de movimiento no es válido."}), 400
 
                 fk_ubicacion = get_or_create_fk_id(cur, "ubicaciones", "id_ubicacion", "nombre", ubicacion)
+                has_tipo_text_col = has_column(cur, "movimientos", "tipo_movimiento")
+                has_tipo_fk_col = has_column(cur, "movimientos", "fk_id_tipo_movimiento")
 
-                tipo_table = None
-                tipo_id_column = None
-                tipo_name_column = None
-                mov_type_fk_col = None
-
-                if has_table(cur, "tipos_movimiento") and has_column(cur, "movimientos", "fk_id_tipo_movimiento"):
-                    tipo_table = "tipos_movimiento"
-                    tipo_id_column = "id_tipo_movimiento"
-                    tipo_name_column = "nombre_tipo"
-                    mov_type_fk_col = "fk_id_tipo_movimiento"
-                elif has_table(cur, "tipo_movimientos") and has_column(cur, "movimientos", "fk_id_tipo_movimiento"):
-                    tipo_table = "tipo_movimientos"
-                    tipo_id_column = "id_tipo_movimiento"
-                    tipo_name_column = "nombre"
-                    mov_type_fk_col = "fk_id_tipo_movimiento"
-
-                fk_tipo_movimiento = None
-                if tipo_movimiento is not None and tipo_table is not None:
-                    if isinstance(tipo_movimiento, int):
-                        fk_tipo_movimiento = tipo_movimiento
-                    elif isinstance(tipo_movimiento, str) and tipo_movimiento.isdigit():
-                        fk_tipo_movimiento = int(tipo_movimiento)
-                    else:
-                        fk_tipo_movimiento = get_fk_id(cur, tipo_table, tipo_id_column, tipo_name_column, tipo_movimiento)
-                    if fk_tipo_movimiento is None:
-                        return jsonify({"error": f"Tipo de movimiento no válido: {tipo_movimiento}"}), 400
-
-                columns = ["fk_id_activo", "fk_id_ubicacion", "fecha_movimiento"]
-                values = [activo_id, fk_ubicacion, fecha_movimiento]
-                placeholders = ["%s", "%s", "%s"]
+                columns = ["fk_id_activo", "fk_id_ubicacion", "fk_id_estado", "fecha_movimiento"]
+                values = [activo_id, fk_ubicacion, fk_estado, fecha_movimiento]
+                placeholders = ["%s", "%s", "%s", "%s"]
 
                 if fk_usuario is not None:
                     columns.append("fk_id_usuario")
                     values.append(fk_usuario)
                     placeholders.append("%s")
 
-                if fk_estado is not None:
-                    columns.append("fk_id_estado")
-                    values.append(fk_estado)
-                    placeholders.append("%s")
-
-                if fk_tipo_movimiento is not None:
-                    columns.append(mov_type_fk_col)
+                if has_tipo_fk_col and fk_tipo_movimiento is not None:
+                    columns.append("fk_id_tipo_movimiento")
                     values.append(fk_tipo_movimiento)
                     placeholders.append("%s")
 
-                if has_column(cur, "movimientos", "tipo_movimiento") and tipo_movimiento is not None:
+                if has_tipo_text_col:
                     columns.append("tipo_movimiento")
-                    values.append(tipo_movimiento)
+                    values.append(tipo_nombre)
                     placeholders.append("%s")
 
                 if observaciones is not None:
@@ -144,26 +187,23 @@ def create_movimiento():
 
                 cur.execute(
                     f"""
-                    INSERT INTO movimientos
-                        ({', '.join(columns)})
+                    INSERT INTO movimientos ({', '.join(columns)})
                     VALUES ({', '.join(placeholders)})
                     RETURNING id_movimiento
                     """,
-                    tuple(values)
+                    tuple(values),
                 )
                 nuevo_id = cur.fetchone()[0]
+
+                update_activo_from_assignment(cur, activo_id, fk_usuario, ubicacion, estado_nombre)
+
             conn.commit()
 
-        sync_on_movement_creation(conn, activo_id, estado, ubicacion, fk_usuario)
-
-        return jsonify({
-            "mensaje": "Movimiento creado exitosamente",
-            "movimiento_id": nuevo_id
-        }), 201
+        return jsonify({"mensaje": "Movimiento creado exitosamente", "movimiento_id": nuevo_id}), 201
 
     except psycopg2.errors.ForeignKeyViolation as e:
-        return jsonify({"error": "ID foráneo no existe en la tabla referenciada", "detalle": str(e)}), 409
+        return jsonify({"error": "No se puede registrar el movimiento debido a un valor inválido en una relación de clave externa.", "detalle": str(e)}), 409
     except psycopg2.errors.NotNullViolation as e:
-        return jsonify({"error": "Campo NOT NULL no puede ser nulo", "detalle": str(e)}), 400
+        return jsonify({"error": "No se pudo registrar el movimiento porque falta un valor obligatorio.", "detalle": str(e)}), 400
     except Exception as e:
-        return jsonify({"error": "Error interno del servidor", "detalle": str(e)}), 500
+        return jsonify({"error": "Error interno al registrar el movimiento.", "detalle": str(e)}), 500

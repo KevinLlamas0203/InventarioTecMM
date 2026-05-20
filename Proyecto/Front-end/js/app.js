@@ -402,3 +402,8 @@ async function refreshAsignacionesTable() {
         await fetchAssignments();
     }
 }
+
+// Expose functions globally for cross-module access
+window.refreshActivosTable = refreshActivosTable;
+window.refreshMovimientosTable = refreshMovimientosTable;
+window.refreshAsignacionesTable = refreshAsignacionesTable;

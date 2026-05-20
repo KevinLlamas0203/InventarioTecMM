@@ -9,9 +9,23 @@ def _get_tipo_movimiento_id(cur, tipo_movimiento):
     if isinstance(tipo_movimiento, int):
         return tipo_movimiento
 
-    fk_tipo = get_fk_id(cur, "tipos_movimiento", "id_tipo_movimiento", "nombre_tipo", tipo_movimiento)
+    aliases = {
+        "Asignacion": ["Asignacion", "Asignación"],
+        "Finalizacion de Asignacion": ["Finalizacion de Asignacion", "Finalización de Asignación"],
+        "Cambio de Estado de Asignacion": ["Cambio de Estado de Asignacion", "Cambio de Estado de Asignación"],
+        "Creacion de Activo": ["Creacion de Activo", "Creación de Activo", "Alta"],
+    }.get(tipo_movimiento, [tipo_movimiento])
+
+    fk_tipo = None
+    for alias in aliases:
+        fk_tipo = get_fk_id(cur, "tipos_movimiento", "id_tipo_movimiento", "nombre_tipo", alias)
+        if fk_tipo:
+            break
     if not fk_tipo and has_table(cur, "tipo_movimientos"):
-        fk_tipo = get_fk_id(cur, "tipo_movimientos", "id_tipo_movimiento", "nombre", tipo_movimiento)
+        for alias in aliases:
+            fk_tipo = get_fk_id(cur, "tipo_movimientos", "id_tipo_movimiento", "nombre", alias)
+            if fk_tipo:
+                break
     if not fk_tipo:
         fk_tipo = get_or_create_fk_id(cur, "tipos_movimiento", "id_tipo_movimiento", "nombre_tipo", tipo_movimiento)
     return fk_tipo

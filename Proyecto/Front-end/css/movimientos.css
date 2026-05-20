@@ -143,6 +143,51 @@
   gap: 0.85rem;
 }
 
+.activos-page .asset-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.activos-page .asset-summary-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+  min-height: 92px;
+  display: grid;
+  align-content: center;
+  gap: 0.35rem;
+  border-top: 3px solid var(--color-primary);
+}
+
+.activos-page .asset-summary-item:nth-child(2) {
+  border-top-color: var(--color-success);
+}
+
+.activos-page .asset-summary-item:nth-child(3) {
+  border-top-color: var(--color-info);
+}
+
+.activos-page .asset-summary-item:nth-child(4) {
+  border-top-color: var(--color-warning);
+}
+
+.activos-page .summary-label {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.activos-page .asset-summary-item strong {
+  color: var(--text);
+  font-size: 2rem;
+  line-height: 1;
+}
+
 .activos-page .search-input,
 .asignaciones-page .search-input,
 .activos-page .filter-select,
@@ -396,6 +441,30 @@
   background: rgba(255, 107, 107, 0.15);
   color: var(--color-danger);
   border-color: rgba(255, 107, 107, 0.25);
+}
+
+.activos-page .empty-cell {
+  text-align: center;
+  padding: 2.25rem 1rem;
+  color: var(--text-muted);
+}
+
+.activos-page .btn-action.danger:hover {
+  color: var(--color-danger);
+}
+
+#assetModal .form-error-message {
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  color: var(--color-danger);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+#assetModal .field-invalid {
+  border-color: var(--color-danger) !important;
 }
 
 #assetModal,
@@ -1205,6 +1274,10 @@
   .asignaciones-page .header-right {
     width: 100%;
     flex-direction: column;
+  }
+
+  .activos-page .asset-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .activos-page .header-right .btn-primary,

@@ -72,7 +72,6 @@
                             <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
                         </svg>
                         <span>Activos</span>
-                        <span class="nav-badge">245</span>
                     </a>
                     <a href="consumibles.html" class="nav-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -81,7 +80,6 @@
                             <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/>
                         </svg>
                         <span>Consumibles</span>
-                        <span class="nav-badge warning">12</span>
                     </a>
                 </div>
                 
@@ -150,7 +148,7 @@
                     <p class="page-subtitle">Administración completa del inventario de hardware y software</p>
                 </div>
                 <div class="header-right">
-                    <button class="btn-secondary">
+                    <button class="btn-secondary" id="btnImprimirActivos" type="button">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <polyline points="6 9 6 2 18 2 18 9" stroke-width="2"/>
                             <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke-width="2"/>
@@ -158,7 +156,7 @@
                         </svg>
                         <span>Imprimir</span>
                     </button>
-                    <button class="btn-primary" id="btnNuevoActivo" type="button" onclick="openModal('crear')">
+                    <button class="btn-primary" id="btnNuevoActivo" type="button">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
                         </svg>
@@ -167,6 +165,25 @@
                 </div>
             </header>
             
+            <section class="asset-summary" aria-label="Resumen de activos">
+                <article class="asset-summary-item">
+                    <span class="summary-label">Total</span>
+                    <strong id="assetSummaryTotal">0</strong>
+                </article>
+                <article class="asset-summary-item">
+                    <span class="summary-label">Disponibles</span>
+                    <strong id="assetSummaryAvailable">0</strong>
+                </article>
+                <article class="asset-summary-item">
+                    <span class="summary-label">En uso</span>
+                    <strong id="assetSummaryInUse">0</strong>
+                </article>
+                <article class="asset-summary-item">
+                    <span class="summary-label">Mantenimiento</span>
+                    <strong id="assetSummaryMaintenance">0</strong>
+                </article>
+            </section>
+
             <!-- Filters and Search -->
             <div class="toolbar">
                 <div class="search-box">
@@ -186,11 +203,11 @@
                         <option value="">Todos los estados</option>
                     </select>
                     
-                    <button class="btn-filter">
+                    <button class="btn-filter" id="btnLimpiarFiltros" type="button">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" stroke-width="2"/>
                         </svg>
-                        <span>Filtros</span>
+                        <span>Limpiar</span>
                     </button>
                 </div>
             </div>
@@ -213,6 +230,7 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <tr><td colspan="9" class="empty-cell">Cargando activos...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -220,24 +238,10 @@
                 <!-- Pagination -->
                 <div class="table-footer">
                     <div class="table-info">
-                        Mostrando <strong>1-4</strong> de <strong>245</strong> activos
+                        Mostrando <strong>0-0</strong> de <strong>0</strong> activos
                     </div>
                     <div class="pagination">
-                        <button class="pagination-btn" disabled>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <polyline points="15 18 9 12 15 6" stroke-width="2"/>
-                            </svg>
-                        </button>
-                        <button class="pagination-btn active">1</button>
-                        <button class="pagination-btn">2</button>
-                        <button class="pagination-btn">3</button>
-                        <span class="pagination-dots">...</span>
-                        <button class="pagination-btn">62</button>
-                        <button class="pagination-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <polyline points="9 18 15 12 9 6" stroke-width="2"/>
-                            </svg>
-                        </button>
+                        <button class="pagination-btn active" type="button">1</button>
                     </div>
                 </div>
             </div>
@@ -262,7 +266,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Nombre del activo</label>
-                            <input type="text" id="inputNombre" placeholder="Ej: MacBook Pro 16 pulgadas" required>
+                            <input type="text" id="inputNombre" placeholder="Ej: MacBook Pro 16 pulgadas" required minlength="3" maxlength="120" autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label>ID del activo</label>
@@ -285,7 +289,7 @@
                     </div>
                     <div class="form-group">
                         <label>Especificaciones</label>
-                        <textarea id="inputDescripcion" rows="3" placeholder="Detalles técnicos del activo..."></textarea>
+                        <textarea id="inputDescripcion" rows="3" maxlength="500" placeholder="Detalles técnicos del activo..."></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-group">

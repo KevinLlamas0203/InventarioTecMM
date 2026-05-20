@@ -1,17 +1,25 @@
 import os
 import psycopg2
 from datetime import datetime
-from contextlib import contextmanager
 from re import match
 
 
-@contextmanager
 def get_connection():
-    conn = psycopg2.connect(os.getenv("DATABASE_URL"))
-    try:
-        yield conn
-    finally:
-        conn.close()
+    return ManagedConnection(psycopg2.connect(os.getenv("DATABASE_URL")))
+
+
+class ManagedConnection:
+    def __init__(self, conn):
+        self._conn = conn
+
+    def __enter__(self):
+        return self._conn
+
+    def __exit__(self, exc_type, exc, traceback):
+        self._conn.close()
+
+    def __getattr__(self, name):
+        return getattr(self._conn, name)
 
 
 def has_table(cur, table_name):
@@ -102,8 +110,8 @@ def get_user_id(cur, user_identifier):
         """
         SELECT id_usuario
         FROM usuarios
-        WHERE correo_electronico = %s
-           OR (nombre || ' ' || apellido_paterno || COALESCE(' ' || apellido_materno, '')) = %s
+        WHERE LOWER(correo_electronico) = LOWER(%s)
+           OR LOWER((nombre || ' ' || apellido_paterno || COALESCE(' ' || apellido_materno, ''))) = LOWER(%s)
         LIMIT 1
         """,
         (identifier, identifier)

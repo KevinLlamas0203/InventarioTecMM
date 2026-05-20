@@ -57,7 +57,6 @@
                             <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
                         </svg>
                         <span>Módulo de Activos</span>
-                        <span class="nav-badge">245</span>
                     </a>
                     <a href="consumibles.html" class="nav-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -66,7 +65,6 @@
                             <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/>
                         </svg>
                         <span>Consumibles</span>
-                        <span class="nav-badge warning">12</span>
                     </a>
                 </div>
                 
@@ -266,24 +264,10 @@
                 <!-- Pagination -->
                 <div class="table-footer">
                     <div class="table-info">
-                        Mostrando <strong>1-5</strong> de <strong>187</strong> asignaciones
+                        Mostrando <strong>0</strong> de <strong>0</strong> asignaciones
                     </div>
                     <div class="pagination">
-                        <button class="pagination-btn" disabled>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <polyline points="15 18 9 12 15 6" stroke-width="2"/>
-                            </svg>
-                        </button>
-                        <button class="pagination-btn active">1</button>
-                        <button class="pagination-btn">2</button>
-                        <button class="pagination-btn">3</button>
-                        <span class="pagination-dots">...</span>
-                        <button class="pagination-btn">38</button>
-                        <button class="pagination-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <polyline points="9 18 15 12 9 6" stroke-width="2"/>
-                            </svg>
-                        </button>
+                        <button class="pagination-btn active" type="button">1</button>
                     </div>
                 </div>
             </div>
@@ -309,21 +293,12 @@
                             <label>Usuario *</label>
                             <select required id="assignUser">
                                 <option value="">Seleccionar usuario</option>
-                                <option value="1">Juan Pérez García</option>
-                                <option value="2">María López Sánchez</option>
-                                <option value="3">Carlos Ramírez Torres</option>
-                                <option value="4">Ana Gutiérrez Morales</option>
-                                <option value="5">Luis Martínez Flores</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Activo *</label>
                             <select required id="assignAsset">
                                 <option value="">Seleccionar activo</option>
-                                <option value="LAP-2024-045">MacBook Pro 16" (LAP-2024-045)</option>
-                                <option value="MON-2024-082">Monitor Dell 27" (MON-2024-082)</option>
-                                <option value="PRO-2024-018">Proyector Epson (PRO-2024-018)</option>
-                                <option value="TAB-2024-033">Tablet Samsung (TAB-2024-033)</option>
                             </select>
                         </div>
                     </div>
@@ -394,7 +369,7 @@
                         <div class="detail-grid">
                             <div class="detail-item">
                                 <span class="detail-label">ID Asignación:</span>
-                                <span class="detail-value" id="detailAssignmentId">ASG-2026-089</span>
+                                <span class="detail-value" id="detailAssignmentId">-</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Estado:</span>
@@ -412,11 +387,11 @@
                         <div class="detail-grid">
                             <div class="detail-item">
                                 <span class="detail-label">Nombre:</span>
-                                <span class="detail-value" id="detailUserName">Juan Pérez García</span>
+                                <span class="detail-value" id="detailUserName">-</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Email:</span>
-                                <span class="detail-value" id="detailUserEmail">juan.perez@tsj.edu.mx</span>
+                                <span class="detail-value" id="detailUserEmail">-</span>
                             </div>
                         </div>
                     </div>
@@ -426,11 +401,11 @@
                         <div class="detail-grid">
                             <div class="detail-item">
                                 <span class="detail-label">Nombre:</span>
-                                <span class="detail-value" id="detailAssetName">MacBook Pro 16"</span>
+                                <span class="detail-value" id="detailAssetName">-</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">ID Activo:</span>
-                                <span class="detail-value" id="detailAssetId">LAP-2024-045</span>
+                                <span class="detail-value" id="detailAssetId">-</span>
                             </div>
                         </div>
                     </div>
@@ -440,15 +415,15 @@
                         <div class="detail-grid">
                             <div class="detail-item">
                                 <span class="detail-label">Fecha Inicio:</span>
-                                <span class="detail-value" id="detailStartDate">01/02/2026</span>
+                                <span class="detail-value" id="detailStartDate">-</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Fecha Fin:</span>
-                                <span class="detail-value" id="detailEndDate">01/08/2026</span>
+                                <span class="detail-value" id="detailEndDate">-</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Ubicación:</span>
-                                <span class="detail-value" id="detailLocation">Lab 301</span>
+                                <span class="detail-value" id="detailLocation">-</span>
                             </div>
                         </div>
                     </div>

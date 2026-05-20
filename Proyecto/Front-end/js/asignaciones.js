@@ -47,6 +47,20 @@ function notify(message, type = 'success') {
     alert(message);
 }
 
+function getApiErrorMessage(payload) {
+    if (!payload || typeof payload !== 'object') return null;
+    return payload.error || payload.message || payload.mensaje || payload.detalle || null;
+}
+
+async function requestJson(url, options = {}) {
+    const response = await fetch(url, options);
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        throw new Error(getApiErrorMessage(data) || `Error en la solicitud: ${response.status}`);
+    }
+    return data;
+}
+
 async function populateUserSelect() {
     const select = document.getElementById('assignUser');
     if (!select) return;
@@ -54,10 +68,7 @@ async function populateUserSelect() {
     select.innerHTML = '<option value="">Seleccionar usuario</option>';
 
     try {
-        const response = await fetch(`${getApiUrl()}/asignaciones/usuarios`);
-        const users = await response.json();
-        if (!response.ok) throw new Error(users.error || 'No se pudo cargar usuarios');
-
+        const users = await requestJson(`${getApiUrl()}/asignaciones/usuarios`);
         users.forEach(user => {
             const option = document.createElement('option');
             option.value = user.id_usuario;
@@ -77,10 +88,7 @@ async function populateAssetSelect() {
     select.innerHTML = '<option value="">Seleccionar activo</option>';
 
     try {
-        const response = await fetch(`${getApiUrl()}/asignaciones/activos`);
-        const activos = await response.json();
-        if (!response.ok) throw new Error(activos.error || 'No se pudo cargar activos');
-
+        const activos = await requestJson(`${getApiUrl()}/asignaciones/activos`);
         activos.forEach(activo => {
             const option = document.createElement('option');
             option.value = activo.id_activo;
@@ -98,10 +106,7 @@ async function populateLocationSelect() {
     if (!select) return;
 
     try {
-        const response = await fetch(`${getApiUrl()}/asignaciones/ubicaciones`);
-        const locations = await response.json();
-        if (!response.ok) throw new Error(locations.error || 'No se pudo cargar ubicaciones');
-
+        const locations = await requestJson(`${getApiUrl()}/asignaciones/ubicaciones`);
         const datalistId = 'assignLocationOptions';
         let dataList = document.getElementById(datalistId);
         if (!dataList) {
@@ -134,9 +139,7 @@ async function fetchAssignments() {
     }
 
     try {
-        const response = await fetch(`${getApiUrl()}/asignaciones`);
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'No se pudieron cargar las asignaciones');
+        const data = await requestJson(`${getApiUrl()}/asignaciones`);
         assignmentsCache = data;
         applyAssignmentFilters();
         updateStats(data);
@@ -336,7 +339,7 @@ async function handleAssignmentForm(event) {
     if (submitButton) submitButton.disabled = true;
 
     try {
-        const response = await fetch(`${getApiUrl()}/asignaciones`, {
+        await requestJson(`${getApiUrl()}/asignaciones`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -350,10 +353,13 @@ async function handleAssignmentForm(event) {
             })
         });
 
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'No se pudo crear la asignación');
-
-        await Promise.all([fetchAssignments(), populateAssetSelect(), populateUserSelect()]);
+        await Promise.all([
+            fetchAssignments(),
+            populateAssetSelect(),
+            populateUserSelect(),
+            refreshRelatedActivos(),
+            refreshRelatedMovimientos()
+        ]);
         document.getElementById('assignmentForm').reset();
         closeAssignmentModal();
         notify('Asignación creada correctamente', 'success');
@@ -376,10 +382,7 @@ function openAssignmentModal() {
 }
 
 function closeAssignmentModal() {
-    const modal = document.getElementById('assignmentModal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
+    closeModalById('assignmentModal');
 }
 
 function toggleEndDate() {
@@ -394,19 +397,29 @@ function toggleEndDate() {
     }
 }
 
+function closeModalById(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.remove('active');
+    if (!document.querySelector('.modal.active')) {
+        document.body.style.overflow = '';
+    }
+}
+
 function bindModalCloseShortcuts() {
     if (assignmentKeydownBound) return;
     assignmentKeydownBound = true;
 
     document.addEventListener('keydown', event => {
         if (event.key !== 'Escape') return;
-        ['assignmentModal', 'viewModal', 'extendModal'].forEach(id => {
+        const modalIds = ['extendModal', 'viewModal', 'assignmentModal'];
+        for (const id of modalIds) {
             const modal = document.getElementById(id);
             if (modal && modal.classList.contains('active')) {
-                modal.classList.remove('active');
-                document.body.style.overflow = '';
+                closeModalById(id);
+                break;
             }
-        });
+        }
     });
 }
 
@@ -418,11 +431,8 @@ function openViewModal() {
 }
 
 function closeViewModal() {
-    const modal = document.getElementById('viewModal');
+    closeModalById('viewModal');
     const detailNotes = document.getElementById('detailNotes');
-    if (!modal) return;
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
     if (detailNotes) detailNotes.textContent = '';
 }
 
@@ -431,9 +441,7 @@ async function viewAssignment(id) {
         const assignment = assignmentsCache.find(item => item.id_asignacion === id);
         let data = assignment;
         if (!data) {
-            const response = await fetch(`${getApiUrl()}/asignaciones/${id}`);
-            data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'No se encontró la asignación');
+            data = await requestJson(`${getApiUrl()}/asignaciones/${id}`);
         }
 
         document.getElementById('detailAssignmentId').textContent = `ASG-${String(data.id_asignacion).padStart(6, '0')}`;
@@ -466,10 +474,7 @@ function openExtendModal() {
 }
 
 function closeExtendModal() {
-    const modal = document.getElementById('extendModal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
+    closeModalById('extendModal');
 }
 
 async function extendAssignment(id) {
@@ -511,7 +516,7 @@ async function handleExtendForm(event) {
     if (submitButton) submitButton.disabled = true;
 
     try {
-        const response = await fetch(`${getApiUrl()}/asignaciones/${currentExtendAssignmentId}`, {
+        await requestJson(`${getApiUrl()}/asignaciones/${currentExtendAssignmentId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -519,10 +524,8 @@ async function handleExtendForm(event) {
                 estado: 'En uso'
             })
         });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'No se pudo extender la asignación');
 
-        await fetchAssignments();
+        await Promise.all([fetchAssignments(), refreshRelatedActivos(), refreshRelatedMovimientos()]);
         closeExtendModal();
         notify('Plazo extendido correctamente', 'success');
     } catch (error) {
@@ -539,7 +542,7 @@ async function finishAssignment(id) {
     try {
         const today = new Date();
         const isoToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}T00:00:00`;
-        const response = await fetch(`${getApiUrl()}/asignaciones/${id}`, {
+        await requestJson(`${getApiUrl()}/asignaciones/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -547,15 +550,33 @@ async function finishAssignment(id) {
                 estado: 'Finalizada'
             })
         });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'No se pudo finalizar la asignación');
 
-        await fetchAssignments();
+        await Promise.all([fetchAssignments(), populateAssetSelect(), refreshRelatedActivos(), refreshRelatedMovimientos()]);
         notify('Asignación finalizada correctamente', 'success');
     } catch (error) {
         console.error('Error finalizando asignación:', error);
         notify(error.message || 'Error al finalizar asignación', 'warning');
     }
+}
+
+async function refreshRelatedActivos() {
+    if (typeof window.refreshActivosTable === 'function') {
+        return window.refreshActivosTable();
+    }
+    if (typeof window.cargarActivos === 'function') {
+        return window.cargarActivos(false);
+    }
+    return Promise.resolve();
+}
+
+async function refreshRelatedMovimientos() {
+    if (typeof window.refreshMovimientosTable === 'function') {
+        return window.refreshMovimientosTable();
+    }
+    if (typeof window.fetchMovimientos === 'function') {
+        return window.fetchMovimientos();
+    }
+    return Promise.resolve();
 }
 
 window.openAssignmentModal = openAssignmentModal;
