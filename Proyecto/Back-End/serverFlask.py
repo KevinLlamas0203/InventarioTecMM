@@ -94,7 +94,7 @@ def login():
                 'success': True,
                 'message': 'Acceso correcto.',
                 'usuario': {
-                    'id': user_id,
+                    'id':     user_id,
                     'nombre': nombre,
                     'email': correo,
                     'nivel': nivel_acceso
