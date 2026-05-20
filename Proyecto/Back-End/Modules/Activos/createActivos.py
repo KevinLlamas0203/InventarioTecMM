@@ -1,9 +1,21 @@
 from flask import Blueprint, request, jsonify
 import psycopg2
+from datetime import datetime
 from Activos.db_helpers import get_connection, get_or_create_fk_id, get_user_id
 from Activos.sync_helpers import create_movement_record
 
 create_bp = Blueprint("create_bp", __name__)
+
+
+def validate_date_format(date_str):
+    if not date_str:
+        return None
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+        return date_str
+    except ValueError:
+        return None
+
 
 @create_bp.route("/activos", methods=["POST"])
 def create_activo():
@@ -19,13 +31,15 @@ def create_activo():
     asignado_a  = data.get("asignado_a")
     fecha_alta  = data.get("fecha_alta")
 
-    # Validación de campos obligatorios
     required = {"nombre": nombre, "categoria": categoria, "estado": estado}
     missing = [k for k, v in required.items() if v is None or (isinstance(v, str) and v.strip() == "")]
     if missing:
         return jsonify({"error": f"Campos obligatorios faltantes: {', '.join(missing)}"}), 400
 
-    fecha_alta = fecha_alta.strip() if isinstance(fecha_alta, str) and fecha_alta.strip() else None
+    fecha_alta = validate_date_format(fecha_alta)
+    if data.get("fecha_alta") and not fecha_alta:
+        return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD"}), 400
+
     ubicacion = ubicacion.strip() if isinstance(ubicacion, str) and ubicacion.strip() else None
     asignado_a = asignado_a.strip() if isinstance(asignado_a, str) and asignado_a.strip() else None
 
@@ -57,7 +71,7 @@ def create_activo():
                 nuevo_id = cur.fetchone()[0]
 
                 if fk_usuario:
-                    create_movement_record(cur, nuevo_id, "Creación y Asignación", estado, ubicacion, fk_usuario, f"Activo creado y asignado a empleado")
+                    create_movement_record(cur, nuevo_id, "Creación de Activo", estado, ubicacion, fk_usuario)
 
             conn.commit()
 

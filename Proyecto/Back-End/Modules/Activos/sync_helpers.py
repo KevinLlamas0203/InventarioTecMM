@@ -1,20 +1,31 @@
+import logging
 from datetime import datetime
-from Activos.db_helpers import get_connection, get_or_create_fk_id, get_fk_id
+from Activos.db_helpers import get_connection, get_or_create_fk_id, get_fk_id, has_table
+
+logger = logging.getLogger(__name__)
+
+
+def _get_tipo_movimiento_id(cur, tipo_movimiento):
+    if isinstance(tipo_movimiento, int):
+        return tipo_movimiento
+
+    fk_tipo = get_fk_id(cur, "tipos_movimiento", "id_tipo_movimiento", "nombre_tipo", tipo_movimiento)
+    if not fk_tipo and has_table(cur, "tipo_movimientos"):
+        fk_tipo = get_fk_id(cur, "tipo_movimientos", "id_tipo_movimiento", "nombre", tipo_movimiento)
+    if not fk_tipo:
+        fk_tipo = get_or_create_fk_id(cur, "tipos_movimiento", "id_tipo_movimiento", "nombre_tipo", tipo_movimiento)
+    return fk_tipo
 
 
 def create_movement_record(cur, activo_id, tipo_movimiento, estado, ubicacion, usuario_id=None, observaciones=None):
-    """Crea un registro de movimiento para sincronizar cambios en activos."""
+    """Create a movement record to track asset changes."""
     try:
         fk_ubicacion = get_or_create_fk_id(cur, "ubicaciones", "id_ubicacion", "nombre", ubicacion) if ubicacion else None
         fk_estado = get_fk_id(cur, "estados", "id_estado", "nombre", estado)
         if fk_estado is None:
             fk_estado = get_or_create_fk_id(cur, "estados", "id_estado", "nombre", estado)
 
-        fk_tipo = get_fk_id(cur, "tipos_movimiento", "id_tipo_movimiento", "nombre_tipo", tipo_movimiento)
-        if fk_tipo is None:
-            fk_tipo = get_fk_id(cur, "tipo_movimientos", "id_tipo_movimiento", "nombre", tipo_movimiento)
-        if fk_tipo is None:
-            fk_tipo = get_or_create_fk_id(cur, "tipos_movimiento", "id_tipo_movimiento", "nombre_tipo", tipo_movimiento)
+        fk_tipo = _get_tipo_movimiento_id(cur, tipo_movimiento)
 
         columns = ["fk_id_activo", "fk_id_tipo_movimiento", "fk_id_estado", "fecha_movimiento"]
         values = [activo_id, fk_tipo, fk_estado, datetime.utcnow()]
@@ -41,12 +52,12 @@ def create_movement_record(cur, activo_id, tipo_movimiento, estado, ubicacion, u
         )
         return True
     except Exception as e:
-        print(f"Error creando movimiento: {e}")
+        logger.error(f"Error creating movement record: {e}")
         return False
 
 
 def update_activo_from_assignment(cur, activo_id, usuario_id, ubicacion, estado):
-    """Actualiza activo cuando hay cambios en asignación."""
+    """Update asset when assignment changes."""
     try:
         fk_ubicacion = get_or_create_fk_id(cur, "ubicaciones", "id_ubicacion", "nombre", ubicacion) if ubicacion else None
         fk_estado = get_fk_id(cur, "estados", "id_estado", "nombre", estado)
@@ -62,12 +73,12 @@ def update_activo_from_assignment(cur, activo_id, usuario_id, ubicacion, estado)
         """, (usuario_id, fk_ubicacion, fk_estado, activo_id))
         return True
     except Exception as e:
-        print(f"Error actualizando activo: {e}")
+        logger.error(f"Error updating asset: {e}")
         return False
 
 
 def sync_on_assignment_creation(conn, activo_id, usuario_id, ubicacion, estado, tipo_asignacion="Asignación Inicial"):
-    """Sincroniza todos los cambios cuando se crea una asignación."""
+    """Sync all changes when assignment is created."""
     try:
         with conn.cursor() as cur:
             update_activo_from_assignment(cur, activo_id, usuario_id, ubicacion, estado)
@@ -76,12 +87,12 @@ def sync_on_assignment_creation(conn, activo_id, usuario_id, ubicacion, estado, 
         return True
     except Exception as e:
         conn.rollback()
-        print(f"Error en sincronización de asignación: {e}")
+        logger.error(f"Error syncing assignment creation: {e}")
         return False
 
 
 def sync_on_assignment_closure(conn, activo_id, new_estado, observaciones="Asignación finalizada"):
-    """Sincroniza cuando se cierra una asignación."""
+    """Sync when assignment is closed."""
     try:
         with conn.cursor() as cur:
             fk_estado = get_fk_id(cur, "estados", "id_estado", "nombre", new_estado)
@@ -94,12 +105,12 @@ def sync_on_assignment_closure(conn, activo_id, new_estado, observaciones="Asign
         return True
     except Exception as e:
         conn.rollback()
-        print(f"Error al cerrar asignación: {e}")
+        logger.error(f"Error closing assignment: {e}")
         return False
 
 
 def sync_on_movement_creation(conn, activo_id, estado, ubicacion, usuario_id=None):
-    """Sincroniza el activo cuando se crea un movimiento."""
+    """Sync asset when movement is created."""
     try:
         with conn.cursor() as cur:
             fk_estado = get_fk_id(cur, "estados", "id_estado", "nombre", estado)
@@ -125,5 +136,5 @@ def sync_on_movement_creation(conn, activo_id, estado, ubicacion, usuario_id=Non
         return True
     except Exception as e:
         conn.rollback()
-        print(f"Error sincronizando movimiento: {e}")
+        logger.error(f"Error syncing movement: {e}")
         return False
