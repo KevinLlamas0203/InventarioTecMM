@@ -1,9 +1,62 @@
 import os
 import psycopg2
+from datetime import datetime
+from re import match
 
 
 def get_connection():
-    return psycopg2.connect(os.getenv("DATABASE_URL"))
+    return ManagedConnection(psycopg2.connect(os.getenv("DATABASE_URL")))
+
+
+class ManagedConnection:
+    def __init__(self, conn):
+        self._conn = conn
+
+    def __enter__(self):
+        return self._conn
+
+    def __exit__(self, exc_type, exc, traceback):
+        self._conn.close()
+
+    def __getattr__(self, name):
+        return getattr(self._conn, name)
+
+
+def has_table(cur, table_name):
+    """Check if a table exists in the database."""
+    cur.execute(
+        """
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_name = %s
+        )
+        """,
+        (table_name,)
+    )
+    return cur.fetchone()[0]
+
+
+def has_column(cur, table_name, column_name):
+    """Check if a column exists in a table."""
+    cur.execute(
+        """
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name = %s
+              AND column_name = %s
+        )
+        """,
+        (table_name, column_name)
+    )
+    return cur.fetchone()[0]
+
+
+def _validate_identifier(identifier):
+    if not match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', identifier):
+        raise ValueError(f"Invalid identifier: {identifier}")
+    return identifier
 
 
 def get_or_create_fk_id(cur, table_name, id_column, name_column, name):
@@ -11,6 +64,10 @@ def get_or_create_fk_id(cur, table_name, id_column, name_column, name):
         return None
 
     normalized_name = name.strip()
+    _validate_identifier(table_name)
+    _validate_identifier(id_column)
+    _validate_identifier(name_column)
+
     cur.execute(
         f"SELECT {id_column} FROM {table_name} WHERE {name_column} = %s",
         (normalized_name,)
@@ -27,6 +84,23 @@ def get_or_create_fk_id(cur, table_name, id_column, name_column, name):
     return row[0] if row else None
 
 
+def get_fk_id(cur, table_name, id_column, name_column, name):
+    if not name or (isinstance(name, str) and name.strip() == ""):
+        return None
+
+    normalized_name = name.strip()
+    _validate_identifier(table_name)
+    _validate_identifier(id_column)
+    _validate_identifier(name_column)
+
+    cur.execute(
+        f"SELECT {id_column} FROM {table_name} WHERE {name_column} = %s",
+        (normalized_name,)
+    )
+    row = cur.fetchone()
+    return row[0] if row else None
+
+
 def get_user_id(cur, user_identifier):
     if not user_identifier or (isinstance(user_identifier, str) and user_identifier.strip() == ""):
         return None
@@ -36,8 +110,8 @@ def get_user_id(cur, user_identifier):
         """
         SELECT id_usuario
         FROM usuarios
-        WHERE correo_electronico = %s
-           OR (nombre || ' ' || apellido_paterno || COALESCE(' ' || apellido_materno, '')) = %s
+        WHERE LOWER(correo_electronico) = LOWER(%s)
+           OR LOWER((nombre || ' ' || apellido_paterno || COALESCE(' ' || apellido_materno, ''))) = LOWER(%s)
         LIMIT 1
         """,
         (identifier, identifier)
@@ -55,3 +129,4 @@ def format_user_display_name(row):
     materno = row[2] or ""
     parts = [nombre.strip(), paterno.strip(), materno.strip()]
     return " ".join([part for part in parts if part]) or None
+

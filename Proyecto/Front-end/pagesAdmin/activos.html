@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Activos - Sistema de Inventario</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/movimientos.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap" rel="stylesheet">
@@ -71,7 +72,6 @@
                             <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
                         </svg>
                         <span>Activos</span>
-                        <span class="nav-badge">245</span>
                     </a>
                     <a href="consumibles.html" class="nav-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -80,7 +80,6 @@
                             <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/>
                         </svg>
                         <span>Consumibles</span>
-                        <span class="nav-badge warning">12</span>
                     </a>
                 </div>
                 
@@ -142,14 +141,14 @@
         </aside>
         
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main-content activos-page">
             <header class="content-header">
                 <div class="header-left">
                     <h1 class="page-title">Gestión de Activos</h1>
                     <p class="page-subtitle">Administración completa del inventario de hardware y software</p>
                 </div>
                 <div class="header-right">
-                    <button class="btn-secondary">
+                    <button class="btn-secondary" id="btnImprimirActivos" type="button">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <polyline points="6 9 6 2 18 2 18 9" stroke-width="2"/>
                             <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke-width="2"/>
@@ -157,7 +156,7 @@
                         </svg>
                         <span>Imprimir</span>
                     </button>
-                    <button class="btn-primary" id="btnNuevoActivo" type="button" onclick="openModal('crear')">
+                    <button class="btn-primary" id="btnNuevoActivo" type="button">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
                         </svg>
@@ -166,6 +165,25 @@
                 </div>
             </header>
             
+            <section class="asset-summary" aria-label="Resumen de activos">
+                <article class="asset-summary-item">
+                    <span class="summary-label">Total</span>
+                    <strong id="assetSummaryTotal">0</strong>
+                </article>
+                <article class="asset-summary-item">
+                    <span class="summary-label">Disponibles</span>
+                    <strong id="assetSummaryAvailable">0</strong>
+                </article>
+                <article class="asset-summary-item">
+                    <span class="summary-label">En uso</span>
+                    <strong id="assetSummaryInUse">0</strong>
+                </article>
+                <article class="asset-summary-item">
+                    <span class="summary-label">Mantenimiento</span>
+                    <strong id="assetSummaryMaintenance">0</strong>
+                </article>
+            </section>
+
             <!-- Filters and Search -->
             <div class="toolbar">
                 <div class="search-box">
@@ -185,11 +203,11 @@
                         <option value="">Todos los estados</option>
                     </select>
                     
-                    <button class="btn-filter">
+                    <button class="btn-filter" id="btnLimpiarFiltros" type="button">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" stroke-width="2"/>
                         </svg>
-                        <span>Filtros</span>
+                        <span>Limpiar</span>
                     </button>
                 </div>
             </div>
@@ -212,6 +230,7 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <tr><td colspan="9" class="empty-cell">Cargando activos...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -219,24 +238,10 @@
                 <!-- Pagination -->
                 <div class="table-footer">
                     <div class="table-info">
-                        Mostrando <strong>1-4</strong> de <strong>245</strong> activos
+                        Mostrando <strong>0-0</strong> de <strong>0</strong> activos
                     </div>
                     <div class="pagination">
-                        <button class="pagination-btn" disabled>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <polyline points="15 18 9 12 15 6" stroke-width="2"/>
-                            </svg>
-                        </button>
-                        <button class="pagination-btn active">1</button>
-                        <button class="pagination-btn">2</button>
-                        <button class="pagination-btn">3</button>
-                        <span class="pagination-dots">...</span>
-                        <button class="pagination-btn">62</button>
-                        <button class="pagination-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <polyline points="9 18 15 12 9 6" stroke-width="2"/>
-                            </svg>
-                        </button>
+                        <button class="pagination-btn active" type="button">1</button>
                     </div>
                 </div>
             </div>
@@ -261,7 +266,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Nombre del activo</label>
-                            <input type="text" id="inputNombre" placeholder="Ej: MacBook Pro 16 pulgadas" required>
+                            <input type="text" id="inputNombre" placeholder="Ej: MacBook Pro 16 pulgadas" required minlength="3" maxlength="120" autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label>ID del activo</label>
@@ -284,7 +289,7 @@
                     </div>
                     <div class="form-group">
                         <label>Especificaciones</label>
-                        <textarea id="inputDescripcion" rows="3" placeholder="Detalles técnicos del activo..."></textarea>
+                        <textarea id="inputDescripcion" rows="3" maxlength="500" placeholder="Detalles técnicos del activo..."></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -321,7 +326,7 @@
         <div class="modal-content" style="max-width:560px">
             <div class="modal-header">
                 <div style="display:flex;align-items:center;gap:.75rem">
-                    <span id="detailId" style="font-size:.95rem;font-weight:600;color:var(--color-primary);background:rgba(99,102,241,.1);padding:.25rem .65rem;border-radius:6px;font-family:monospace"></span>
+                    <span id="detailActivoId" style="font-size:.95rem;font-weight:600;color:var(--color-primary);background:rgba(99,102,241,.1);padding:.25rem .65rem;border-radius:6px;font-family:monospace"></span>
                     <h2 style="margin:0">Detalle del Activo</h2>
                 </div>
                 <button class="modal-close" onclick="closeDetailModal()">
@@ -333,7 +338,7 @@
             <div class="modal-body">
                 <div style="margin-bottom:1.25rem">
                     <p style="font-size:1.15rem;font-weight:700;margin:0 0 .35rem" id="detailNombre">—</p>
-                    <p style="font-size:.875rem;color:#6b7280;margin:0" id="detailDescripcion">—</p>
+                    <p style="font-size:.875rem;color:var(--color-text-secondary);margin:0" id="detailDescripcion">—</p>
                 </div>
                 <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem">
                     <span id="detailCategoria" class="badge">—</span>
@@ -341,20 +346,20 @@
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
                     <div style="display:flex;flex-direction:column;gap:.2rem">
-                        <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#6b7280">Ubicación</span>
+                        <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-secondary)">Ubicación</span>
                         <span style="font-size:.925rem;font-weight:500" id="detailUbicacion">—</span>
                     </div>
                     <div style="display:flex;flex-direction:column;gap:.2rem">
-                        <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#6b7280">Asignado a</span>
+                        <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-secondary)">Asignado a</span>
                         <span style="font-size:.925rem;font-weight:500" id="detailAsignado">—</span>
                     </div>
                     <div style="display:flex;flex-direction:column;gap:.2rem">
-                        <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#6b7280">Fecha de alta</span>
+                        <span style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--color-text-secondary)">Fecha de alta</span>
                         <span style="font-size:.925rem;font-weight:500" id="detailFecha">—</span>
                     </div>
                 </div>
             </div>
-            <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid #e5e7eb">
+            <div class="modal-actions">
                 <button class="btn-secondary" onclick="closeDetailModal()">Cerrar</button>
                 <button class="btn-primary" id="detailBtnEditar" style="display:inline-flex;align-items:center">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:15px;height:15px;margin-right:.4rem">

@@ -1,16 +1,44 @@
-﻿function getApiUrl() {
+function getApiUrl() {
     return window.API_URL || "http://127.0.0.1:5000";
 }
-const PER_PAGE = 4;
+
+const PER_PAGE = 8;
+const ALLOWED_STATES = ['Disponible', 'En uso', 'Mantenimiento', 'Dado de baja'];
+const STATUS_CLASSES = {
+    Disponible: 'status-available',
+    'En uso': 'status-inuse',
+    Mantenimiento: 'status-maintenance',
+    'Dado de baja': 'status-retired'
+};
+const CATEGORY_CLASSES = {
+    Hardware: 'badge-hardware',
+    Software: 'badge-software',
+    Infraestructura: 'badge-infrastructure'
+};
+
 let paginaActual = 1;
 let activosCache = [];
+let filteredActivos = [];
+let assetKeydownBound = false;
+let assetCatalogs = {
+    categorias: [],
+    estados: ALLOWED_STATES,
+    ubicaciones: [],
+    usuarios: []
+};
 
 function initActivosPage() {
+    const pageRoot = getPageRoot();
+    if (!pageRoot || pageRoot.dataset.activosInitialized === 'true') return;
+    pageRoot.dataset.activosInitialized = 'true';
+
     bindAssetForm();
     bindNuevoActivoButton();
     bindActionDelegation();
-    cargarActivos();
+    bindFilterEvents();
     bindModalCloseShortcuts();
+    setTodayIfEmpty();
+    cargarActivos();
 }
 
 if (document.readyState === 'loading') {
@@ -19,544 +47,634 @@ if (document.readyState === 'loading') {
     initActivosPage();
 }
 
+function getPageRoot() {
+    return document.querySelector('.activos-page');
+}
+
+function notify(message, type = 'info') {
+    if (typeof showToast === 'function') {
+        showToast(message, type);
+        return;
+    }
+    alert(message);
+}
+
+async function fetchJson(path, options = {}) {
+    const res = await fetch(`${getApiUrl()}${path}`, options);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || data.message || data.mensaje || data.detalle || 'Solicitud no completada');
+    return data;
+}
+
 function bindAssetForm() {
     const form = document.getElementById('assetForm');
-    if (!form) return;
+    if (!form || form.dataset.assetFormBound === 'true') return;
+    form.dataset.assetFormBound = 'true';
 
+    form.addEventListener('input', () => clearFormError());
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
-        const id = document.getElementById('activoId').value;
-        if (id) {
-            await actualizarActivo(id);
-        } else {
-            await crearActivo();
+        const payload = obtenerDatosFormulario();
+        const validation = validateAssetPayload(payload);
+        if (!validation.ok) {
+            showFormError(validation.message, validation.field);
+            return;
         }
+
+        const id = document.getElementById('activoId').value;
+        await submitAsset(id, payload);
     });
 }
 
 function bindNuevoActivoButton() {
     const nuevoBtn = document.getElementById('btnNuevoActivo');
-    if (!nuevoBtn) return;
+    if (!nuevoBtn || nuevoBtn.dataset.assetButtonBound === 'true') return;
+    nuevoBtn.dataset.assetButtonBound = 'true';
     nuevoBtn.addEventListener('click', () => openModal('crear'));
 }
 
 function bindModalCloseShortcuts() {
+    if (assetKeydownBound) return;
+    assetKeydownBound = true;
     document.addEventListener('keydown', event => {
-        if (event.key === 'Escape') {
-            const detailModal = document.getElementById('detailModal');
-            const assetModal = document.getElementById('assetModal');
-            if (detailModal?.classList.contains('active')) closeDetailModal();
-            if (assetModal?.classList.contains('active')) closeModal();
-        }
+        if (event.key !== 'Escape') return;
+        const detailModal = document.getElementById('detailModal');
+        const assetModal = document.getElementById('assetModal');
+        if (detailModal?.classList.contains('active')) closeDetailModal();
+        if (assetModal?.classList.contains('active')) closeModal();
     });
 }
 
+function bindFilterEvents() {
+    const pageRoot = getPageRoot();
+    if (!pageRoot || pageRoot.dataset.assetFiltersBound === 'true') return;
+    pageRoot.dataset.assetFiltersBound = 'true';
+
+    const search = pageRoot.querySelector('.search-input');
+    const category = pageRoot.querySelector('#filtroCategoria');
+    const status = pageRoot.querySelector('#filtroEstado');
+    const clearButton = pageRoot.querySelector('#btnLimpiarFiltros');
+    const printButton = pageRoot.querySelector('#btnImprimirActivos');
+
+    search?.addEventListener('input', debounce(() => applyAssetFilters(), 220));
+    category?.addEventListener('change', () => applyAssetFilters());
+    status?.addEventListener('change', () => applyAssetFilters());
+    clearButton?.addEventListener('click', () => clearAssetFilters());
+    printButton?.addEventListener('click', () => window.print());
+}
+
 function bindActionDelegation() {
-    const tbody = document.querySelector('.data-table tbody');
-    if (!tbody) return;
+    const tbody = getPageRoot()?.querySelector('.data-table tbody');
+    if (!tbody || tbody.dataset.assetDelegationBound === 'true') return;
+    tbody.dataset.assetDelegationBound = 'true';
 
     tbody.addEventListener('click', event => {
         const button = event.target.closest('[data-action]');
         if (!button) return;
-
-        const action = button.dataset.action;
-        const id = button.dataset.id;
-        if (!action || !id) return;
-
         event.preventDefault();
-        if (action === 'view') return verActivo(id);
-        if (action === 'edit') return abrirEditar(id);
-        if (action === 'delete') return eliminarActivo(id);
+
+        const { action, id } = button.dataset;
+        if (action === 'view') verActivo(id);
+        if (action === 'edit') abrirEditar(id);
+        if (action === 'delete') eliminarActivo(id);
     });
 
     tbody.addEventListener('change', event => {
         const select = event.target.closest('.status-select');
         if (!select) return;
-
-        const id = select.dataset.id;
-        if (!id) return;
-        cambiarEstadoRapido(id, select.value, select);
+        cambiarEstadoRapido(select.dataset.id, select.value, select);
     });
 }
 
-function openModal(modo = 'crear') {
-    const modal = document.getElementById('assetModal');
-    if (!modal) {
-        console.error('openModal: assetModal no existe');
-        return;
+async function cargarActivos(resetPagina = true) {
+    setTableLoading(true);
+    try {
+        const [activos] = await Promise.all([fetchJson('/activos'), loadAssetCatalogs()]);
+        activosCache = Array.isArray(activos) ? activos : [];
+        populateSelects();
+        applyAssetFilters(resetPagina);
+    } catch (err) {
+        console.error('Error al cargar activos:', err);
+        renderEmptyState(err.message || 'No se pudo cargar la lista de activos.');
+        notify(err.message || 'No se pudo cargar la lista de activos.', 'error');
+    } finally {
+        setTableLoading(false);
     }
+}
 
-    const titulo = modal.querySelector('.modal-header h2');
-    const btn = modal.querySelector('#btnGuardar');
-
-    if (!titulo) {
-        console.error('openModal: no se encontró el título del modal', modal);
+async function loadAssetCatalogs() {
+    try {
+        const data = await fetchJson('/activos/catalogos');
+        assetCatalogs = {
+            categorias: mergeUnique([], data.categorias || []),
+            estados: mergeUnique(ALLOWED_STATES, data.estados || []),
+            ubicaciones: mergeUnique([], data.ubicaciones || []),
+            usuarios: Array.isArray(data.usuarios) ? data.usuarios : []
+        };
+    } catch (error) {
+        console.warn('No se pudieron cargar catalogos de activos:', error);
     }
-    if (!btn) {
-        console.error('openModal: no se encontró el botón guardar', modal);
-    }
+}
 
-    if (modo === 'crear') {
-        if (titulo) titulo.textContent = 'Registrar Nuevo Activo';
-        if (btn) btn.textContent = 'Guardar Activo';
-        limpiarFormulario();
+function populateSelects() {
+    const pageRoot = getPageRoot();
+    setOptions(pageRoot?.querySelector('#filtroCategoria'), assetCatalogs.categorias, 'Todas las categorias');
+    setOptions(pageRoot?.querySelector('#filtroEstado'), assetCatalogs.estados, 'Todos los estados');
+    setOptions(document.getElementById('inputCategoria'), assetCatalogs.categorias, 'Seleccionar categoria');
+    setOptions(document.getElementById('inputEstado'), ALLOWED_STATES, 'Seleccionar estado');
+    setOptions(document.getElementById('inputUbicacion'), assetCatalogs.ubicaciones, 'Seleccionar ubicacion');
+
+    const inputAsignadoA = document.getElementById('inputAsignadoA');
+    if (inputAsignadoA) {
+        const current = inputAsignadoA.value;
+        inputAsignadoA.innerHTML = '';
+        inputAsignadoA.appendChild(new Option('No asignado', ''));
+        assetCatalogs.usuarios.forEach(user => {
+            const value = user.nombre_completo || user.correo_electronico;
+            const label = user.correo_electronico ? `${value} - ${user.correo_electronico}` : value;
+            if (value) inputAsignadoA.appendChild(new Option(label, value));
+        });
+        inputAsignadoA.value = current;
+    }
+}
+
+function setOptions(select, values, placeholder) {
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = '';
+    select.appendChild(new Option(placeholder, ''));
+    values.filter(Boolean).forEach(value => select.appendChild(new Option(value, value)));
+    if (values.includes(current)) select.value = current;
+}
+
+function setDatalistOptions(listId, values) {
+    const dataList = document.getElementById(listId);
+    if (!dataList) return;
+    const normalizedOptions = (values || [])
+        .map(item => typeof item === 'string' ? { value: item, label: item } : item)
+        .filter(opt => opt && (opt.value || opt.label));
+
+    const uniqueKeys = new Map();
+    normalizedOptions.forEach(opt => {
+        const key = String(opt.value || opt.label).trim();
+        if (!uniqueKeys.has(key)) {
+            uniqueKeys.set(key, opt);
+        }
+    });
+
+    dataList.innerHTML = '';
+    Array.from(uniqueKeys.values())
+        .sort((a, b) => String(a.label || a.value).localeCompare(String(b.label || b.value), 'es', { sensitivity: 'base' }))
+        .forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            if (opt.label && opt.label !== opt.value) {
+                option.label = opt.label;
+            }
+            dataList.appendChild(option);
+        });
+}
+
+function applyAssetFilters(resetPagina = true) {
+    const pageRoot = getPageRoot();
+    const searchTerm = normalize(pageRoot?.querySelector('.search-input')?.value);
+    const category = pageRoot?.querySelector('#filtroCategoria')?.value || '';
+    const status = pageRoot?.querySelector('#filtroEstado')?.value || '';
+
+    filteredActivos = activosCache.filter(asset => {
+        const haystack = normalize([
+            asset.activo_id,
+            asset.nombre,
+            asset.descripcion,
+            asset.categoria,
+            asset.estado,
+            asset.ubicacion,
+            asset.asignado_a,
+            asset.fecha_alta
+        ].join(' '));
+        return (!searchTerm || haystack.includes(searchTerm))
+            && (!category || asset.categoria === category)
+            && (!status || asset.estado === status);
+    });
+
+    if (resetPagina) paginaActual = 1;
+    renderPagina();
+    updateSummary();
+}
+
+function clearAssetFilters() {
+    const pageRoot = getPageRoot();
+    const search = pageRoot?.querySelector('.search-input');
+    const category = pageRoot?.querySelector('#filtroCategoria');
+    const status = pageRoot?.querySelector('#filtroEstado');
+    if (search) search.value = '';
+    if (category) category.value = '';
+    if (status) status.value = '';
+    applyAssetFilters(true);
+}
+
+function renderPagina() {
+    const totalRows = filteredActivos.length;
+    const totalPages = Math.max(1, Math.ceil(totalRows / PER_PAGE));
+    paginaActual = Math.min(paginaActual, totalPages);
+
+    const start = (paginaActual - 1) * PER_PAGE;
+    const end = Math.min(start + PER_PAGE, totalRows);
+    const slice = filteredActivos.slice(start, end);
+    const tbody = getPageRoot()?.querySelector('.data-table tbody');
+    if (!tbody) return;
+
+    if (!slice.length) {
+        tbody.innerHTML = `<tr><td colspan="9" class="empty-cell">No hay activos con los filtros actuales</td></tr>`;
     } else {
-        if (titulo) titulo.textContent = 'Editar Activo';
-        if (btn) btn.textContent = 'Actualizar Activo';
+        tbody.innerHTML = slice.map(renderAssetRow).join('');
     }
 
-    modal.style.setProperty('display', 'flex', 'important');
+    const infoEl = getPageRoot()?.querySelector('.table-info');
+    if (infoEl) {
+        const dispStart = totalRows === 0 ? 0 : start + 1;
+        infoEl.innerHTML = `Mostrando <strong>${dispStart}-${end}</strong> de <strong>${totalRows}</strong> activos`;
+    }
+
+    renderPaginacionControles(totalPages);
+}
+
+function renderAssetRow(asset) {
+    const categoryClass = CATEGORY_CLASSES[asset.categoria] || 'badge-hardware';
+    const statusClass = STATUS_CLASSES[asset.estado] || 'status-available';
+    const fechaMostrar = formatDate(asset.fecha_alta);
+
+    return `
+        <tr>
+            <td><input type="checkbox" class="table-checkbox" aria-label="Seleccionar activo ${escapeHtml(asset.nombre)}"></td>
+            <td><span class="asset-id">#${asset.activo_id}</span></td>
+            <td>
+                <div class="asset-info">
+                    <span class="asset-name">${escapeHtml(asset.nombre)}</span>
+                    <span class="asset-specs">${escapeHtml(asset.descripcion) || '-'}</span>
+                </div>
+            </td>
+            <td><span class="badge ${categoryClass}">${escapeHtml(asset.categoria) || '-'}</span></td>
+            <td>
+                <select class="status-select ${statusClass}" data-id="${asset.activo_id}" aria-label="Estado de ${escapeHtml(asset.nombre)}">
+                    ${ALLOWED_STATES.map(state => `<option value="${state}" ${asset.estado === state ? 'selected' : ''}>${state}</option>`).join('')}
+                </select>
+            </td>
+            <td>${escapeHtml(asset.ubicacion) || '-'}</td>
+            <td>${escapeHtml(asset.asignado_a) || 'Sin asignar'}</td>
+            <td>${fechaMostrar}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn-action" title="Ver detalles" data-action="view" data-id="${asset.activo_id}">${iconEye()}</button>
+                    <button class="btn-action" title="Editar" data-action="edit" data-id="${asset.activo_id}">${iconEdit()}</button>
+                    <button class="btn-action danger" title="Eliminar" data-action="delete" data-id="${asset.activo_id}">${iconTrash()}</button>
+                </div>
+            </td>
+        </tr>`;
+}
+
+function renderPaginacionControles(totalPages) {
+    const container = getPageRoot()?.querySelector('.pagination');
+    if (!container) return;
+
+    let html = `
+        <button class="pagination-btn" type="button" onclick="irPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6" stroke-width="2"/></svg>
+        </button>`;
+
+    const start = Math.max(1, Math.min(paginaActual - 2, Math.max(1, totalPages - 4)));
+    const end = Math.min(totalPages, start + 4);
+    for (let i = start; i <= end; i++) {
+        html += `<button class="pagination-btn ${i === paginaActual ? 'active' : ''}" type="button" onclick="irPagina(${i})">${i}</button>`;
+    }
+
+    html += `
+        <button class="pagination-btn" type="button" onclick="irPagina(${paginaActual + 1})" ${paginaActual === totalPages ? 'disabled' : ''}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6" stroke-width="2"/></svg>
+        </button>`;
+    container.innerHTML = html;
+}
+
+function irPagina(page) {
+    const totalPages = Math.max(1, Math.ceil(filteredActivos.length / PER_PAGE));
+    if (page < 1 || page > totalPages) return;
+    paginaActual = page;
+    renderPagina();
+}
+
+async function submitAsset(id, payload) {
+    const button = document.getElementById('btnGuardar');
+    setButtonLoading(button, true);
+    try {
+        const data = await fetchJson(id ? `/activos/${id}` : '/activos', {
+            method: id ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        closeModal();
+        await Promise.all([
+            cargarActivos(),
+            refreshRelatedMovimientos(),
+            refreshRelatedAsignaciones()
+        ]);
+        notify(id ? data.mensaje : `Activo creado con ID: ${data.activo_id}`, 'success');
+    } catch (err) {
+        console.error(err);
+        showFormError(err.message || 'Error de conexion con el servidor');
+    } finally {
+        setButtonLoading(button, false);
+    }
+}
+
+async function refreshRelatedAsignaciones() {
+    if (typeof window.refreshAsignacionesTable === 'function') {
+        return window.refreshAsignacionesTable();
+    }
+    if (typeof window.fetchAssignments === 'function') {
+        return window.fetchAssignments();
+    }
+    return Promise.resolve();
+}
+
+async function cambiarEstadoRapido(id, nuevoEstado, selectElement) {
+    const previousValue = activosCache.find(asset => String(asset.activo_id) === String(id))?.estado;
+    try {
+        const currentAsset = await fetchJson(`/activos/${id}`);
+        currentAsset.estado = nuevoEstado;
+        currentAsset.tipo_movimiento = 'Cambio de Estado';
+        currentAsset.observaciones = `Cambio rapido de estado a ${nuevoEstado}`;
+
+        await fetchJson(`/activos/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(currentAsset)
+        });
+
+        selectElement.className = `status-select ${STATUS_CLASSES[nuevoEstado] || 'status-available'}`;
+        await Promise.all([cargarActivos(false), refreshRelatedMovimientos()]);
+        notify('Estado actualizado correctamente', 'success');
+    } catch (err) {
+        console.error(err);
+        if (previousValue) selectElement.value = previousValue;
+        selectElement.className = `status-select ${STATUS_CLASSES[previousValue] || 'status-available'}`;
+        notify(err.message || 'Error al cambiar estado.', 'error');
+    }
+}
+
+async function abrirEditar(activoId) {
+    try {
+        const asset = await fetchJson(`/activos/${activoId}`);
+        await loadAssetCatalogs();
+        populateSelects();
+        setFormValue('activoId', asset.activo_id);
+        setFormValue('inputNombre', asset.nombre);
+        setFormValue('inputCategoria', asset.categoria);
+        setFormValue('inputEstado', asset.estado);
+        setFormValue('inputDescripcion', asset.descripcion);
+        setFormValue('inputUbicacion', asset.ubicacion);
+        setFormValue('inputAsignadoA', asset.asignado_a);
+        setFormValue('inputFechaAlta', asset.fecha_alta);
+        openModal('editar');
+    } catch (err) {
+        console.error(err);
+        notify(err.message || 'Error al cargar el activo', 'error');
+    }
+}
+
+async function eliminarActivo(activoId) {
+    if (!confirm(`Eliminar el activo #${activoId}? Esta accion no se puede deshacer.`)) return;
+    try {
+        const data = await fetchJson(`/activos/${activoId}`, { method: 'DELETE' });
+        await Promise.all([cargarActivos(), refreshRelatedMovimientos()]);
+        notify(data.mensaje || 'Activo eliminado correctamente', 'success');
+    } catch (err) {
+        console.error(err);
+        notify(err.message || 'No se pudo eliminar el activo', 'error');
+    }
+}
+
+async function verActivo(activoId) {
+    try {
+        const asset = await fetchJson(`/activos/${activoId}`);
+        const categoryClass = CATEGORY_CLASSES[asset.categoria] || 'badge-hardware';
+        const statusClass = STATUS_CLASSES[asset.estado] || 'status-available';
+
+        setText('detailActivoId', `#${asset.activo_id}`);
+        setText('detailNombre', asset.nombre || '-');
+        setText('detailDescripcion', asset.descripcion || '-');
+        setText('detailUbicacion', asset.ubicacion || '-');
+        setText('detailAsignado', asset.asignado_a || 'Sin asignar');
+        setText('detailFecha', formatDate(asset.fecha_alta));
+
+        const detailCategoria = document.getElementById('detailCategoria');
+        const detailEstado = document.getElementById('detailEstado');
+        if (detailCategoria) {
+            detailCategoria.textContent = asset.categoria || '-';
+            detailCategoria.className = `badge ${categoryClass}`;
+        }
+        if (detailEstado) {
+            detailEstado.textContent = asset.estado || '-';
+            detailEstado.className = `badge ${statusClass}`;
+        }
+
+        const editButton = document.getElementById('detailBtnEditar');
+        if (editButton) {
+            editButton.onclick = () => {
+                closeDetailModal();
+                abrirEditar(asset.activo_id);
+            };
+        }
+
+        const detailModal = document.getElementById('detailModal');
+        detailModal?.classList.add('active');
+    } catch (err) {
+        console.error(err);
+        notify(err.message || 'Error al obtener detalle del activo', 'error');
+    }
+}
+
+function openModal(mode = 'crear') {
+    const modal = document.getElementById('assetModal');
+    if (!modal) return;
+    clearFormError();
+
+    const title = modal.querySelector('.modal-header h2');
+    const button = modal.querySelector('#btnGuardar');
+    if (mode === 'crear') {
+        title.textContent = 'Registrar Nuevo Activo';
+        button.textContent = 'Guardar Activo';
+        limpiarFormulario();
+        setTodayIfEmpty();
+    } else {
+        title.textContent = 'Editar Activo';
+        button.textContent = 'Actualizar Activo';
+    }
+
     modal.classList.add('active');
+    setTimeout(() => document.getElementById('inputNombre')?.focus(), 80);
 }
 
 function closeModal() {
     const modal = document.getElementById('assetModal');
     if (!modal) return;
     modal.classList.remove('active');
-    modal.style.removeProperty('display');
     limpiarFormulario();
 }
 
-function limpiarFormulario() {
-    const activoIdEl = document.getElementById('activoId');
-    const nombreEl = document.getElementById('inputNombre');
-    const categoriaEl = document.getElementById('inputCategoria');
-    const estadoEl = document.getElementById('inputEstado');
-    const descripcionEl = document.getElementById('inputDescripcion');
-    const ubicacionEl = document.getElementById('inputUbicacion');
-    const asignadoEl = document.getElementById('inputAsignadoA');
-    const fechaAltaEl = document.getElementById('inputFechaAlta');
-
-    if (activoIdEl) activoIdEl.value = '';
-    if (nombreEl) nombreEl.value = '';
-    if (categoriaEl) categoriaEl.value = '';
-    if (estadoEl) estadoEl.value = '';
-    if (descripcionEl) descripcionEl.value = '';
-    if (ubicacionEl) ubicacionEl.value = '';
-    if (asignadoEl) asignadoEl.value = '';
-    if (fechaAltaEl) fechaAltaEl.value = '';
-}
-
-async function cargarActivos(resetPagina = true) {
-    try {
-        const res = await fetch(`${getApiUrl()}/activos`);
-        const activos = await res.json();
-        if (!res.ok) {
-            throw new Error(activos.error || 'No se pudo cargar la lista de activos');
-        }
-
-        if (resetPagina) paginaActual = 1;
-        renderTabla(activos);
-    } catch (err) {
-        console.error('Error al cargar activos:', err);
-        alert(err.message || 'No se pudo cargar la lista de activos. Revisa la conexión al servidor.');
-    }
-}
-
-function renderTabla(activos) {
-    activosCache = activos;
-    paginaActual = 1;
-    populateSelectsFromActivos(activos);
-    renderPagina();
-}
-
-function populateSelectsFromActivos(activos) {
-    const unique = (values) => Array.from(new Set(values.filter(v => v && v.toString().trim() !== ''))).sort();
-    const categories = unique(activos.map(a => a.categoria));
-    const states = unique(activos.map(a => a.estado));
-    const locations = unique(activos.map(a => a.ubicacion));
-    const assignees = unique(activos.map(a => a.asignado_a));
-
-    const filtroCategoria = document.getElementById('filtroCategoria');
-    const filtroEstado = document.getElementById('filtroEstado');
-    const inputCategoria = document.getElementById('inputCategoria');
-    const inputEstado = document.getElementById('inputEstado');
-    const inputUbicacion = document.getElementById('inputUbicacion');
-    const inputAsignadoA = document.getElementById('inputAsignadoA');
-
-    const setOptions = (select, values, defaultOption) => {
-        if (!select) return;
-        const currentValue = select.value;
-        select.innerHTML = '';
-        select.appendChild(new Option(defaultOption.text, defaultOption.value));
-        values.forEach(value => select.appendChild(new Option(value, value)));
-        if (values.includes(currentValue)) {
-            select.value = currentValue;
-        }
-    };
-
-    setOptions(filtroCategoria, categories, { value: '', text: 'Todas las categorías' });
-    setOptions(filtroEstado, states, { value: '', text: 'Todos los estados' });
-    setOptions(inputCategoria, categories, { value: '', text: 'Seleccionar categoría' });
-    setOptions(inputEstado, states, { value: '', text: 'Seleccionar estado' });
-    setOptions(inputUbicacion, locations, { value: '', text: 'Seleccionar ubicación' });
-
-    if (inputAsignadoA) {
-        const currentValue = inputAsignadoA.value;
-        inputAsignadoA.innerHTML = '';
-        inputAsignadoA.appendChild(new Option('No asignado', ''));
-        assignees.forEach(value => inputAsignadoA.appendChild(new Option(value, value)));
-        if (assignees.includes(currentValue)) {
-            inputAsignadoA.value = currentValue;
-        }
-    }
-}
-
-function renderPagina() {
-    const activos = activosCache;
-    const totalRows = activos.length;
-    const totalPages = Math.max(1, Math.ceil(totalRows / PER_PAGE));
-    paginaActual = Math.min(paginaActual, totalPages);
-
-    const start = (paginaActual - 1) * PER_PAGE;
-    const end = Math.min(start + PER_PAGE, totalRows);
-    const slice = activos.slice(start, end);
-    const tbody = document.querySelector('.data-table tbody');
-
-    if (!tbody) return;
-    tbody.innerHTML = '';
-
-    if (!activos.length) {
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;opacity:.5;">No hay activos registrados</td></tr>`;
-    } else {
-        slice.forEach(a => {
-            const badgeCategoria = {
-                Hardware: 'badge-hardware',
-                Software: 'badge-software',
-                Infraestructura: 'badge-infrastructure'
-            }[a.categoria] || 'badge-hardware';
-
-            const badgeEstado = {
-                Disponible: 'status-available',
-                'En uso': 'status-inuse',
-                Mantenimiento: 'status-maintenance',
-                'Dado de baja': 'status-retired'
-            }[a.estado] || 'status-available';
-
-            let fechaMostrar = '—';
-            if (a.fecha_alta) {
-                const [y, m, d] = a.fecha_alta.split('-');
-                fechaMostrar = `${d}/${m}/${y}`;
-            }
-
-            tbody.innerHTML += `
-                <tr>
-                    <td><input type="checkbox" class="table-checkbox"></td>
-                    <td><span class="asset-id">#${a.activo_id}</span></td>
-                    <td>
-                        <div class="asset-info">
-                            <span class="asset-name">${escapeHtml(a.nombre)}</span>
-                            <span class="asset-specs">${escapeHtml(a.descripcion) || '—'}</span>
-                        </div>
-                    </td>
-                    <td><span class="badge ${badgeCategoria}">${escapeHtml(a.categoria)}</span></td>
-                    <td>
-                        <select class="status-select ${badgeEstado}" data-id="${a.activo_id}">
-                            <option value="Disponible" ${a.estado === 'Disponible' ? 'selected' : ''}>Disponible</option>
-                            <option value="En uso" ${a.estado === 'En uso' ? 'selected' : ''}>En uso</option>
-                            <option value="Mantenimiento" ${a.estado === 'Mantenimiento' ? 'selected' : ''}>Mantenimiento</option>
-                            <option value="Dado de baja" ${a.estado === 'Dado de baja' ? 'selected' : ''}>Dado de baja</option>
-                        </select>
-                    </td>
-                    <td>${escapeHtml(a.ubicacion) || '—'}</td>
-                    <td>${escapeHtml(a.asignado_a) || '—'}</td>
-                    <td>${fechaMostrar}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn-action" title="Ver detalles" data-action="view" data-id="${a.activo_id}">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
-                                    <circle cx="12" cy="12" r="3" stroke-width="2"/>
-                                </svg>
-                            </button>
-                            <button class="btn-action" title="Editar" data-action="edit" data-id="${a.activo_id}">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/>
-                                </svg>
-                            </button>
-                            <button class="btn-action" title="Eliminar" data-action="delete" data-id="${a.activo_id}">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <polyline points="3 6 5 6 21 6" stroke-width="2"/>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </td>
-                </tr>`;
-        });
-    }
-
-    const infoEl = document.querySelector('.table-info');
-    if (infoEl) {
-        const dispStart = totalRows === 0 ? 0 : start + 1;
-        infoEl.innerHTML = `Mostrando <strong>${dispStart}–${end}</strong> de <strong>${totalRows}</strong> activos`;
-    }
-
-    renderPaginacionControles(totalPages);
-}
-
-function renderPaginacionControles(totalPages) {
-    const container = document.querySelector('.pagination');
-    if (!container) return;
-
-    let html = '';
-    html += `<button class="pagination-btn" onclick="irPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6" stroke-width="2"/></svg>
-             </button>`;
-
-    let inicio = Math.max(1, paginaActual - 2);
-    let fin = Math.min(totalPages, inicio + 4);
-    if (fin - inicio < 4) inicio = Math.max(1, fin - 4);
-
-    if (inicio > 1) {
-        html += `<button class="pagination-btn" onclick="irPagina(1)">1</button>`;
-        if (inicio > 2) html += `<span class="pagination-dots">…</span>`;
-    }
-
-    for (let i = inicio; i <= fin; i++) {
-        html += `<button class="pagination-btn ${i === paginaActual ? 'active' : ''}" onclick="irPagina(${i})">${i}</button>`;
-    }
-
-    if (fin < totalPages) {
-        if (fin < totalPages - 1) html += `<span class="pagination-dots">…</span>`;
-        html += `<button class="pagination-btn" onclick="irPagina(${totalPages})">${totalPages}</button>`;
-    }
-
-    html += `<button class="pagination-btn" onclick="irPagina(${paginaActual + 1})" ${paginaActual === totalPages ? 'disabled' : ''}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6" stroke-width="2"/></svg>
-             </button>`;
-
-    container.innerHTML = html;
-}
-
-function irPagina(p) {
-    const totalPages = Math.ceil(activosCache.length / PER_PAGE);
-    if (p < 1 || p > totalPages) return;
-    paginaActual = p;
-    renderPagina();
-}
-
-async function crearActivo() {
-    try {
-        const res = await fetch(`${getApiUrl()}/activos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(obtenerDatosFormulario())
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Error al crear activo');
-
-        closeModal();
-        cargarActivos();
-        alert(`✅ Activo creado con ID: ${data.activo_id}`);
-    } catch (err) {
-        console.error(err);
-        alert(err.message || 'Error de conexión con el servidor');
-    }
-}
-
-async function cambiarEstadoRapido(id, nuevoEstado, selectElement) {
-    try {
-        const resGet = await fetch(`${getApiUrl()}/activos/${id}`);
-        if (!resGet.ok) {
-            const data = await resGet.json();
-            throw new Error(data.error || 'No se pudo obtener el activo');
-        }
-
-        const currentAsset = await resGet.json();
-        currentAsset.estado = nuevoEstado;
-
-        const resPut = await fetch(`${getApiUrl()}/activos/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(currentAsset)
-        });
-
-        if (!resPut.ok) {
-            const data = await resPut.json();
-            throw new Error(data.error || 'No se pudo actualizar el estado');
-        }
-
-        const badgeEstado = {
-            Disponible: 'status-available',
-            'En uso': 'status-inuse',
-            Mantenimiento: 'status-maintenance',
-            'Dado de baja': 'status-retired'
-        }[nuevoEstado] || 'status-available';
-
-        selectElement.className = `status-select ${badgeEstado}`;
-    } catch (err) {
-        console.error(err);
-        alert(err.message || 'Error de conexión al cambiar estado.');
-    }
-}
-
-async function abrirEditar(activoId) {
-    try {
-        const res = await fetch(`${getApiUrl()}/activos/${activoId}`);
-        if (!res.ok) {
-            const data = await res.json();
-            throw new Error(data.error || 'Activo no encontrado');
-        }
-
-        const a = await res.json();
-        document.getElementById('activoId').value = a.activo_id;
-        document.getElementById('inputNombre').value = a.nombre || '';
-        document.getElementById('inputCategoria').value = a.categoria || '';
-        document.getElementById('inputEstado').value = a.estado || '';
-        document.getElementById('inputDescripcion').value = a.descripcion || '';
-        document.getElementById('inputUbicacion').value = a.ubicacion || '';
-        document.getElementById('inputAsignadoA').value = a.asignado_a || '';
-        document.getElementById('inputFechaAlta').value = a.fecha_alta || '';
-
-        openModal('editar');
-    } catch (err) {
-        console.error(err);
-        alert(err.message || 'Error al cargar el activo');
-    }
-}
-
-async function actualizarActivo(activoId) {
-    try {
-        const res = await fetch(`${getApiUrl()}/activos/${activoId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(obtenerDatosFormulario())
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'No se pudo actualizar el activo');
-
-        closeModal();
-        cargarActivos();
-        alert(`✅ ${data.mensaje}`);
-    } catch (err) {
-        console.error(err);
-        alert(err.message || 'Error de conexión con el servidor');
-    }
-}
-
-async function eliminarActivo(activoId) {
-    if (!confirm(`¿Estás seguro de eliminar el activo #${activoId}? Esta acción no se puede deshacer.`)) return;
-
-    try {
-        const res = await fetch(`${getApiUrl()}/activos/${activoId}`, { method: 'DELETE' });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'No se pudo eliminar el activo');
-
-        cargarActivos();
-        alert(`✅ ${data.mensaje}`);
-    } catch (err) {
-        console.error(err);
-        alert(err.message || 'Error de conexión con el servidor');
-    }
-}
-
-async function verActivo(activoId) {
-    try {
-        const res = await fetch(`${getApiUrl()}/activos/${activoId}`);
-        if (!res.ok) {
-            const data = await res.json();
-            throw new Error(data.error || 'Activo no encontrado');
-        }
-
-        const a = await res.json();
-        const badgeCategoria = {
-            Hardware: 'badge-hardware',
-            Software: 'badge-software',
-            Infraestructura: 'badge-infrastructure'
-        }[a.categoria] || 'badge-hardware';
-
-        const badgeEstado = {
-            Disponible: 'status-available',
-            'En uso': 'status-inuse',
-            Mantenimiento: 'status-maintenance',
-            'Dado de baja': 'status-retired'
-        }[a.estado] || 'status-available';
-
-        let fechaMostrar = '—';
-        if (a.fecha_alta) {
-            const [y, m, d] = a.fecha_alta.split('-');
-            fechaMostrar = `${d}/${m}/${y}`;
-        }
-
-        const detailIdEl = document.getElementById('detailId');
-        const detailNombreEl = document.getElementById('detailNombre');
-        const detailDescripcionEl = document.getElementById('detailDescripcion');
-        const detailUbicacionEl = document.getElementById('detailUbicacion');
-        const detailAsignadoEl = document.getElementById('detailAsignado');
-        const detailFechaEl = document.getElementById('detailFecha');
-        const detailCategoriaEl = document.getElementById('detailCategoria');
-        const detailEstadoEl = document.getElementById('detailEstado');
-        const detailBtnEditarEl = document.getElementById('detailBtnEditar');
-
-        if (detailIdEl) detailIdEl.textContent = `#${a.activo_id}`;
-        if (detailNombreEl) detailNombreEl.textContent = a.nombre || '—';
-        if (detailDescripcionEl) detailDescripcionEl.textContent = a.descripcion || '—';
-        if (detailUbicacionEl) detailUbicacionEl.textContent = a.ubicacion || '—';
-        if (detailAsignadoEl) detailAsignadoEl.textContent = a.asignado_a || 'Sin asignar';
-        if (detailFechaEl) detailFechaEl.textContent = fechaMostrar;
-
-        if (detailCategoriaEl) {
-            detailCategoriaEl.textContent = a.categoria || '—';
-            detailCategoriaEl.className = `badge ${badgeCategoria}`;
-        }
-
-        if (detailEstadoEl) {
-            detailEstadoEl.textContent = a.estado || '—';
-            detailEstadoEl.className = `badge ${badgeEstado}`;
-        }
-
-        if (detailBtnEditarEl) {
-            detailBtnEditarEl.onclick = () => {
-                closeDetailModal();
-                abrirEditar(a.activo_id);
-            };
-        }
-
-        const detailModal = document.getElementById('detailModal');
-        if (detailModal) {
-            detailModal.style.setProperty('display', 'flex', 'important');
-            detailModal.classList.add('active');
-        }
-    } catch (err) {
-        console.error(err);
-        alert(err.message || 'Error al obtener detalle del activo');
-    }
-}
-
 function closeDetailModal() {
-    const detailModal = document.getElementById('detailModal');
-    if (!detailModal) return;
-    detailModal.classList.remove('active');
-    detailModal.style.removeProperty('display');
+    document.getElementById('detailModal')?.classList.remove('active');
+}
+
+function limpiarFormulario() {
+    document.getElementById('assetForm')?.reset();
+    setFormValue('activoId', '');
+    clearFormError();
 }
 
 function obtenerDatosFormulario() {
-    const nombreEl = document.getElementById('inputNombre');
-    const descripcionEl = document.getElementById('inputDescripcion');
-    const categoriaEl = document.getElementById('inputCategoria');
-    const estadoEl = document.getElementById('inputEstado');
-    const ubicacionEl = document.getElementById('inputUbicacion');
-    const asignadoEl = document.getElementById('inputAsignadoA');
-    const fechaAltaEl = document.getElementById('inputFechaAlta');
-
     return {
-        nombre: nombreEl?.value.trim() || '',
-        descripcion: descripcionEl?.value.trim() || null,
-        categoria: categoriaEl?.value || '',
-        estado: estadoEl?.value || '',
-        ubicacion: ubicacionEl?.value.trim() || null,
-        asignado_a: asignadoEl?.value || null,
-        fecha_alta: fechaAltaEl?.value || null
+        nombre: getValue('inputNombre'),
+        descripcion: getValue('inputDescripcion') || null,
+        categoria: getValue('inputCategoria'),
+        estado: getValue('inputEstado'),
+        ubicacion: getValue('inputUbicacion') || null,
+        asignado_a: getValue('inputAsignadoA') || null,
+        fecha_alta: getValue('inputFechaAlta') || null
+    };
+}
+
+function validateAssetPayload(payload) {
+    if (!payload.nombre || payload.nombre.length < 3) {
+        return { ok: false, field: 'inputNombre', message: 'El nombre debe tener al menos 3 caracteres.' };
+    }
+    if (payload.nombre.length > 120) {
+        return { ok: false, field: 'inputNombre', message: 'El nombre no puede superar 120 caracteres.' };
+    }
+    if (!payload.categoria) {
+        return { ok: false, field: 'inputCategoria', message: 'Selecciona una categoria.' };
+    }
+    if (!ALLOWED_STATES.includes(payload.estado)) {
+        return { ok: false, field: 'inputEstado', message: 'Selecciona un estado valido.' };
+    }
+    if (!payload.ubicacion) {
+        return { ok: false, field: 'inputUbicacion', message: 'Selecciona una ubicacion.' };
+    }
+    if (!payload.fecha_alta) {
+        return { ok: false, field: 'inputFechaAlta', message: 'Selecciona la fecha de alta.' };
+    }
+    if (new Date(payload.fecha_alta) > new Date()) {
+        return { ok: false, field: 'inputFechaAlta', message: 'La fecha de alta no puede ser futura.' };
+    }
+    if (payload.descripcion && payload.descripcion.length > 500) {
+        return { ok: false, field: 'inputDescripcion', message: 'Las especificaciones no pueden superar 500 caracteres.' };
+    }
+    return { ok: true };
+}
+
+function showFormError(message, fieldId) {
+    const form = document.getElementById('assetForm');
+    if (!form) return notify(message, 'warning');
+
+    let error = form.querySelector('.form-error-message');
+    if (!error) {
+        error = document.createElement('div');
+        error.className = 'form-error-message';
+        form.prepend(error);
+    }
+    error.textContent = message;
+
+    if (fieldId) {
+        const field = document.getElementById(fieldId);
+        field?.classList.add('field-invalid');
+        field?.focus();
+    }
+}
+
+function clearFormError() {
+    document.querySelector('#assetForm .form-error-message')?.remove();
+    document.querySelectorAll('#assetForm .field-invalid').forEach(field => field.classList.remove('field-invalid'));
+}
+
+function updateSummary() {
+    const total = activosCache.length;
+    const available = activosCache.filter(a => a.estado === 'Disponible').length;
+    const inUse = activosCache.filter(a => a.estado === 'En uso').length;
+    const maintenance = activosCache.filter(a => a.estado === 'Mantenimiento').length;
+    setText('assetSummaryTotal', total);
+    setText('assetSummaryAvailable', available);
+    setText('assetSummaryInUse', inUse);
+    setText('assetSummaryMaintenance', maintenance);
+}
+
+function setTableLoading(isLoading) {
+    const table = getPageRoot()?.querySelector('.table-card');
+    table?.classList.toggle('is-loading', isLoading);
+}
+
+function renderEmptyState(message) {
+    const tbody = getPageRoot()?.querySelector('.data-table tbody');
+    if (tbody) tbody.innerHTML = `<tr><td colspan="9" class="empty-cell">${escapeHtml(message)}</td></tr>`;
+}
+
+function setButtonLoading(button, isLoading) {
+    if (!button) return;
+    button.disabled = isLoading;
+    button.classList.toggle('loading', isLoading);
+}
+
+function setTodayIfEmpty() {
+    const date = document.getElementById('inputFechaAlta');
+    if (date && !date.value) date.valueAsDate = new Date();
+}
+
+function refreshRelatedMovimientos() {
+    if (typeof window.refreshMovimientosTable === 'function') {
+        return window.refreshMovimientosTable();
+    }
+    if (typeof fetchMovimientos === 'function') return fetchMovimientos();
+    return Promise.resolve();
+}
+
+function getValue(id) {
+    return document.getElementById(id)?.value.trim() || '';
+}
+
+function setFormValue(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.value = value || '';
+}
+
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+}
+
+function normalize(value) {
+    return (value || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function mergeUnique(defaults, values) {
+    return Array.from(new Set([...(defaults || []), ...(values || [])].filter(Boolean))).sort();
+}
+
+function formatDate(value) {
+    if (!value) return '-';
+    const date = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return '-';
+    return date.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), wait);
     };
 }
 
 function escapeHtml(text) {
-    if (!text) return text;
-    return text
+    if (text === null || text === undefined) return '';
+    return String(text)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
@@ -564,7 +682,18 @@ function escapeHtml(text) {
         .replace(/'/g, '&#39;');
 }
 
-// Expose globals for inline handlers and event delegation fallback
+function iconEye() {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>`;
+}
+
+function iconEdit() {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/></svg>`;
+}
+
+function iconTrash() {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6" stroke-width="2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/></svg>`;
+}
+
 window.openModal = openModal;
 window.closeModal = closeModal;
 window.closeDetailModal = closeDetailModal;
@@ -573,3 +702,5 @@ window.abrirEditar = abrirEditar;
 window.eliminarActivo = eliminarActivo;
 window.irPagina = irPagina;
 window.cambiarEstadoRapido = cambiarEstadoRapido;
+window.initActivosPage = initActivosPage;
+window.cargarActivos = cargarActivos;

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Historial de Movimientos</title>
+<link rel="stylesheet" href="../css/styles.css">
 <link rel="stylesheet" href="../css/movimientos.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,14 +13,12 @@
 <body>
 
 <main class="main-content movimientos-page">
-
-<!-- HEADER -->
 <div class="page-header">
   <div>
     <h1>Historial de Movimientos</h1>
-    <p>Log global de transacciones del sistema</p>
+    <p>Registro de cambios reales sobre activos, asignaciones y ubicaciones</p>
   </div>
-  <button class="btn-register" onclick="openMovementModal()">
+  <button class="btn-register" type="button" onclick="openMovementModal()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
       <path d="M12 5v14M5 12h14"/>
     </svg>
@@ -27,7 +26,6 @@
   </button>
 </div>
 
-<!-- STATS -->
 <div class="stats-grid">
   <div class="stat-card blue">
     <div class="stat-icon">
@@ -36,7 +34,7 @@
       </svg>
     </div>
     <div>
-      <div class="stat-value">15</div>
+      <div class="stat-value">0</div>
       <div class="stat-label">Movimientos Totales</div>
     </div>
   </div>
@@ -58,7 +56,7 @@
       </svg>
     </div>
     <div>
-      <div class="stat-value">5</div>
+      <div class="stat-value">0</div>
       <div class="stat-label">Asignaciones</div>
     </div>
   </div>
@@ -70,61 +68,40 @@
       </svg>
     </div>
     <div>
-      <div class="stat-value">1</div>
+      <div class="stat-value">0</div>
       <div class="stat-label">Mantenimientos</div>
     </div>
   </div>
 </div>
 
-<!-- FILTERS -->
 <div class="filters-panel">
   <div class="filters-row">
     <div class="filter-group">
       <label>Activo</label>
-      <select class="filter-select">
+      <select class="filter-select" id="movementAssetFilter">
         <option value="">Todos los activos</option>
-        <option>Laptop Dell XPS 13</option>
-        <option>Monitor LG 27"</option>
-        <option>Impresora HP LaserJet Pro</option>
-        <option>iPad Pro 12.9"</option>
       </select>
     </div>
     <div class="filter-group">
       <label>Tipo de Movimiento</label>
-      <select class="filter-select">
+      <select class="filter-select" id="movementTypeFilter">
         <option value="">Todos los tipos</option>
-        <option>Asignación</option>
-        <option>Mantenimiento</option>
-        <option>Devolución</option>
-        <option>Transferencia</option>
-        <option>Alta</option>
-        <option>Baja</option>
       </select>
     </div>
     <div class="filter-group">
       <label>Empleado</label>
-      <select class="filter-select">
+      <select class="filter-select" id="movementEmployeeFilter">
         <option value="">Todos los empleados</option>
-        <option>Juan Pérez</option>
-        <option>María López</option>
-        <option>Carlos Ruiz</option>
-        <option>Ana Torres</option>
       </select>
     </div>
     <div class="filter-group" style="flex:0; min-width:auto;">
       <label>&nbsp;</label>
-      <button class="btn-export">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-        </svg>
-        Exportar
-      </button>
+      <button class="btn-export" type="button" id="clearMovementFilters">Limpiar</button>
     </div>
   </div>
-  <p class="results-count">Mostrando 15 de 15 movimientos</p>
+  <p class="results-count">Mostrando 0 de 0 movimientos</p>
 </div>
 
-<!-- TABLE -->
 <div class="table-wrapper">
   <div class="table-header"><h3>Movimientos Recientes</h3></div>
   <div class="table-scroll">
@@ -134,20 +111,21 @@
           <th>Fecha</th>
           <th>Activo</th>
           <th>Tipo</th>
+          <th>Estado</th>
           <th>Movimiento</th>
           <th>Observaciones</th>
         </tr>
       </thead>
       <tbody>
+        <tr><td colspan="6" style="text-align:center;padding:2rem;opacity:.6;">Cargando movimientos...</td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
-<!-- Modal para registrar nuevo movimiento -->
 <div class="modal" id="movementModal">
   <div class="modal-overlay" onclick="closeMovementModal()"></div>
-  <div class="modal-content" style="max-width: 620px;">
+  <div class="modal-content">
     <div class="modal-header">
       <h2>Registrar Movimiento</h2>
       <button class="modal-close" onclick="closeMovementModal()" aria-label="Cerrar modal">
@@ -162,42 +140,48 @@
           <div class="form-group">
             <label for="movementAsset">Activo</label>
             <select id="movementAsset" required>
-              <option value="">-- Seleccione un activo --</option>
+              <option value="">Seleccione un activo</option>
             </select>
           </div>
           <div class="form-group">
             <label for="movementType">Tipo de Movimiento</label>
             <select id="movementType" required>
-              <option value="">-- Seleccione tipo de movimiento --</option>
+              <option value="">Seleccione tipo de movimiento</option>
             </select>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label for="movementEmployee">Empleado</label>
-            <select id="movementEmployee" required>
-              <option value="">-- Seleccione un empleado --</option>
+            <select id="movementEmployee">
+              <option value="">Sin empleado</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="movementOrigin">Origen</label>
-            <select id="movementOrigin" required>
-              <option value="">-- Seleccione origen --</option>
+            <label for="movementState">Estado final</label>
+            <select id="movementState" required>
+              <option value="">Seleccione estado final</option>
             </select>
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group" style="grid-column: 1 / -1;">
+          <div class="form-group">
+            <label for="movementOrigin">Origen</label>
+            <select id="movementOrigin">
+              <option value="">Sin origen</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label for="movementDestination">Destino</label>
             <select id="movementDestination" required>
-              <option value="">-- Seleccione destino --</option>
+              <option value="">Seleccione destino</option>
             </select>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group" style="grid-column: 1 / -1;">
+        <div class="form-row form-row-full">
+          <div class="form-group">
             <label for="movementNotes">Observaciones / Notas</label>
-            <textarea id="movementNotes" rows="4" placeholder="Describa el motivo o detalles del movimiento..." required></textarea>
+            <textarea id="movementNotes" rows="4" maxlength="500" placeholder="Motivo o detalles del movimiento"></textarea>
           </div>
         </div>
         <div class="modal-actions">

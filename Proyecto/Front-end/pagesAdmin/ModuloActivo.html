@@ -201,7 +201,6 @@
                             <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round" />
                         </svg>
                         <span>Módulo de Activos</span>
-                        <span class="nav-badge">245</span>
                     </a>
                     <a href="consumibles.html" class="nav-item" data-nivel="1">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -212,7 +211,6 @@
                             <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2" />
                         </svg>
                         <span>Consumibles</span>
-                        <span class="nav-badge warning">12</span>
                     </a>
 
                 </div>
@@ -342,8 +340,15 @@
             async function loadTab(tabName) {
                 content.classList.add('loading');
                 content.innerHTML = '';
+                document.querySelectorAll('[data-injected-modal="true"]').forEach(modal => modal.remove());
                 // Limpiar clases de secciones previas
                 content.classList.remove('activos-page', 'movimientos-page', 'asignaciones-page');
+                content.removeAttribute('data-activos-initialized');
+                content.removeAttribute('data-movimientos-initialized');
+                content.removeAttribute('data-asignaciones-initialized');
+                content.removeAttribute('data-asset-filters-bound');
+                content.removeAttribute('data-movement-filters-bound');
+                content.removeAttribute('data-assignment-filters-bound');
                 try {
                     const response = await fetch(fileMap[tabName]);
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -352,10 +357,10 @@
                     const doc = parser.parseFromString(html, 'text/html');
 
                     const mainContent = doc.querySelector('.main-content') || doc.querySelector('main');
-                    const modals = Array.from(doc.querySelectorAll('.modal'))
-                        .map(modal => modal.outerHTML)
-                        .join('');
-                    const fragmentHtml = mainContent ? mainContent.innerHTML + modals : doc.body.innerHTML;
+                    const modals = Array.from(doc.querySelectorAll('.modal'));
+                    const contentClone = mainContent ? mainContent.cloneNode(true) : doc.body.cloneNode(true);
+                    contentClone.querySelectorAll('.modal').forEach(modal => modal.remove());
+                    const fragmentHtml = contentClone.innerHTML;
 
                     // Agregar clase específica según la sección
                     const classMap = {
@@ -370,6 +375,14 @@
 
                     content.classList.remove('loading');
                     content.innerHTML = fragmentHtml;
+                    modals.forEach(modal => {
+                        if (modal.id) {
+                            document.getElementById(modal.id)?.remove();
+                        }
+                        const modalClone = modal.cloneNode(true);
+                        modalClone.dataset.injectedModal = 'true';
+                        document.body.appendChild(modalClone);
+                    });
 
                     // Cargar estilos específicos de la página inyectada (si los tiene)
                     const linkTags = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));
@@ -392,6 +405,12 @@
                         if (src && src.endsWith('/js/app.js')) {
                             return Promise.resolve();
                         }
+                        if (src) {
+                            const loadedScript = document.querySelector(`script[data-dynamic-src="${src}"]`);
+                            if (loadedScript) {
+                                return Promise.resolve();
+                            }
+                        }
 
                         return new Promise((resolve) => {
                             const newScript = document.createElement('script');
@@ -399,6 +418,7 @@
 
                             if (src) {
                                 newScript.src = src;
+                                newScript.dataset.dynamicSrc = src;
                                 newScript.async = false;
                                 newScript.onload = resolve;
                                 newScript.onerror = () => {
@@ -431,6 +451,14 @@
                     if (typeof initApp === 'function') {
                         initApp();
                     }
+
+                    if (tabName === 'catalogo' && typeof initActivosPage === 'function') {
+                        initActivosPage();
+                    }
+
+                    if (tabName === 'resguardos' && typeof initAsignacionesPage === 'function') {
+                        initAsignacionesPage();
+                    }
                 } catch (error) {
                     content.classList.remove('loading');
                     content.innerHTML = `<div style="padding:2rem;text-align:center;color:rgba(255,255,255,0.8);">No se pudo cargar la sección. Intenta de nuevo más tarde.</div>`;
@@ -440,8 +468,15 @@
 
             async function loadPageScript(src) {
                 return new Promise((resolve) => {
+                    const absoluteSrc = new URL(src, window.location.href).href;
+                    const loadedScript = document.querySelector(`script[data-dynamic-src="${absoluteSrc}"]`);
+                    if (loadedScript) {
+                        resolve();
+                        return;
+                    }
                     const script = document.createElement('script');
-                    script.src = src;
+                    script.src = absoluteSrc;
+                    script.dataset.dynamicSrc = absoluteSrc;
                     script.async = false;
                     script.onload = resolve;
                     script.onerror = () => {
