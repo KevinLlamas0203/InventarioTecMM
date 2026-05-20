@@ -2,6 +2,7 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
 from Activos.db_helpers import get_connection, get_or_create_fk_id, get_fk_id, get_user_id
+from Activos.sync_helpers import create_movement_record
 
 update_bp = Blueprint("update_bp", __name__)
 
@@ -85,19 +86,7 @@ def update_activo(activo_id):
             return jsonify({"error": f"Activo con ID {activo_id} no encontrado"}), 404
 
         if fk_tipo_movimiento is not None:
-            movement_columns = ["fk_id_activo", "fk_id_usuario", "fk_id_ubicacion", "fk_id_estado", "fk_id_tipo_movimiento", "fecha_movimiento"]
-            movement_values = [activo_id, fk_usuario, fk_ubicacion, fk_estado, fk_tipo_movimiento, datetime.utcnow()]
-            placeholders = ["%s"] * len(movement_values)
-
-            if observaciones:
-                movement_columns.append("observaciones")
-                movement_values.append(observaciones.strip())
-                placeholders.append("%s")
-
-            cur.execute(
-                f"INSERT INTO movimientos ({', '.join(movement_columns)}) VALUES ({', '.join(placeholders)})",
-                tuple(movement_values)
-            )
+            create_movement_record(cur, activo_id, tipo_movimiento or "Actualización de Activo", estado, ubicacion, fk_usuario, observaciones)
 
         conn.commit()
         cur.close()

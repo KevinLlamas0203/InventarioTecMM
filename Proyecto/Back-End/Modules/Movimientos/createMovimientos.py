@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 import psycopg2
 from datetime import datetime
 from Activos.db_helpers import get_connection, get_or_create_fk_id, get_fk_id, get_user_id
+from Activos.sync_helpers import sync_on_movement_creation
 
 create_bp = Blueprint("create_movimientos_bp", __name__)
 
@@ -152,6 +153,8 @@ def create_movimiento():
                 )
                 nuevo_id = cur.fetchone()[0]
             conn.commit()
+
+        sync_on_movement_creation(conn, activo_id, estado, ubicacion, fk_usuario)
 
         return jsonify({
             "mensaje": "Movimiento creado exitosamente",

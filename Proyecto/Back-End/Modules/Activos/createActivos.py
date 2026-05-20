@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 import psycopg2
 from Activos.db_helpers import get_connection, get_or_create_fk_id, get_user_id
+from Activos.sync_helpers import create_movement_record
 
 create_bp = Blueprint("create_bp", __name__)
 
@@ -54,6 +55,10 @@ def create_activo():
                     fk_usuario,
                 ))
                 nuevo_id = cur.fetchone()[0]
+
+                if fk_usuario:
+                    create_movement_record(cur, nuevo_id, "Creación y Asignación", estado, ubicacion, fk_usuario, f"Activo creado y asignado a empleado")
+
             conn.commit()
 
         return jsonify({

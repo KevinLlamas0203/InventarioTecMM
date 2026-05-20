@@ -14,6 +14,8 @@ def delete_activo(activo_id):
         conn = get_connection()
         cur = conn.cursor()
 
+        cur.execute("DELETE FROM movimientos WHERE fk_id_activo = %s", (activo_id,))
+        cur.execute("DELETE FROM asignaciones WHERE fk_id_activo = %s", (activo_id,))
         cur.execute("DELETE FROM activos WHERE id_activo = %s", (activo_id,))
 
         if cur.rowcount == 0:
@@ -25,7 +27,7 @@ def delete_activo(activo_id):
         conn.commit()
         cur.close()
         conn.close()
-        return jsonify({"mensaje": f"Activo {activo_id} eliminado exitosamente"}), 200
+        return jsonify({"mensaje": f"Activo {activo_id} eliminado exitosamente junto con sus movimientos y asignaciones"}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

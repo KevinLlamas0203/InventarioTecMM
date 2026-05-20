@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
 from Activos.db_helpers import get_connection, get_or_create_fk_id, get_fk_id
+from Activos.sync_helpers import create_movement_record, sync_on_assignment_closure
 
 asignaciones_bp = Blueprint("asignaciones_bp", __name__)
 
@@ -337,6 +338,9 @@ def create_asignacion():
                     "UPDATE activos SET fk_id_usuario = %s, fk_id_ubicacion = %s, fk_id_estado = %s WHERE id_activo = %s",
                     (usuario_id, fk_ubicacion, fk_estado, activo_id)
                 )
+
+                create_movement_record(cur, activo_id, tipo_asignacion or "Asignación", estado, ubicacion, usuario_id)
+
             conn.commit()
 
         return jsonify({"message": "Asignación creada exitosamente", "id_asignacion": new_id}), 201
@@ -387,6 +391,14 @@ def update_asignacion(assignment_id):
                 )
                 if cur.rowcount == 0:
                     return jsonify({"error": "Asignación no encontrada"}), 404
+
+                if estado:
+                    cur.execute("SELECT fk_id_activo FROM asignaciones WHERE id_asignacion = %s", (assignment_id,))
+                    result = cur.fetchone()
+                    if result:
+                        activo_id = result[0]
+                        create_movement_record(cur, activo_id, "Cambio de Estado de Asignación", estado, None, None, f"Asignación actualizada a estado: {estado}")
+
             conn.commit()
 
         return jsonify({"message": "Asignación actualizada correctamente"}), 200
