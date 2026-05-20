@@ -7,47 +7,56 @@ import os
 
 load_dotenv()
 
+# ── Paths ─────────────────────────────────────────────────────────────────────
 base_dir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(base_dir, '.env'))
 
-# ── Módulo Activos ────────────────────────────────────────────────────────────
+# Agregar la carpeta Modules al path para encontrar los blueprints
+sys.path.append(os.path.join(base_dir, "Modules"))
 sys.path.append(os.path.join(base_dir, "Modules", "Activos"))
+sys.path.append(os.path.join(base_dir, "Modules", "Consumibles"))
 
+from Activos.createActivos import create_bp
+from Activos.readActivos   import read_bp
+from Activos.updateActivos import update_bp
+from Activos.deleteActivos import delete_bp
+from Movimientos.createMovimientos import create_bp as create_movimientos_bp
+from Movimientos.readMovimientos import read_bp as read_movimientos_bp
+from Asignaciones.asignaciones import asignaciones_bp
+# ── Imports de blueprints ─────────────────────────────────────────────────────
 from createActivos import create_bp
 from readActivos   import read_bp
 from updateActivos import update_bp
 from deleteActivos import delete_bp
 
-# ── Módulo Usuarios ───────────────────────────────────────────────────────────
-sys.path.append(os.path.join(base_dir, "Modules", "Usuarios"))
+from createConsumibles import create_consumible_bp
+from readConsumibles   import read_consumible_bp
+from updateConsumibles import update_consumible_bp
+from deleteConsumibles import delete_consumible_bp
 
-from createUsuario import create_usr_bp
-from readUsuario   import read_usr_bp
-from updateUsuario import update_usr_bp
-from deleteUsuario import delete_usr_bp
-
+# ── App ───────────────────────────────────────────────────────────────────────
 app = Flask(__name__)
 CORS(app)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-
-# ── Conexión a DB ─────────────────────────────────────────────────────────────
-def get_db_connection():
-    return psycopg2.connect(DATABASE_URL)
-
-
-# ── Blueprints: Activos ───────────────────────────────────────────────────────
+# ── Registrar blueprints ──────────────────────────────────────────────────────
 app.register_blueprint(create_bp)
 app.register_blueprint(read_bp)
 app.register_blueprint(update_bp)
 app.register_blueprint(delete_bp)
+app.register_blueprint(create_movimientos_bp)
+app.register_blueprint(read_movimientos_bp)
+app.register_blueprint(asignaciones_bp)
 
-# ── Blueprints: Usuarios ──────────────────────────────────────────────────────
-app.register_blueprint(create_usr_bp)
-app.register_blueprint(read_usr_bp)
-app.register_blueprint(update_usr_bp)
-app.register_blueprint(delete_usr_bp)
+app.register_blueprint(create_consumible_bp)
+app.register_blueprint(read_consumible_bp)
+app.register_blueprint(update_consumible_bp)
+app.register_blueprint(delete_consumible_bp)
 
+# ── Conexión a DB ─────────────────────────────────────────────────────────────
+def get_db_connection():
+    return psycopg2.connect(DATABASE_URL)
 
 # ── LOGIN ─────────────────────────────────────────────────────────────────────
 @app.route('/api/login', methods=['POST'])
@@ -66,7 +75,6 @@ def login():
     try:
         conn = get_db_connection()
         cur  = conn.cursor()
-
         cur.execute(
             """
             SELECT u.id_usuario, u.nombre, c.email, u.nivel_acceso
@@ -77,7 +85,6 @@ def login():
             (email, password)
         )
         user = cur.fetchone()
-
         cur.close()
         conn.close()
 
@@ -89,8 +96,8 @@ def login():
                 'usuario': {
                     'id':     user_id,
                     'nombre': nombre,
-                    'email':  correo,
-                    'nivel':  nivel_acceso
+                    'email': correo,
+                    'nivel': nivel_acceso
                 }
             })
         else:
