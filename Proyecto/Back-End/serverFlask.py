@@ -26,6 +26,9 @@ from Consumibles.deleteConsumibles import delete_consumible_bp
 from Reportes.createReporte import create_reporte_bp
 from Reportes.readReporte import read_reporte_bp
 
+from Historial.createHistorial import create_historial_bp
+from Historial.readHistorial import read_historial_bp
+
 # ── App ───────────────────────────────────────────────────────────────────────
 app = Flask(__name__)
 CORS(app)
@@ -46,9 +49,10 @@ app.register_blueprint(update_consumible_bp)
 app.register_blueprint(delete_consumible_bp)
 
 app.register_blueprint(create_reporte_bp)
-
 app.register_blueprint(read_reporte_bp)
 
+app.register_blueprint(create_historial_bp)
+app.register_blueprint(read_historial_bp)
 
 # ── Conexión a DB ─────────────────────────────────────────────────────────────
 def get_db_connection():
