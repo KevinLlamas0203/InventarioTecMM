@@ -9,9 +9,20 @@ load_dotenv()
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 base_dir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(base_dir, '.env'))
+
+# Agregar la carpeta Modules al path para encontrar los blueprints
+sys.path.append(os.path.join(base_dir, "Modules"))
 sys.path.append(os.path.join(base_dir, "Modules", "Activos"))
 sys.path.append(os.path.join(base_dir, "Modules", "Consumibles"))
 
+from Activos.createActivos import create_bp
+from Activos.readActivos   import read_bp
+from Activos.updateActivos import update_bp
+from Activos.deleteActivos import delete_bp
+from Movimientos.createMovimientos import create_bp as create_movimientos_bp
+from Movimientos.readMovimientos import read_bp as read_movimientos_bp
+from Asignaciones.asignaciones import asignaciones_bp
 # ── Imports de blueprints ─────────────────────────────────────────────────────
 from createActivos import create_bp
 from readActivos   import read_bp
@@ -34,6 +45,9 @@ app.register_blueprint(create_bp)
 app.register_blueprint(read_bp)
 app.register_blueprint(update_bp)
 app.register_blueprint(delete_bp)
+app.register_blueprint(create_movimientos_bp)
+app.register_blueprint(read_movimientos_bp)
+app.register_blueprint(asignaciones_bp)
 
 app.register_blueprint(create_consumible_bp)
 app.register_blueprint(read_consumible_bp)
