@@ -365,7 +365,7 @@ async function handleAssignmentForm(event) {
         notify('Asignación creada correctamente', 'success');
     } catch (error) {
         console.error('Error guardando asignación:', error);
-        notify(error.message || 'Error al crear la asignación', 'warning');
+        notify(error.message || 'Error al crear la asignación', 'error');
     } finally {
         if (submitButton) submitButton.disabled = false;
     }
@@ -458,7 +458,7 @@ async function viewAssignment(id) {
         openViewModal();
     } catch (error) {
         console.error('Error cargando detalles de asignación:', error);
-        notify(error.message || 'Error al mostrar detalles', 'warning');
+        notify(error.message || 'Error al mostrar detalles', 'error');
     }
 }
 
@@ -530,7 +530,7 @@ async function handleExtendForm(event) {
         notify('Plazo extendido correctamente', 'success');
     } catch (error) {
         console.error('Error extendiendo asignación:', error);
-        notify(error.message || 'Error al extender asignación', 'warning');
+        notify(error.message || 'Error al extender asignación', 'error');
     } finally {
         if (submitButton) submitButton.disabled = false;
     }
@@ -555,7 +555,7 @@ async function finishAssignment(id) {
         notify('Asignación finalizada correctamente', 'success');
     } catch (error) {
         console.error('Error finalizando asignación:', error);
-        notify(error.message || 'Error al finalizar asignación', 'warning');
+        notify(error.message || 'Error al finalizar asignación', 'error');
     }
 }
 

@@ -189,16 +189,29 @@ function applyFilters() {
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    toast.textContent = message;
+    
+    // Add icon based on type
+    const icons = {
+        'info': 'ℹ️',
+        'success': '✓',
+        'warning': '⚠️',
+        'error': '✕'
+    };
+    
+    const icon = icons[type] || icons.info;
+    toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
     
     document.body.appendChild(toast);
+    
+    // Determine duration based on type (longer for errors)
+    const duration = (type === 'error' || type === 'warning') ? 5000 : 3000;
     
     setTimeout(() => toast.classList.add('show'), 100);
     
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    }, duration);
 }
 
 // Export data function
