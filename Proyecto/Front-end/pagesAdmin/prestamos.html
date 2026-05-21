@@ -1,9 +1,833 @@
-<html>
+<!DOCTYPE html>
+<html lang="es">
 <head>
-    <title>Prestamos</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Préstamos - Sistema de Inventario</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../images/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../images/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../images/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="../../images/favicon_io/site.webmanifest">
+    <link rel="shortcut icon" href="../../images/favicon_io/favicon.ico">
+    <style>
+        /* ── Layout helpers ───────────────────────────────────────────────── */
+        .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--spacing-lg);margin-bottom:var(--spacing-xl)}
+
+        /* ── Filtros ──────────────────────────────────────────────────────── */
+        .filter-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:var(--spacing-lg)}
+        .filter-bar select,.filter-bar input{padding:8px 12px;background:var(--color-surface-raised);border:1px solid var(--color-border);border-radius:var(--radius-sm);color:var(--color-text);font-family:var(--font-body);font-size:.88rem;cursor:pointer}
+        .filter-bar select:focus,.filter-bar input:focus{outline:none;border-color:var(--color-primary)}
+        .filter-bar input{min-width:220px}
+
+        /* ── Estado badges ────────────────────────────────────────────────── */
+        .badge-pendiente {background:rgba(255,212,59,.15); color:#ffd43b}
+        .badge-activo    {background:rgba(51,154,240,.15);  color:#339af0}
+        .badge-devuelto  {background:rgba(81,207,102,.15);  color:#51cf66}
+        .badge-cancelado {background:rgba(134,142,150,.15); color:#868e96}
+        .badge-vencido   {background:rgba(255,107,107,.15); color:#ff6b6b}
+
+        /* ── Tipo badges ──────────────────────────────────────────────────── */
+        .badge-activo-tipo{background:rgba(51,154,240,.15);color:#339af0}
+        .badge-consumible {background:rgba(155,89,182,.15); color:#be85e8}
+
+        /* ── Botones de acción ────────────────────────────────────────────── */
+        .btn-loading{opacity:.7;pointer-events:none}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:middle}
+
+        /* ── Modal ────────────────────────────────────────────────────────── */
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9000;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .22s ease;pointer-events:none}
+        .modal-overlay.show{opacity:1;pointer-events:all}
+        .modal-panel{background:var(--color-surface,#1a1a2e);border:1px solid var(--color-border,#2e2e45);border-radius:16px;width:min(96vw,680px);max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.6);transform:translateY(16px) scale(.97);transition:transform .22s ease}
+        .modal-overlay.show .modal-panel{transform:translateY(0) scale(1)}
+        .modal-header{display:flex;align-items:center;justify-content:space-between;padding:22px 28px 0}
+        .modal-header h2{font-size:1.15rem;font-weight:700;color:var(--color-text,#fff)}
+        .modal-close{background:none;border:none;color:var(--color-text-secondary,#aaa);cursor:pointer;font-size:1.4rem;line-height:1;padding:4px 8px;border-radius:6px;transition:background .15s}
+        .modal-close:hover{background:var(--color-surface-raised,#252540)}
+        .modal-body{padding:20px 28px 28px}
+
+        /* ── Formulario ───────────────────────────────────────────────────── */
+        .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+        .form-grid .full{grid-column:1/-1}
+        .form-group{display:flex;flex-direction:column;gap:6px}
+        .form-group label{font-size:.82rem;color:var(--color-text-secondary,#aaa);font-weight:500}
+        .form-group input,.form-group select,.form-group textarea{padding:9px 12px;background:var(--color-surface-raised,#252540);border:1px solid var(--color-border,#333);border-radius:8px;color:var(--color-text,#fff);font-family:var(--font-body);font-size:.9rem;transition:border-color .18s}
+        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--color-primary,#6c63ff)}
+        .form-group textarea{resize:vertical;min-height:72px}
+        .form-section-title{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-secondary,#aaa);margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--color-border,#333)}
+
+        /* ── Items del préstamo ───────────────────────────────────────────── */
+        .items-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+        .item-row{display:grid;grid-template-columns:1fr auto 90px 36px;gap:8px;align-items:center}
+        .item-row select,.item-row input{padding:7px 10px;background:var(--color-surface-raised,#252540);border:1px solid var(--color-border,#333);border-radius:7px;color:var(--color-text,#fff);font-family:var(--font-body);font-size:.85rem}
+        .item-row input[type=number]{width:100%;text-align:center}
+        .item-row .btn-remove{background:rgba(255,107,107,.12);border:none;border-radius:7px;color:#ff6b6b;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;transition:background .15s}
+        .item-row .btn-remove:hover{background:rgba(255,107,107,.25)}
+        .btn-add-item{display:inline-flex;align-items:center;gap:6px;background:none;border:1px dashed var(--color-border,#444);border-radius:8px;color:var(--color-text-secondary,#aaa);cursor:pointer;font-size:.85rem;padding:7px 14px;transition:all .18s;font-family:inherit}
+        .btn-add-item:hover{border-color:var(--color-primary,#6c63ff);color:var(--color-primary,#6c63ff)}
+
+        /* ── Acciones modal ───────────────────────────────────────────────── */
+        .modal-footer{display:flex;gap:12px;justify-content:flex-end;padding-top:20px;border-top:1px solid var(--color-border,#333);margin-top:20px}
+
+        /* ── Detail modal ─────────────────────────────────────────────────── */
+        .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+        .detail-field label{font-size:.75rem;color:var(--color-text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px}
+        .detail-field span{font-size:.92rem;color:var(--color-text,#fff)}
+        .detail-items-table{width:100%;border-collapse:collapse;font-size:.88rem}
+        .detail-items-table th{text-align:left;color:var(--color-text-secondary);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;padding:6px 8px;border-bottom:1px solid var(--color-border)}
+        .detail-items-table td{padding:8px 8px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--color-text)}
+
+        /* ── Timeline de estado ───────────────────────────────────────────── */
+        .status-timeline{display:flex;align-items:center;gap:0;margin:16px 0}
+        .st-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+        .st-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--color-border,#333);background:var(--color-surface-raised,#252540);display:flex;align-items:center;justify-content:center;font-size:.7rem;z-index:1;position:relative;transition:all .2s}
+        .st-dot.done{background:var(--color-success,#51cf66);border-color:var(--color-success,#51cf66);color:#fff}
+        .st-dot.active{background:var(--color-info,#339af0);border-color:var(--color-info,#339af0);color:#fff}
+        .st-dot.danger{background:var(--color-danger,#ff6b6b);border-color:var(--color-danger,#ff6b6b);color:#fff}
+        .st-label{font-size:.72rem;color:var(--color-text-secondary);text-align:center}
+        .st-line{flex:1;height:2px;background:var(--color-border,#333);margin-top:-14px}
+        .st-line.done{background:var(--color-success,#51cf66)}
+
+        /* ── Toast notificación ───────────────────────────────────────────── */
+        .toast-stack{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:9999;pointer-events:none}
+        .toast-notif{background:var(--color-surface,#1e1e2e);border:1px solid var(--color-border,#333);border-radius:10px;padding:13px 16px;max-width:310px;box-shadow:0 6px 24px rgba(0,0,0,.4);opacity:0;transform:translateX(20px);transition:opacity .25s,transform .25s;pointer-events:auto;display:flex;align-items:flex-start;gap:10px}
+        .toast-notif.show{opacity:1;transform:translateX(0)}
+        .tn-bar{width:3px;border-radius:3px;align-self:stretch;flex-shrink:0}
+        .tn-icon{font-size:1.2rem;flex-shrink:0}
+        .tn-body{flex:1;min-width:0}
+        .tn-title{font-size:.88rem;font-weight:700;color:var(--color-text,#fff);display:block;margin-bottom:1px}
+        .tn-line{font-size:.78rem;color:var(--color-text-secondary,#aaa);display:block}
+
+        /* ── Confirm modal ────────────────────────────────────────────────── */
+        .confirm-box{background:var(--color-surface,#1e1e2e);border:1px solid var(--color-border,#333);border-radius:14px;padding:28px 30px;max-width:min(90vw,380px);width:100%;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.5);transform:scale(.92);transition:transform .2s}
+        .modal-overlay.show .confirm-box{transform:scale(1)}
+        .confirm-icon{font-size:2.2rem;display:block;margin-bottom:10px}
+        .confirm-title{font-size:1rem;font-weight:700;color:var(--color-text,#fff);margin-bottom:6px}
+        .confirm-desc{font-size:.85rem;color:var(--color-text-secondary,#aaa);line-height:1.5;margin-bottom:22px}
+        .confirm-actions{display:flex;gap:10px;justify-content:center}
+        .btn-confirm{padding:8px 22px;border-radius:8px;border:none;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s}
+        .btn-confirm:hover{opacity:.85}
+        .btn-confirm.danger{background:var(--color-danger,#ff6b6b);color:#fff}
+        .btn-confirm.success{background:var(--color-success,#51cf66);color:#111}
+        .btn-confirm.info{background:var(--color-info,#339af0);color:#fff}
+        .btn-cancel-c{padding:8px 22px;border-radius:8px;border:1px solid var(--color-border,#444);background:transparent;color:var(--color-text,#fff);font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit}
+
+        /* ── Tabla vacía ──────────────────────────────────────────────────── */
+        .empty-state{text-align:center;padding:3rem 1rem;color:var(--color-text-secondary)}
+        .empty-state svg{width:48px;height:48px;opacity:.3;margin-bottom:12px}
+        .empty-state p{font-size:.95rem}
+    </style>
 </head>
-<body>
-    <h1>Gestión de Préstamos</h1>
-    <p>Bienvenido a la página de gestión de préstamos.</p>
+<body class="dashboard-page">
+<div class="dashboard-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="5" y="5" width="30" height="30" rx="6" fill="currentColor" opacity="0.2"/>
+                    <path d="M13 16h14M13 20h14M13 24h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="28" cy="24" r="2" fill="currentColor"/>
+                </svg>
+                <span class="brand-name">Sistema de Inventario</span>
+            </div>
+            <button class="sidebar-toggle" aria-label="Toggle sidebar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12h18M3 6h18M3 18h18" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <span class="nav-section-title">Principal</span>
+                <a href="dashboard_admin.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" stroke-width="2" rx="1"/><rect x="14" y="3" width="7" height="7" stroke-width="2" rx="1"/><rect x="14" y="14" width="7" height="7" stroke-width="2" rx="1"/><rect x="3" y="14" width="7" height="7" stroke-width="2" rx="1"/></svg>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-section-title">Gestión</span>
+                <a href="ModuloActivo.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/><path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/></svg>
+                    <span>Módulo de Activos</span><span class="nav-badge">245</span>
+                </a>
+                <a href="consumibles.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/><polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2"/><line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/></svg>
+                    <span>Consumibles</span><span class="nav-badge warning">12</span>
+                </a>
+                <a href="prestamos.html" class="nav-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" stroke-width="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" stroke-width="2"/></svg>
+                    <span>Préstamos</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-section-title">Reportes</span>
+                <a href="reportes.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/><polyline points="14 2 14 8 20 8" stroke-width="2"/></svg>
+                    <span>Reportes</span>
+                </a>
+                <a href="auditoria.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/><polyline points="12 6 12 12 16 14" stroke-width="2"/></svg>
+                    <span>Historial</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-section-title">Configuración</span>
+                <a href="usuarios.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/></svg>
+                    <span>Usuarios</span>
+                </a>
+                <a href="ajustes.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <span>Ajustes</span>
+                </a>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">AD</div>
+                <div class="user-info">
+                    <span class="user-name">Admin ISC</span>
+                    <span class="user-role">Administrador</span>
+                </div>
+            </div>
+            <button class="btn-icon logout-btn" aria-label="Cerrar sesión">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+        <header class="content-header">
+            <div class="header-left">
+                <h1 class="page-title">Módulo de Préstamos</h1>
+                <p class="page-subtitle">Gestiona préstamos de activos y consumibles por laboratorio</p>
+            </div>
+            <div class="header-right">
+                <button class="btn-primary" onclick="abrirModalNuevo()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19" stroke-width="2"/><line x1="5" y1="12" x2="19" y2="12" stroke-width="2"/></svg>
+                    <span>Nuevo Préstamo</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card primary">
+                <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="14" rx="2" stroke-width="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" stroke-width="2"/></svg></div>
+                <div class="stat-content"><span class="stat-label">Total préstamos</span><span class="stat-value" id="st-total">0</span></div>
+                <span class="stat-change">Registrados</span>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/><polyline points="12 6 12 12 16 14" stroke-width="2"/></svg></div>
+                <div class="stat-content"><span class="stat-label">Pendientes</span><span class="stat-value" id="st-pendiente">0</span></div>
+                <span class="stat-change">Por entregar</span>
+            </div>
+            <div class="stat-card primary" style="--stat-color:var(--color-info,#339af0)">
+                <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 11 12 14 22 4" stroke-width="2"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke-width="2"/></svg></div>
+                <div class="stat-content"><span class="stat-label">Activos</span><span class="stat-value" id="st-activo">0</span></div>
+                <span class="stat-change">En uso ahora</span>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke-width="2"/><polyline points="22 4 12 14.01 9 11.01" stroke-width="2"/></svg></div>
+                <div class="stat-content"><span class="stat-label">Devueltos</span><span class="stat-value" id="st-devuelto">0</span></div>
+                <span class="stat-change">Completados</span>
+            </div>
+            <div class="stat-card danger" style="--stat-color:var(--color-danger,#ff6b6b)">
+                <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/><line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round"/></svg></div>
+                <div class="stat-content"><span class="stat-label">Vencidos</span><span class="stat-value" id="st-vencido">0</span></div>
+                <span class="stat-change negative">Requieren atención</span>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filter-bar">
+            <input type="text" id="buscar" placeholder="🔍  Buscar por alumno, docente o folio…" oninput="renderTabla()">
+            <select id="filtroEstado" onchange="renderTabla()">
+                <option value="">Todos los estados</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="Activo">Activo</option>
+                <option value="Devuelto">Devuelto</option>
+                <option value="Cancelado">Cancelado</option>
+                <option value="Vencido">Vencido</option>
+            </select>
+            <select id="filtroLab" onchange="renderTabla()">
+                <option value="">Todos los laboratorios</option>
+                <option value="Lab Cómputo A">Lab. Cómputo Edificio A</option>
+                <option value="Lab Cómputo B">Lab. Cómputo Edificio B</option>
+                <option value="Lab Sistemas">Lab. de Sistemas</option>
+                <option value="Lab Alimentos">Lab. de Alimentos</option>
+            </select>
+        </div>
+
+        <!-- Tabla -->
+        <div class="card table-card">
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Folio</th>
+                            <th>Solicitante / Alumnos</th>
+                            <th>Docente</th>
+                            <th>Laboratorio</th>
+                            <th>Período</th>
+                            <th>Artículos</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaBody"></tbody>
+                </table>
+            </div>
+            <div class="table-footer">
+                <div class="table-info">Mostrando <strong id="count-showing">0</strong> de <strong id="count-total">0</strong> préstamos</div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL NUEVO / EDITAR PRÉSTAMO
+══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalForm">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h2 id="modalFormTitle">Nuevo Préstamo</h2>
+            <button class="modal-close" onclick="cerrarModalForm()">✕</button>
+        </div>
+        <div class="modal-body">
+
+            <!-- Sección: Solicitante -->
+            <p class="form-section-title">Datos del solicitante</p>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nombre del solicitante *</label>
+                    <input type="text" id="f-solicitante" placeholder="Ej: Juan Pérez García">
+                </div>
+                <div class="form-group">
+                    <label>Número de alumnos *</label>
+                    <input type="number" id="f-alumnos" min="1" max="500" placeholder="Ej: 25">
+                </div>
+                <div class="form-group full">
+                    <label>Docente a cargo *</label>
+                    <input type="text" id="f-docente" placeholder="Ej: Dr. Martínez López">
+                </div>
+            </div>
+
+            <!-- Sección: Laboratorio y tiempo -->
+            <p class="form-section-title">Laboratorio y período</p>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Laboratorio *</label>
+                    <select id="f-lab">
+                        <option value="">— Seleccionar laboratorio —</option>
+                        <option value="Lab Cómputo A">Lab. de Cómputo Edificio A</option>
+                        <option value="Lab Cómputo B">Lab. de Cómputo Edificio B</option>
+                        <option value="Lab Sistemas">Lab. de Sistemas</option>
+                        <option value="Lab Alimentos">Lab. de Alimentos</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fecha y hora de inicio *</label>
+                    <input type="datetime-local" id="f-inicio">
+                </div>
+                <div class="form-group">
+                    <label>Fecha y hora de devolución *</label>
+                    <input type="datetime-local" id="f-fin">
+                </div>
+            </div>
+
+            <!-- Sección: Artículos -->
+            <p class="form-section-title">Artículos a prestar</p>
+            <div class="items-list" id="itemsList"></div>
+            <button class="btn-add-item" onclick="agregarItemRow()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19" stroke-width="2"/><line x1="5" y1="12" x2="19" y2="12" stroke-width="2"/></svg>
+                Agregar artículo
+            </button>
+
+            <!-- Sección: Observaciones -->
+            <p class="form-section-title">Observaciones</p>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Notas adicionales</label>
+                    <textarea id="f-notas" placeholder="Condiciones especiales, acuerdos, etc."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="cerrarModalForm()">Cancelar</button>
+                <button class="btn-primary" id="btnGuardar" onclick="guardarPrestamo()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke-width="2"/><polyline points="17 21 17 13 7 13 7 21" stroke-width="2"/><polyline points="7 3 7 8 15 8" stroke-width="2"/></svg>
+                    Guardar préstamo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL DETALLE
+══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalDetalle">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h2>Detalle del Préstamo</h2>
+            <button class="modal-close" onclick="cerrarModalDetalle()">✕</button>
+        </div>
+        <div class="modal-body" id="detalleBody"></div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL CONFIRMACIÓN
+══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalConfirm">
+    <div class="confirm-box">
+        <span class="confirm-icon" id="ci-icon">❓</span>
+        <p class="confirm-title" id="ci-title"></p>
+        <p class="confirm-desc"  id="ci-desc"></p>
+        <div class="confirm-actions">
+            <button class="btn-cancel-c" onclick="cerrarConfirm()">Cancelar</button>
+            <button class="btn-confirm danger" id="ci-btn" onclick="ejecutarConfirm()">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast stack -->
+<div class="toast-stack" id="toastStack"></div>
+
+<script src="../js/app.js"></script>
+<script src="../js/theme-toggle.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  Datos demo + localStorage
+// ═══════════════════════════════════════════════════════════
+const LS_KEY = 'prestamos_v2';
+
+const DEMO = [
+    {
+        id:'P-001', solicitante:'Laura Ramírez Torres', alumnos:28, docente:'Dr. Héctor Morales',
+        lab:'Lab Cómputo A', inicio:'2026-05-15T08:00', fin:'2026-05-15T10:00',
+        items:[{tipo:'Activo',nombre:'Laptop Dell Inspiron',cantidad:28},{tipo:'Consumible',nombre:'USB 32 GB',cantidad:28}],
+        notas:'Práctica de redes.', estado:'Devuelto', folio:'P-001'
+    },
+    {
+        id:'P-002', solicitante:'Carlos Mendoza Ríos', alumnos:20, docente:'Mtra. Sofía Luna',
+        lab:'Lab Sistemas', inicio:'2026-05-20T10:00', fin:'2026-05-20T12:00',
+        items:[{tipo:'Activo',nombre:'Proyector Epson',cantidad:1},{tipo:'Consumible',nombre:'Papel bond A4',cantidad:100}],
+        notas:'Exposición final.', estado:'Activo', folio:'P-002'
+    },
+    {
+        id:'P-003', solicitante:'Grupo ISC-5A', alumnos:35, docente:'Ing. Roberto Díaz',
+        lab:'Lab Alimentos', inicio:'2026-05-21T14:00', fin:'2026-05-21T18:00',
+        items:[{tipo:'Consumible',nombre:'Guantes de látex',cantidad:70},{tipo:'Consumible',nombre:'Cofia',cantidad:35}],
+        notas:'', estado:'Pendiente', folio:'P-003'
+    },
+    {
+        id:'P-004', solicitante:'María Castillo López', alumnos:15, docente:'Dr. Juan Pérez',
+        lab:'Lab Cómputo B', inicio:'2026-05-10T09:00', fin:'2026-05-10T11:00',
+        items:[{tipo:'Activo',nombre:'Monitor 24"',cantidad:15}],
+        notas:'Examen parcial.', estado:'Vencido', folio:'P-004'
+    }
+];
+
+function cargarDatos() {
+    try {
+        const d = localStorage.getItem(LS_KEY);
+        return d ? JSON.parse(d) : [...DEMO];
+    } catch(e) { return [...DEMO]; }
+}
+function guardarDatos(lista) {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(lista)); } catch(e) {}
+}
+let prestamos = cargarDatos();
+
+// ═══════════════════════════════════════════════════════════
+//  Utilidades
+// ═══════════════════════════════════════════════════════════
+const statusClass = { Pendiente:'badge-pendiente', Activo:'badge-activo', Devuelto:'badge-devuelto', Cancelado:'badge-cancelado', Vencido:'badge-vencido' };
+const statusIcon  = { Pendiente:'⏳', Activo:'🔵', Devuelto:'✅', Cancelado:'⛔', Vencido:'⚠️' };
+
+function fmtDT(dt) {
+    if (!dt) return '—';
+    const d = new Date(dt);
+    return d.toLocaleString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function duracion(ini, fin) {
+    if (!ini||!fin) return '—';
+    const ms = new Date(fin)-new Date(ini);
+    if (ms<=0) return '—';
+    const h = Math.floor(ms/3600000), m = Math.floor((ms%3600000)/60000);
+    return h>0 ? `${h}h${m>0?' '+m+'min':''}` : `${m} min`;
+}
+function genFolio() {
+    const n = prestamos.length + 1;
+    return 'P-' + String(n).padStart(3,'0');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Stats
+// ═══════════════════════════════════════════════════════════
+function actualizarStats() {
+    const cnt = s => prestamos.filter(p=>p.estado===s).length;
+    document.getElementById('st-total').textContent     = prestamos.length;
+    document.getElementById('st-pendiente').textContent = cnt('Pendiente');
+    document.getElementById('st-activo').textContent    = cnt('Activo');
+    document.getElementById('st-devuelto').textContent  = cnt('Devuelto');
+    document.getElementById('st-vencido').textContent   = cnt('Vencido');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Render tabla
+// ═══════════════════════════════════════════════════════════
+function renderTabla() {
+    const buscar = document.getElementById('buscar').value.toLowerCase();
+    const fEst   = document.getElementById('filtroEstado').value;
+    const fLab   = document.getElementById('filtroLab').value;
+
+    const filtrados = prestamos.filter(p => {
+        const txt = (p.solicitante+p.docente+p.folio).toLowerCase();
+        return (!buscar || txt.includes(buscar))
+            && (!fEst || p.estado === fEst)
+            && (!fLab || p.lab === fLab);
+    });
+
+    const tbody = document.getElementById('tablaBody');
+    tbody.innerHTML = '';
+
+    if (!filtrados.length) {
+        tbody.innerHTML = `<tr><td colspan="8">
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="14" rx="2" stroke-width="1.5"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" stroke-width="1.5"/></svg>
+                <p>No se encontraron préstamos</p>
+            </div></td></tr>`;
+        document.getElementById('count-showing').textContent = '0';
+        document.getElementById('count-total').textContent   = prestamos.length;
+        return;
+    }
+
+    filtrados.forEach(p => {
+        const sc  = statusClass[p.estado] || '';
+        const dur = duracion(p.inicio, p.fin);
+        const artResumen = p.items.map(i=>`${i.nombre} (${i.cantidad})`).join(', ');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong style="font-size:.82rem;letter-spacing:.04em">${p.folio}</strong></td>
+            <td>
+                <div class="asset-info">
+                    <span class="asset-name">${p.solicitante}</span>
+                    <span class="asset-specs">👥 ${p.alumnos} alumnos</span>
+                </div>
+            </td>
+            <td><span style="font-size:.88rem">${p.docente}</span></td>
+            <td><span style="font-size:.85rem">${p.lab}</span></td>
+            <td>
+                <div class="asset-info">
+                    <span class="asset-name" style="font-size:.82rem">${fmtDT(p.inicio)}</span>
+                    <span class="asset-specs">⏱ ${dur}</span>
+                </div>
+            </td>
+            <td><span style="font-size:.82rem;color:var(--color-text-secondary)">${artResumen.length>40?artResumen.slice(0,40)+'…':artResumen}</span></td>
+            <td><span class="badge ${sc}">${statusIcon[p.estado]||''} ${p.estado}</span></td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn-action" title="Ver detalle" onclick="verDetalle('${p.id}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+                    </button>
+                    ${p.estado==='Pendiente'?`
+                    <button class="btn-action" title="Marcar como Activo" onclick="cambiarEstado('${p.id}','Activo')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 11 12 14 22 4" stroke-width="2"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke-width="2"/></svg>
+                    </button>`:''}
+                    ${p.estado==='Activo'?`
+                    <button class="btn-action" title="Marcar como Devuelto" onclick="cambiarEstado('${p.id}','Devuelto')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke-width="2"/><polyline points="16 17 21 12 16 7" stroke-width="2"/><line x1="21" y1="12" x2="9" y2="12" stroke-width="2"/></svg>
+                    </button>`:''}
+                    ${(p.estado==='Pendiente'||p.estado==='Activo')?`
+                    <button class="btn-action" title="Cancelar" onclick="pedirCancelar('${p.id}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/><line x1="15" y1="9" x2="9" y2="15" stroke-width="2"/><line x1="9" y1="9" x2="15" y2="15" stroke-width="2"/></svg>
+                    </button>`:''}
+                    <button class="btn-action" title="Eliminar" onclick="pedirEliminar('${p.id}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6" stroke-width="2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/></svg>
+                    </button>
+                </div>
+            </td>`;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('count-showing').textContent = filtrados.length;
+    document.getElementById('count-total').textContent   = prestamos.length;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Modal nuevo / editar
+// ═══════════════════════════════════════════════════════════
+let editandoId = null;
+
+function abrirModalNuevo() {
+    editandoId = null;
+    document.getElementById('modalFormTitle').textContent = 'Nuevo Préstamo';
+    document.getElementById('f-solicitante').value = '';
+    document.getElementById('f-alumnos').value     = '';
+    document.getElementById('f-docente').value     = '';
+    document.getElementById('f-lab').value         = '';
+    document.getElementById('f-inicio').value      = '';
+    document.getElementById('f-fin').value         = '';
+    document.getElementById('f-notas').value       = '';
+    document.getElementById('itemsList').innerHTML = '';
+    agregarItemRow();
+    document.getElementById('modalForm').classList.add('show');
+}
+
+function cerrarModalForm() {
+    document.getElementById('modalForm').classList.remove('show');
+}
+
+function agregarItemRow(item) {
+    const list = document.getElementById('itemsList');
+    const div  = document.createElement('div');
+    div.className = 'item-row';
+    div.innerHTML = `
+        <select class="item-tipo">
+            <option value="Activo"     ${item&&item.tipo==='Activo'?'selected':''}>Activo</option>
+            <option value="Consumible" ${item&&item.tipo==='Consumible'?'selected':''}>Consumible</option>
+        </select>
+        <input type="text" class="item-nombre" placeholder="Nombre del artículo" value="${item?item.nombre:''}" style="flex:2">
+        <input type="number" class="item-cant" placeholder="Cant." min="1" value="${item?item.cantidad:1}">
+        <button class="btn-remove" onclick="this.parentElement.remove()" title="Quitar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke-width="2"/></svg>
+        </button>`;
+    list.appendChild(div);
+}
+
+function guardarPrestamo() {
+    const sol  = document.getElementById('f-solicitante').value.trim();
+    const alum = document.getElementById('f-alumnos').value;
+    const doc  = document.getElementById('f-docente').value.trim();
+    const lab  = document.getElementById('f-lab').value;
+    const ini  = document.getElementById('f-inicio').value;
+    const fin  = document.getElementById('f-fin').value;
+    const not  = document.getElementById('f-notas').value.trim();
+
+    if (!sol||!alum||!doc||!lab||!ini||!fin) {
+        showToast({tipo:'warning',titulo:'Campos incompletos',lineas:['Completa todos los campos obligatorios.']});
+        return;
+    }
+    if (new Date(fin)<=new Date(ini)) {
+        showToast({tipo:'warning',titulo:'Fechas inválidas',lineas:['La devolución debe ser posterior al inicio.']});
+        return;
+    }
+
+    const rows  = document.querySelectorAll('#itemsList .item-row');
+    const items = [];
+    let itemsOk = true;
+    rows.forEach(r => {
+        const tipo   = r.querySelector('.item-tipo').value;
+        const nombre = r.querySelector('.item-nombre').value.trim();
+        const cant   = parseInt(r.querySelector('.item-cant').value)||0;
+        if (!nombre||cant<1) { itemsOk=false; return; }
+        items.push({tipo,nombre,cantidad:cant});
+    });
+    if (!items.length||!itemsOk) {
+        showToast({tipo:'warning',titulo:'Artículos incompletos',lineas:['Agrega al menos un artículo válido.']});
+        return;
+    }
+
+    if (editandoId) {
+        const idx = prestamos.findIndex(p=>p.id===editandoId);
+        if (idx>=0) {
+            prestamos[idx] = {...prestamos[idx], solicitante:sol, alumnos:parseInt(alum), docente:doc, lab, inicio:ini, fin, items, notas:not};
+            showToast({tipo:'success',titulo:'Préstamo actualizado',lineas:[sol]});
+        }
+    } else {
+        const folio = genFolio();
+        prestamos.unshift({id:folio,folio,solicitante:sol,alumnos:parseInt(alum),docente:doc,lab,inicio:ini,fin,items,notas:not,estado:'Pendiente'});
+        showToast({tipo:'success',titulo:'Préstamo registrado',lineas:[folio+' · '+sol,'Estado: Pendiente']});
+    }
+
+    guardarDatos(prestamos);
+    cerrarModalForm();
+    renderTabla();
+    actualizarStats();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Ver detalle
+// ═══════════════════════════════════════════════════════════
+function verDetalle(id) {
+    const p = prestamos.find(x=>x.id===id);
+    if (!p) return;
+
+    const estados = ['Pendiente','Activo','Devuelto'];
+    const si = estados.indexOf(p.estado);
+
+    const timelineHTML = `
+        <div class="status-timeline">
+            <div class="st-step">
+                <div class="st-dot ${si>=0?'done':''}">✓</div>
+                <span class="st-label">Pendiente</span>
+            </div>
+            <div class="st-line ${si>=1?'done':''}"></div>
+            <div class="st-step">
+                <div class="st-dot ${si===1?'active':si>1?'done':p.estado==='Vencido'?'danger':''}">
+                    ${si>1?'✓':si===1?'●':p.estado==='Vencido'?'!':''}
+                </div>
+                <span class="st-label">Activo</span>
+            </div>
+            <div class="st-line ${si>=2?'done':''}"></div>
+            <div class="st-step">
+                <div class="st-dot ${si>=2?'done':p.estado==='Cancelado'?'danger':''}">
+                    ${si>=2?'✓':p.estado==='Cancelado'?'✕':''}
+                </div>
+                <span class="st-label">${p.estado==='Cancelado'?'Cancelado':'Devuelto'}</span>
+            </div>
+        </div>`;
+
+    const itemsRows = p.items.map(i=>`
+        <tr>
+            <td><span class="badge ${i.tipo==='Activo'?'badge-activo-tipo':'badge-consumible'}">${i.tipo}</span></td>
+            <td>${i.nombre}</td>
+            <td style="text-align:center"><strong>${i.cantidad}</strong></td>
+        </tr>`).join('');
+
+    document.getElementById('detalleBody').innerHTML = `
+        <div class="detail-grid">
+            <div class="detail-field"><label>Folio</label><span>${p.folio}</span></div>
+            <div class="detail-field"><label>Estado</label><span class="badge ${statusClass[p.estado]||''}">${statusIcon[p.estado]||''} ${p.estado}</span></div>
+            <div class="detail-field"><label>Solicitante</label><span>${p.solicitante}</span></div>
+            <div class="detail-field"><label>No. de alumnos</label><span>👥 ${p.alumnos}</span></div>
+            <div class="detail-field"><label>Docente a cargo</label><span>${p.docente}</span></div>
+            <div class="detail-field"><label>Laboratorio</label><span>${p.lab}</span></div>
+            <div class="detail-field"><label>Inicio</label><span>${fmtDT(p.inicio)}</span></div>
+            <div class="detail-field"><label>Devolución</label><span>${fmtDT(p.fin)}</span></div>
+            <div class="detail-field"><label>Duración</label><span>⏱ ${duracion(p.inicio,p.fin)}</span></div>
+            ${p.notas?`<div class="detail-field"><label>Notas</label><span>${p.notas}</span></div>`:''}
+        </div>
+        ${timelineHTML}
+        <p class="form-section-title">Artículos prestados</p>
+        <table class="detail-items-table">
+            <thead><tr><th>Tipo</th><th>Artículo</th><th style="text-align:center">Cantidad</th></tr></thead>
+            <tbody>${itemsRows}</tbody>
+        </table>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="cerrarModalDetalle()">Cerrar</button>
+            ${p.estado==='Pendiente'||p.estado==='Activo'?`<button class="btn-primary" onclick="cerrarModalDetalle();abrirEditar('${p.id}')">Editar</button>`:''}
+        </div>`;
+
+    document.getElementById('modalDetalle').classList.add('show');
+}
+
+function cerrarModalDetalle() {
+    document.getElementById('modalDetalle').classList.remove('show');
+}
+
+function abrirEditar(id) {
+    const p = prestamos.find(x=>x.id===id);
+    if (!p) return;
+    editandoId = id;
+    document.getElementById('modalFormTitle').textContent     = 'Editar Préstamo · ' + p.folio;
+    document.getElementById('f-solicitante').value = p.solicitante;
+    document.getElementById('f-alumnos').value     = p.alumnos;
+    document.getElementById('f-docente').value     = p.docente;
+    document.getElementById('f-lab').value         = p.lab;
+    document.getElementById('f-inicio').value      = p.inicio;
+    document.getElementById('f-fin').value         = p.fin;
+    document.getElementById('f-notas').value       = p.notas||'';
+    document.getElementById('itemsList').innerHTML = '';
+    p.items.forEach(i => agregarItemRow(i));
+    document.getElementById('modalForm').classList.add('show');
+}
+
+//  Cambiar estado
+function cambiarEstado(id, nuevoEstado) {
+    const p = prestamos.find(x=>x.id===id);
+    if (!p) return;
+    p.estado = nuevoEstado;
+    guardarDatos(prestamos);
+    renderTabla();
+    actualizarStats();
+    const msgs = { Activo:['🔵 Préstamo activado','Se marcó como entregado al solicitante.'], Devuelto:['✅ Préstamo devuelto','Artículos regresados correctamente.'] };
+    const m = msgs[nuevoEstado]||['Actualizado',''];
+    showToast({tipo: nuevoEstado==='Devuelto'?'success':'info', titulo:m[0], lineas:[p.folio+' · '+p.solicitante, m[1]]});
+}
+
+//  Confirm helpers
+let _confirmCb = null;
+function mostrarConfirm({icono,titulo,desc,label,clase,cb}) {
+    document.getElementById('ci-icon').textContent  = icono;
+    document.getElementById('ci-title').textContent = titulo;
+    document.getElementById('ci-desc').textContent  = desc;
+    const btn = document.getElementById('ci-btn');
+    btn.textContent = label;
+    btn.className   = 'btn-confirm ' + (clase||'danger');
+    _confirmCb = cb;
+    document.getElementById('modalConfirm').classList.add('show');
+}
+function cerrarConfirm() { document.getElementById('modalConfirm').classList.remove('show'); _confirmCb=null; }
+function ejecutarConfirm() { cerrarConfirm(); if(_confirmCb) _confirmCb(); }
+document.getElementById('modalConfirm').addEventListener('click', e => { if(e.target===e.currentTarget) cerrarConfirm(); });
+
+function pedirCancelar(id) {
+    const p = prestamos.find(x=>x.id===id);
+    if (!p) return;
+    mostrarConfirm({icono:'⛔',titulo:'¿Cancelar préstamo?',desc:'Se cancelará el préstamo '+p.folio+' de '+p.solicitante+'.',label:'Sí, cancelar',clase:'danger',cb:()=>{
+        p.estado='Cancelado'; guardarDatos(prestamos); renderTabla(); actualizarStats();
+        showToast({tipo:'warning',titulo:'Préstamo cancelado',lineas:[p.folio+' · '+p.solicitante]});
+    }});
+}
+
+function pedirEliminar(id) {
+    const p = prestamos.find(x=>x.id===id);
+    if (!p) return;
+    mostrarConfirm({icono:'🗑️',titulo:'¿Eliminar préstamo?',desc:'Se eliminará permanentemente el préstamo '+p.folio+'.',label:'Sí, eliminar',clase:'danger',cb:()=>{
+        prestamos = prestamos.filter(x=>x.id!==id);
+        guardarDatos(prestamos); renderTabla(); actualizarStats();
+        showToast({tipo:'info',titulo:'Préstamo eliminado',lineas:[p.folio+' · '+p.solicitante]});
+    }});
+}
+
+//  Toast
+function showToast({tipo='info',titulo='',lineas=[]}) {
+    const colorMap = {info:'#339af0',success:'#51cf66',warning:'#ffd43b',error:'#ff6b6b'};
+    const iconMap  = {info:'ℹ️',success:'✅',warning:'⚠️',error:'❌'};
+    const stack    = document.getElementById('toastStack');
+    const t = document.createElement('div');
+    t.className = 'toast-notif';
+    t.innerHTML = `<div class="tn-bar" style="background:${colorMap[tipo]||'#339af0'}"></div>
+                   <span class="tn-icon">${iconMap[tipo]||'ℹ️'}</span>
+                   <div class="tn-body">
+                       <span class="tn-title">${titulo}</span>
+                       ${lineas.map(l=>`<span class="tn-line">${l}</span>`).join('')}
+                   </div>`;
+    stack.appendChild(t);
+    requestAnimationFrame(()=>t.classList.add('show'));
+    setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 3500);
+}
+
+
+//  Sidebar / logout
+document.querySelector('.sidebar-toggle').addEventListener('click', ()=>{
+    document.querySelector('.sidebar').classList.toggle('collapsed');
+});
+document.querySelector('.logout-btn').addEventListener('click', ()=>{
+    mostrarConfirm({icono:'🚪',titulo:'¿Cerrar sesión?',desc:'Se cerrará tu sesión actual.',label:'Sí, salir',clase:'danger',cb:()=>{ window.location.href='../login.html'; }});
+});
+
+// Cerrar modales al hacer clic fuera
+['modalForm','modalDetalle'].forEach(id=>{
+    document.getElementById(id).addEventListener('click', e=>{ if(e.target===e.currentTarget) document.getElementById(id).classList.remove('show'); });
+});
+
+
+//  Init
+
+document.addEventListener('DOMContentLoaded', ()=>{
+    actualizarStats();
+    renderTabla();
+});
+</script>
 </body>
 </html>
