@@ -7,31 +7,60 @@ import os
 
 load_dotenv()
 
-# Agregar la carpeta Modules/Activos al path para encontrar los blueprints
+# ── Paths ─────────────────────────────────────────────────────────────────────
 base_dir = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(os.path.join(base_dir, "Modules", "Activos"))
+load_dotenv(os.path.join(base_dir, '.env'))
 
+# Agregar la carpeta Modules al path para encontrar los blueprints
+sys.path.append(os.path.join(base_dir, "Modules"))
+sys.path.append(os.path.join(base_dir, "Modules", "Activos"))
+sys.path.append(os.path.join(base_dir, "Modules", "Consumibles"))
+
+from Activos.createActivos import create_bp
+from Activos.readActivos   import read_bp
+from Activos.updateActivos import update_bp
+from Activos.deleteActivos import delete_bp
+from Movimientos.createMovimientos import create_bp as create_movimientos_bp
+from Movimientos.readMovimientos import read_bp as read_movimientos_bp
+from Asignaciones.asignaciones import asignaciones_bp
+# ── Imports de blueprints ─────────────────────────────────────────────────────
 from createActivos import create_bp
 from readActivos   import read_bp
 from updateActivos import update_bp
 from deleteActivos import delete_bp
 
+from Historial.createHistorial import create_historial_bp
+from Historial.readHistorial import read_historial_bp
+
+# ── App ───────────────────────────────────────────────────────────────────────
 app = Flask(__name__)
 CORS(app)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# ── Registrar blueprints de Activos ──────────────────────────────────────────
+# ── Registrar blueprints ──────────────────────────────────────────────────────
 app.register_blueprint(create_bp)
 app.register_blueprint(read_bp)
 app.register_blueprint(update_bp)
 app.register_blueprint(delete_bp)
+app.register_blueprint(create_movimientos_bp)
+app.register_blueprint(read_movimientos_bp)
+app.register_blueprint(asignaciones_bp)
 
+app.register_blueprint(create_consumible_bp)
+app.register_blueprint(read_consumible_bp)
+app.register_blueprint(update_consumible_bp)
+app.register_blueprint(delete_consumible_bp)
+
+app.register_blueprint(create_reporte_bp)
+app.register_blueprint(read_reporte_bp)
+
+app.register_blueprint(create_historial_bp)
+app.register_blueprint(read_historial_bp)
 
 # ── Conexión a DB ─────────────────────────────────────────────────────────────
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
-
 
 # ── LOGIN ─────────────────────────────────────────────────────────────────────
 @app.route('/api/login', methods=['POST'])
@@ -50,8 +79,6 @@ def login():
     try:
         conn = get_db_connection()
         cur  = conn.cursor()
-
-        # Consulta usuarios + nivel_acceso
         cur.execute(
             """
             SELECT u.id_usuario, u.nombre, c.email, u.nivel_acceso
@@ -62,21 +89,19 @@ def login():
             (email, password)
         )
         user = cur.fetchone()
-
         cur.close()
         conn.close()
 
         if user:
             user_id, nombre, correo, nivel_acceso = user
-            
             return jsonify({
-                'success': True, 
+                'success': True,
                 'message': 'Acceso correcto.',
                 'usuario': {
-                    'id': user_id,
+                    'id':     user_id,
                     'nombre': nombre,
                     'email': correo,
-                    'nivel': nivel_acceso  # Retorna 1, 2 o 3
+                    'nivel': nivel_acceso
                 }
             })
         else:
@@ -84,6 +109,7 @@ def login():
 
     except Exception as e:
         return jsonify({'success': False, 'message': f'Error de conexión: {str(e)}'}), 500
+
 
 
 if __name__ == '__main__':

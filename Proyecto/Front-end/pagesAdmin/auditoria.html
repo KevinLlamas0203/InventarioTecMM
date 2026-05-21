@@ -15,7 +15,8 @@
     <link rel="shortcut icon" href="../../images/favicon_io/favicon.ico">
     <style>
         /* ── Historial-specific styles ── */
-        .historial-stats {
+<<<<<<< HEAD
+        .audit-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: var(--spacing-lg);
@@ -23,184 +24,198 @@
         }
 
         /* Action badges */
-        .badge-creacion  { background: rgba(81,207,102,0.15);  color: var(--color-success); }
-        .badge-edicion   { background: rgba(51,154,240,0.15);  color: var(--color-info); }
+        .badge-creacion    { background: rgba(81,207,102,0.15);  color: var(--color-success); }
+        .badge-edicion     { background: rgba(51,154,240,0.15);  color: var(--color-info); }
         .badge-eliminacion { background: rgba(255,107,107,0.15); color: var(--color-danger); }
-        .badge-login     { background: rgba(63,75,245,0.15);   color: var(--color-primary); }
-        .badge-logout    { background: rgba(160,160,160,0.15); color: var(--color-text-secondary); }
-        .badge-asignacion { background: rgba(255,230,109,0.15); color: var(--color-warning); }
+        .badge-login       { background: rgba(63,75,245,0.15);   color: var(--color-primary); }
+        .badge-logout      { background: rgba(160,160,160,0.15); color: var(--color-text-secondary); }
+        .badge-asignacion  { background: rgba(255,230,109,0.15); color: var(--color-warning); }
 
-        /* Timeline dot in table */
-        .event-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 6px;
-            flex-shrink: 0;
-        }
-        .dot-creacion   { background: var(--color-success); }
-        .dot-edicion    { background: var(--color-info); }
-        .dot-eliminacion{ background: var(--color-danger); }
-        .dot-login      { background: var(--color-primary); }
-        .dot-logout     { background: var(--color-text-secondary); }
-        .dot-asignacion { background: var(--color-warning); }
+        /* Timeline dot */
+        .event-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:6px; flex-shrink:0; }
+        .dot-creacion    { background: var(--color-success); }
+        .dot-edicion     { background: var(--color-info); }
+        .dot-eliminacion { background: var(--color-danger); }
+        .dot-login       { background: var(--color-primary); }
+        .dot-logout      { background: var(--color-text-secondary); }
+        .dot-asignacion  { background: var(--color-warning); }
 
-        .event-cell {
-            display: flex;
-            align-items: center;
-        }
+        .event-cell { display:flex; align-items:center; }
+        .ip-address { font-family:'Courier New',monospace; font-size:0.85rem; color:var(--color-text-secondary); }
+        .detail-text { max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:0.9rem; color:var(--color-text-secondary); }
 
-        /* IP address monospace */
-        .ip-address {
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            color: var(--color-text-secondary);
-        }
+        .datetime-cell { display:flex; flex-direction:column; gap:2px; }
+        .datetime-date { font-weight:500; }
+        .datetime-time { font-size:0.82rem; color:var(--color-text-secondary); }
 
-        /* Detail text */
-        .detail-text {
-            max-width: 300px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-size: 0.9rem;
-            color: var(--color-text-secondary);
-        }
+        .toolbar { display:flex; gap:var(--spacing-md); align-items:center; flex-wrap:wrap; margin-bottom:var(--spacing-lg); }
 
-        /* Date/time cell */
-        .datetime-cell {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .datetime-date { font-weight: 500; }
-        .datetime-time { font-size: 0.82rem; color: var(--color-text-secondary); }
+        .search-box { position:relative; flex:1; min-width:240px; }
+        .search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); width:18px; height:18px; color:var(--color-text-muted); }
+        .search-input { width:100%; padding:10px 12px 10px 38px; background:var(--color-surface-raised); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-family:var(--font-body); font-size:0.9rem; transition:border-color var(--transition-fast); }
+        .search-input:focus { outline:none; border-color:var(--color-primary); }
 
-        /* Export button row */
-        .toolbar {
-            display: flex;
-            gap: var(--spacing-md);
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: var(--spacing-lg);
-        }
+        .filters { display:flex; gap:var(--spacing-sm); flex-wrap:wrap; }
+        .filter-select { padding:10px 12px; background:var(--color-surface-raised); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-family:var(--font-body); font-size:0.9rem; cursor:pointer; transition:border-color var(--transition-fast); }
+        .filter-select:focus { outline:none; border-color:var(--color-primary); }
+        input[type="date"].filter-select { min-width:150px; }
 
-        .search-box {
-            position: relative;
-            flex: 1;
-            min-width: 240px;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 18px;
-            height: 18px;
-            color: var(--color-text-muted);
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 10px 12px 10px 38px;
-            background: var(--color-surface-raised);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-sm);
-            color: var(--color-text);
-            font-family: var(--font-body);
-            font-size: 0.9rem;
-            transition: border-color var(--transition-fast);
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--color-primary);
-        }
-
-        .filters {
-            display: flex;
-            gap: var(--spacing-sm);
-            flex-wrap: wrap;
-        }
-
-        .filter-select {
-            padding: 10px 12px;
-            background: var(--color-surface-raised);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-sm);
-            color: var(--color-text);
-            font-family: var(--font-body);
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: border-color var(--transition-fast);
-        }
-
-        .filter-select:focus {
-            outline: none;
-            border-color: var(--color-primary);
-        }
-
-        input[type="date"].filter-select {
-            min-width: 150px;
-        }
+        /* Loading / empty states */
+        .table-loading { display:flex; align-items:center; justify-content:center; gap:10px; padding:3rem; color:var(--color-text-secondary); font-size:0.9rem; }
+        .spinner { width:20px; height:20px; border:2px solid var(--color-border); border-top-color:var(--color-primary); border-radius:50%; animation:spin 0.7s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .empty-state { text-align:center; padding:3rem; color:var(--color-text-secondary); }
     </style>
 </head>
 <body class="dashboard-page">
-    <div class="dashboard-layout">
-        <!-- ═══════════════ SIDEBAR ═══════════════ -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-brand">
-                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="5" y="5" width="30" height="30" rx="6" fill="currentColor" opacity="0.2"/>
-                        <path d="M13 16h14M13 20h14M13 24h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        <circle cx="28" cy="24" r="2" fill="currentColor"/>
-                    </svg>
-                    <span class="brand-name">Sistema de Inventario</span>
-                </div>
-                <button class="sidebar-toggle" aria-label="Toggle sidebar">
+<div class="dashboard-layout">
+
+    <!-- ═══════════════ SIDEBAR ═══════════════ -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="5" y="5" width="30" height="30" rx="6" fill="currentColor" opacity="0.2"/>
+                    <path d="M13 16h14M13 20h14M13 24h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="28" cy="24" r="2" fill="currentColor"/>
+                </svg>
+                <span class="brand-name">Sistema de Inventario</span>
+            </div>
+            <button class="sidebar-toggle" aria-label="Toggle sidebar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M3 12h18M3 6h18M3 18h18" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <span class="nav-section-title">Principal</span>
+                <a href="dashboard_admin.html" class="nav-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M3 12h18M3 6h18M3 18h18" stroke-width="2" stroke-linecap="round"/>
+                        <rect x="3" y="3" width="7" height="7" stroke-width="2" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" stroke-width="2" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" stroke-width="2" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" stroke-width="2" rx="1"/>
                     </svg>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-section-title">Gestión</span>
+                <a href="ModuloActivo.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
+                        <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>Módulo de Activos</span>
+                    <span class="nav-badge">245</span>
+                </a>
+                <a href="consumibles.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2"/>
+                        <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/>
+                    </svg>
+                    <span>Consumibles</span>
+                    <span class="nav-badge warning">12</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-section-title">Reportes</span>
+                <a href="reportes.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/>
+                        <polyline points="14 2 14 8 20 8" stroke-width="2"/>
+                        <line x1="16" y1="13" x2="8" y2="13" stroke-width="2"/>
+                        <line x1="16" y1="17" x2="8" y2="17" stroke-width="2"/>
+                    </svg>
+                    <span>Reportes</span>
+                </a>
+                <a href="auditoria.html" class="nav-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                        <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+                    </svg>
+                    <span>Historial</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-section-title">Configuración</span>
+                <a href="usuarios.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/>
+                        <circle cx="9" cy="7" r="4" stroke-width="2"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/>
+                    </svg>
+                    <span>Usuarios</span>
+                </a>
+                <a href="ajustes.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <span>Ajustes</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">AD</div>
+                <div class="user-info">
+                    <span class="user-name">Admin ISC</span>
+                    <span class="user-role">Administrador</span>
+                </div>
+            </div>
+            <button class="btn-icon logout-btn" aria-label="Cerrar sesión">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+    <main class="main-content">
+        <header class="content-header">
+            <div class="header-left">
+                <h1 class="page-title">Historial</h1>
+                <p class="page-subtitle">Registro completo de cambios y actividades del sistema</p>
+            </div>
+            <div class="header-right">
+                <button class="btn-secondary" onclick="exportarHistorial()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/>
+                        <polyline points="7 10 12 15 17 10" stroke-width="2"/>
+                        <line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/>
+                    </svg>
+                    <span>Exportar Log</span>
                 </button>
             </div>
+        </header>
 
-            <nav class="sidebar-nav">
-                <div class="nav-section">
-                    <span class="nav-section-title">Principal</span>
-                    <a href="dashboard_admin.html" class="nav-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <rect x="3" y="3" width="7" height="7" stroke-width="2" rx="1"/>
-                            <rect x="14" y="3" width="7" height="7" stroke-width="2" rx="1"/>
-                            <rect x="14" y="14" width="7" height="7" stroke-width="2" rx="1"/>
-                            <rect x="3" y="14" width="7" height="7" stroke-width="2" rx="1"/>
-                        </svg>
-                        <span>Dashboard</span>
-                    </a>
+        <!-- ── Stats (calculadas desde la API) ── -->
+        <div class="audit-stats">
+            <div class="stat-card success">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/></svg>
                 </div>
-
-                <div class="nav-section">
-                    <span class="nav-section-title">Gestión</span>
-                    <a href="ModuloActivo.html" class="nav-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
-                            <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                        <span>Módulo de Activos</span>
-                        <span class="nav-badge">245</span>
-                    </a>
-                    <a href="consumibles.html" class="nav-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
-                            <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2"/>
-                            <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/>
-                        </svg>
-                        <span>Consumibles</span>
-                        <span class="nav-badge warning">12</span>
-                    </a>
+                <div class="stat-content">
+                    <span class="stat-label">Creaciones hoy</span>
+                    <span class="stat-value" id="statCreaciones">—</span>
                 </div>
+<<<<<<< HEAD
+                <span class="stat-change positive" id="statCreacionesNote"></span>
+            </div>
+            <div class="stat-card info">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/></svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Ediciones hoy</span>
+                    <span class="stat-value" id="statEdiciones">—</span>
+=======
 
                 <div class="nav-section">
                     <span class="nav-section-title">Reportes</span>
@@ -319,8 +334,15 @@
                         <span class="stat-value">3</span>
                     </div>
                     <span class="stat-change">En sesión ahora</span>
+>>>>>>> main
                 </div>
+                <span class="stat-change" id="statEdicionesNote"></span>
             </div>
+<<<<<<< HEAD
+            <div class="stat-card warning">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6" stroke-width="2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/></svg>
+=======
 
             <!-- ── Filters ── -->
             <div class="toolbar">
@@ -330,34 +352,19 @@
                         <path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
                     </svg>
                     <input type="text" placeholder="Buscar por usuario, módulo o detalles…" class="search-input" id="historialSearch">
+>>>>>>> main
                 </div>
-                <div class="filters">
-                    <select class="filter-select" id="filterAccion">
-                        <option value="">Todos los eventos</option>
-                        <option value="Creación">Creación</option>
-                        <option value="Edición">Edición</option>
-                        <option value="Eliminación">Eliminación</option>
-                        <option value="Login">Login</option>
-                        <option value="Logout">Logout</option>
-                        <option value="Asignación">Asignación</option>
-                    </select>
-                    <select class="filter-select" id="filterUsuario">
-                        <option value="">Todos los usuarios</option>
-                        <option value="Admin ISC">Admin ISC</option>
-                        <option value="Soporte">Soporte</option>
-                        <option value="Docente">Docente</option>
-                    </select>
-                    <select class="filter-select" id="filterModulo">
-                        <option value="">Todos los módulos</option>
-                        <option value="Activos">Activos</option>
-                        <option value="Consumibles">Consumibles</option>
-                        <option value="Asignaciones">Asignaciones</option>
-                        <option value="Usuarios">Usuarios</option>
-                        <option value="Sistema">Sistema</option>
-                    </select>
-                    <input type="date" class="filter-select" id="filterFecha" title="Filtrar por fecha">
+                <div class="stat-content">
+                    <span class="stat-label">Eliminaciones hoy</span>
+                    <span class="stat-value" id="statEliminaciones">—</span>
                 </div>
+                <span class="stat-change negative" id="statEliminacionesNote"></span>
             </div>
+<<<<<<< HEAD
+            <div class="stat-card primary">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/></svg>
+=======
 
             <!-- ── Historial Table ── -->
             <div class="card table-card">
@@ -567,61 +574,136 @@
                             </tr>
                         </tbody>
                     </table>
+>>>>>>> main
                 </div>
-
-                <div class="table-footer">
-                    <div class="table-info">Mostrando <strong>1-7</strong> de <strong>318</strong> registros</div>
-                    <div class="pagination">
-                        <button class="pagination-btn" disabled>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6" stroke-width="2"/></svg>
-                        </button>
-                        <button class="pagination-btn active">1</button>
-                        <button class="pagination-btn">2</button>
-                        <button class="pagination-btn">3</button>
-                        <span class="pagination-dots">...</span>
-                        <button class="pagination-btn">46</button>
-                        <button class="pagination-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6" stroke-width="2"/></svg>
-                        </button>
-                    </div>
+                <div class="stat-content">
+                    <span class="stat-label">Usuarios activos hoy</span>
+                    <span class="stat-value" id="statUsuarios">—</span>
                 </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- ── Detail Modal ── -->
-    <div class="modal" id="detailModal">
-        <div class="modal-overlay" onclick="closeModal()"></div>
-        <div class="modal-content" style="max-width: 520px;">
-            <div class="modal-header">
-                <h2>Detalle del Evento</h2>
-                <button class="modal-close" onclick="closeModal()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body" id="modalContent">
-                <!-- Content injected by JS -->
+                <span class="stat-change" id="statUsuariosNote"></span>
             </div>
         </div>
+
+        <!-- ── Filters ── -->
+        <div class="toolbar">
+            <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                    <path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <input type="text" placeholder="Buscar por usuario, entidad o detalles…" class="search-input" id="auditSearch">
+            </div>
+            <div class="filters">
+                <select class="filter-select" id="filterAccion">
+                    <option value="">Todas las acciones</option>
+                    <option value="CREAR">Creación</option>
+                    <option value="EDITAR">Edición</option>
+                    <option value="ELIMINAR">Eliminación</option>
+                    <option value="LOGIN">Login</option>
+                    <option value="LOGOUT">Logout</option>
+                    <option value="ASIGNAR">Asignación</option>
+                </select>
+                <select class="filter-select" id="filterEntidad">
+                    <option value="">Todas las entidades</option>
+                    <option value="activo">Activos</option>
+                    <option value="consumible">Consumibles</option>
+                    <option value="asignacion">Asignaciones</option>
+                    <option value="usuario">Usuarios</option>
+                    <option value="sistema">Sistema</option>
+                    <option value="reporte">Reportes</option>
+                </select>
+                <input type="date" class="filter-select" id="filterFecha" title="Filtrar por fecha">
+            </div>
+        </div>
+
+        <!-- ── Historial Table ── -->
+        <div class="card table-card">
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="table-checkbox" id="selectAll"></th>
+                            <th>Fecha y hora</th>
+                            <th>Usuario</th>
+                            <th>Acción</th>
+                            <th>Entidad</th>
+                            <th>Detalles</th>
+                            <th>ID Registro</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditBody">
+                        <tr>
+                            <td colspan="8">
+                                <div class="table-loading">
+                                    <div class="spinner"></div>
+                                    Cargando historial…
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-footer">
+                <div class="table-info" id="tableInfo">Cargando…</div>
+                <div class="pagination" id="paginationControls"></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ── Detail Modal ── -->
+<div class="modal" id="detailModal">
+    <div class="modal-overlay" onclick="closeModal()"></div>
+    <div class="modal-content" style="max-width:520px;">
+        <div class="modal-header">
+            <h2>Detalle del Evento</h2>
+            <button class="modal-close" onclick="closeModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body" id="modalContent"></div>
     </div>
+</div>
 
-    <script src="../js/app.js"></script>
-    <script src="../js/theme-toggle.js"></script>
-    <script>
-        // Sidebar toggle
-        document.querySelector('.sidebar-toggle').addEventListener('click', function() {
-            document.querySelector('.sidebar').classList.toggle('collapsed');
-        });
+<script src="../js/app.js"></script>
+<script src="../js/theme-toggle.js"></script>
+<script>
+// ════════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════════
+const API_BASE = 'http://localhost:5000';        // Si Flask corre en el mismo origen déjalo vacío.
+                              // Si corre en otro puerto usa: 'http://localhost:5000'
+const PER_PAGE = 10;
 
-        // Logout
-        document.querySelector('.logout-btn').addEventListener('click', function() {
-            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                window.location.href = '../login.html';
-            }
-        });
+// ════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════
+let allRows    = [];   // todos los registros traídos de la API
+let filtered   = [];   // después de aplicar filtros cliente
+let currentPage = 1;
 
+<<<<<<< HEAD
+// ════════════════════════════════════════════════
+//  FETCH desde /historial
+// ════════════════════════════════════════════════
+async function fetchHistorial() {
+    try {
+        const res = await fetch(`${API_BASE}/historial`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        allRows = await res.json();
+        filtered = [...allRows];
+        calcStats();
+        renderTable();
+    } catch (err) {
+        document.getElementById('auditBody').innerHTML = `
+            <tr><td colspan="8">
+                <div class="empty-state">
+                    ⚠️ No se pudo cargar el historial: ${err.message}
+=======
         // ── Filtering ──
         function applyHistorialFilters() {
             const search  = document.getElementById('historialSearch').value.toLowerCase();
@@ -696,39 +778,307 @@
                     <div style="margin-top:.5rem;">
                         <button class="btn-secondary" onclick="closeModal()" style="width:100%;justify-content:center;">Cerrar</button>
                     </div>
+>>>>>>> main
                 </div>
-            `;
-            document.getElementById('detailModal').classList.add('active');
-        }
+            </td></tr>`;
+        document.getElementById('tableInfo').textContent = 'Error al cargar datos';
+    }
+}
 
-        function closeModal() {
-            document.getElementById('detailModal').classList.remove('active');
-        }
+// ════════════════════════════════════════════════
+//  STATS calculadas sobre los datos reales
+// ════════════════════════════════════════════════
+function calcStats() {
+    const today = new Date().toISOString().slice(0, 10);
+    const todayRows = allRows.filter(r => (r.fecha_accion || '').slice(0, 10) === today);
 
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    const creaciones   = todayRows.filter(r => r.accion === 'CREAR').length;
+    const ediciones    = todayRows.filter(r => r.accion === 'EDITAR').length;
+    const eliminaciones = todayRows.filter(r => r.accion === 'ELIMINAR').length;
+    const usuarios     = [...new Set(todayRows.map(r => r.usuario).filter(Boolean))].length;
 
+<<<<<<< HEAD
+    document.getElementById('statCreaciones').textContent   = creaciones;
+    document.getElementById('statEdiciones').textContent    = ediciones;
+    document.getElementById('statEliminaciones').textContent = eliminaciones;
+    document.getElementById('statUsuarios').textContent     = usuarios;
+=======
         function exportarHistorial() {
             showToast('Exportando log de historial en CSV…', 'info');
             setTimeout(() => showToast('Log exportado correctamente.', 'success'), 1800);
         }
+>>>>>>> main
 
-        // Toast fallback
-        function showToast(message, type = 'info') {
-            let container = document.querySelector('.toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.className = 'toast-container';
-                container.style.cssText = 'position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:9999;';
-                document.body.appendChild(container);
-            }
-            const colors = { info: 'var(--color-info)', success: 'var(--color-success)', warning: 'var(--color-warning)', error: 'var(--color-danger)' };
-            const toast = document.createElement('div');
-            toast.style.cssText = `background:var(--color-surface);border:1px solid var(--color-border);border-left:4px solid ${colors[type]||colors.info};padding:12px 18px;border-radius:8px;font-size:.9rem;box-shadow:var(--shadow-md);max-width:320px;opacity:0;transform:translateX(20px);transition:all .25s ease;`;
-            toast.textContent = message;
-            container.appendChild(toast);
-            requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)'; setTimeout(() => toast.remove(), 300); }, 3500);
+    document.getElementById('statCreacionesNote').textContent   = creaciones > 0 ? `${creaciones} registro(s) hoy` : 'Sin creaciones hoy';
+    document.getElementById('statEdicionesNote').textContent    = ediciones  > 0 ? `${ediciones} edición(es) hoy`  : 'Sin ediciones hoy';
+    document.getElementById('statEliminacionesNote').textContent = eliminaciones > 0 ? `${eliminaciones} eliminación(es)` : 'Sin eliminaciones hoy';
+    document.getElementById('statUsuariosNote').textContent     = usuarios   > 0 ? 'En actividad hoy' : 'Sin actividad hoy';
+}
+
+// ════════════════════════════════════════════════
+//  BADGE helpers
+// ════════════════════════════════════════════════
+function badgeClass(accion) {
+    const map = { CREAR:'creacion', EDITAR:'edicion', ELIMINAR:'eliminacion', LOGIN:'login', LOGOUT:'logout', ASIGNAR:'asignacion' };
+    return map[accion] || 'login';
+}
+function badgeLabel(accion) {
+    const map = { CREAR:'Creación', EDITAR:'Edición', ELIMINAR:'Eliminación', LOGIN:'Login', LOGOUT:'Logout', ASIGNAR:'Asignación' };
+    return map[accion] || accion;
+}
+function formatFecha(iso) {
+    if (!iso) return { date: '—', time: '' };
+    const d = new Date(iso);
+    const date = d.toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+    const time = d.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    return { date, time };
+}
+
+// ════════════════════════════════════════════════
+//  RENDER TABLE
+// ════════════════════════════════════════════════
+function renderTable() {
+    const tbody = document.getElementById('auditBody');
+    const total = filtered.length;
+
+    if (total === 0) {
+        tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">No se encontraron registros con los filtros aplicados.</div></td></tr>`;
+        document.getElementById('tableInfo').textContent = '0 registros';
+        document.getElementById('paginationControls').innerHTML = '';
+        return;
+    }
+
+    const start = (currentPage - 1) * PER_PAGE;
+    const page  = filtered.slice(start, start + PER_PAGE);
+
+    tbody.innerHTML = page.map(row => {
+        const bc  = badgeClass(row.accion);
+        const bl  = badgeLabel(row.accion);
+        const { date, time } = formatFecha(row.fecha_accion);
+        const detalle = row.detalle || '—';
+        return `
+        <tr>
+            <td><input type="checkbox" class="table-checkbox"></td>
+            <td>
+                <div class="datetime-cell">
+                    <span class="datetime-date">${date}</span>
+                    <span class="datetime-time">${time}</span>
+                </div>
+            </td>
+            <td>${row.usuario || '—'}</td>
+            <td>
+                <div class="event-cell">
+                    <span class="event-dot dot-${bc}"></span>
+                    <span class="badge badge-${bc}">${bl}</span>
+                </div>
+            </td>
+            <td>${row.entidad || '—'}</td>
+            <td><span class="detail-text" title="${detalle}">${detalle}</span></td>
+            <td><span class="ip-address">${row.entidad_id != null ? '#' + row.entidad_id : '—'}</span></td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn-action" title="Ver detalles" onclick='verDetalle(${JSON.stringify(row)})'>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+                    </button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+
+    // Info
+    document.getElementById('tableInfo').innerHTML =
+        `Mostrando <strong>${start + 1}–${Math.min(start + PER_PAGE, total)}</strong> de <strong>${total}</strong> registros`;
+
+    // Paginación
+    renderPagination(total);
+}
+
+function renderPagination(total) {
+    const totalPages = Math.ceil(total / PER_PAGE);
+    const ctrl = document.getElementById('paginationControls');
+    if (totalPages <= 1) { ctrl.innerHTML = ''; return; }
+
+    let html = `<button class="pagination-btn" ${currentPage===1?'disabled':''} onclick="goPage(${currentPage-1})">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6" stroke-width="2"/></svg>
+    </button>`;
+
+    const pages = paginationRange(currentPage, totalPages);
+    pages.forEach(p => {
+        if (p === '…') {
+            html += `<span class="pagination-dots">…</span>`;
+        } else {
+            html += `<button class="pagination-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
         }
-    </script>
+    });
+
+    html += `<button class="pagination-btn" ${currentPage===totalPages?'disabled':''} onclick="goPage(${currentPage+1})">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6" stroke-width="2"/></svg>
+    </button>`;
+    ctrl.innerHTML = html;
+}
+
+function paginationRange(cur, total) {
+    if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+    if (cur <= 4)  return [1,2,3,4,5,'…',total];
+    if (cur >= total-3) return [1,'…',total-4,total-3,total-2,total-1,total];
+    return [1,'…',cur-1,cur,cur+1,'…',total];
+}
+
+function goPage(p) {
+    currentPage = p;
+    renderTable();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ════════════════════════════════════════════════
+//  FILTERS (cliente, sin nueva petición)
+// ════════════════════════════════════════════════
+function applyFilters() {
+    const search  = document.getElementById('auditSearch').value.toLowerCase();
+    const accion  = document.getElementById('filterAccion').value;
+    const entidad = document.getElementById('filterEntidad').value;
+    const fecha   = document.getElementById('filterFecha').value; // YYYY-MM-DD
+
+    filtered = allRows.filter(row => {
+        const text = `${row.usuario||''} ${row.entidad||''} ${row.detalle||''} ${row.accion||''}`.toLowerCase();
+        const matchSearch  = !search  || text.includes(search);
+        const matchAccion  = !accion  || row.accion  === accion;
+        const matchEntidad = !entidad || row.entidad === entidad;
+        const matchFecha   = !fecha   || (row.fecha_accion || '').slice(0, 10) === fecha;
+        return matchSearch && matchAccion && matchEntidad && matchFecha;
+    });
+
+    currentPage = 1;
+    renderTable();
+}
+
+['auditSearch','filterAccion','filterEntidad','filterFecha'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', applyFilters);
+});
+
+// ════════════════════════════════════════════════
+//  SELECT ALL
+// ════════════════════════════════════════════════
+document.getElementById('selectAll').addEventListener('change', function() {
+    document.querySelectorAll('#auditBody .table-checkbox').forEach(cb => cb.checked = this.checked);
+});
+
+// ════════════════════════════════════════════════
+//  DETAIL MODAL
+// ════════════════════════════════════════════════
+function verDetalle(row) {
+    const { date, time } = formatFecha(row.fecha_accion);
+    const bc = badgeClass(row.accion);
+    const bl = badgeLabel(row.accion);
+    document.getElementById('modalContent').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div>
+                    <p style="font-size:.8rem;color:var(--color-text-secondary);margin-bottom:4px;">Fecha</p>
+                    <p style="font-weight:500;">${date}</p>
+                </div>
+                <div>
+                    <p style="font-size:.8rem;color:var(--color-text-secondary);margin-bottom:4px;">Hora</p>
+                    <p style="font-weight:500;">${time}</p>
+                </div>
+                <div>
+                    <p style="font-size:.8rem;color:var(--color-text-secondary);margin-bottom:4px;">Usuario</p>
+                    <p style="font-weight:500;">${row.usuario || '—'}</p>
+                </div>
+                <div>
+                    <p style="font-size:.8rem;color:var(--color-text-secondary);margin-bottom:4px;">Acción</p>
+                    <p><span class="badge badge-${bc}">${bl}</span></p>
+                </div>
+                <div>
+                    <p style="font-size:.8rem;color:var(--color-text-secondary);margin-bottom:4px;">Entidad</p>
+                    <p style="font-weight:500;">${row.entidad || '—'}</p>
+                </div>
+                <div>
+                    <p style="font-size:.8rem;color:var(--color-text-secondary);margin-bottom:4px;">ID Registro</p>
+                    <p style="font-family:'Courier New',monospace;">${row.entidad_id != null ? '#' + row.entidad_id : '—'}</p>
+                </div>
+            </div>
+            <div>
+                <p style="font-size:.8rem;color:var(--color-text-secondary);margin-bottom:4px;">Detalles</p>
+                <p style="background:var(--color-surface-raised);padding:.75rem 1rem;border-radius:var(--radius-sm);font-size:.9rem;">${row.detalle || '—'}</p>
+            </div>
+            <div>
+                <p style="font-size:.8rem;color:var(--color-text-secondary);margin-bottom:4px;">ID en historial</p>
+                <p style="font-family:'Courier New',monospace;">${row.historial_id}</p>
+            </div>
+            <div style="margin-top:.5rem;">
+                <button class="btn-secondary" onclick="closeModal()" style="width:100%;justify-content:center;">Cerrar</button>
+            </div>
+        </div>`;
+    document.getElementById('detailModal').classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('detailModal').classList.remove('active');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ════════════════════════════════════════════════
+//  EXPORT CSV
+// ════════════════════════════════════════════════
+function exportarHistorial() {
+    if (filtered.length === 0) { showToast('No hay datos para exportar.', 'warning'); return; }
+
+    const headers = ['historial_id','fecha_accion','usuario','accion','entidad','entidad_id','detalle'];
+    const rows = filtered.map(r =>
+        headers.map(h => {
+            const v = r[h] != null ? String(r[h]) : '';
+            return `"${v.replace(/"/g,'""')}"`;
+        }).join(',')
+    );
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = `historial_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Historial exportado correctamente.', 'success');
+}
+
+// ════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════
+function showToast(message, type = 'info') {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        container.style.cssText = 'position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:9999;';
+        document.body.appendChild(container);
+    }
+    const colors = { info:'var(--color-info)', success:'var(--color-success)', warning:'var(--color-warning)', error:'var(--color-danger)' };
+    const toast = document.createElement('div');
+    toast.style.cssText = `background:var(--color-surface);border:1px solid var(--color-border);border-left:4px solid ${colors[type]||colors.info};padding:12px 18px;border-radius:8px;font-size:.9rem;box-shadow:var(--shadow-md);max-width:320px;opacity:0;transform:translateX(20px);transition:all .25s ease;`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
+    setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)'; setTimeout(() => toast.remove(), 300); }, 3500);
+}
+
+// ════════════════════════════════════════════════
+//  SIDEBAR / LOGOUT
+// ════════════════════════════════════════════════
+document.querySelector('.sidebar-toggle').addEventListener('click', function() {
+    document.querySelector('.sidebar').classList.toggle('collapsed');
+});
+document.querySelector('.logout-btn').addEventListener('click', function() {
+    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+        window.location.href = '../login.html';
+    }
+});
+
+// ════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════
+fetchHistorial();
+</script>
 </body>
 </html>
