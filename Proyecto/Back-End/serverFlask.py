@@ -31,8 +31,8 @@ from Consumibles.readConsumibles import read_consumible_bp
 from Consumibles.updateConsumibles import update_consumible_bp
 from Consumibles.deleteConsumibles import delete_consumible_bp
 
-from Reporte.createReporte import create_reporte_bp
-from Reporte.readReporte import read_reporte_bp
+from Reportes.createReporte import create_reporte_bp
+from Reportes.readReporte import read_reporte_bp
 
 
 from Historial.createHistorial import create_historial_bp
