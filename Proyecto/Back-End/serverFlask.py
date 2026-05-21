@@ -43,6 +43,11 @@ from Usuarios.createUsuario        import create_usr_bp
 from Usuarios.updateUsuario        import update_usr_bp
 from Usuarios.deleteUsuario        import delete_usr_bp
 
+from Prestamos.createPrestamo import create_prestamo_bp
+from Prestamos.readPrestamos   import read_prestamo_bp
+from Prestamos.updatePrestamos import update_prestamo_bp
+from Prestamos.deletePrestamos import delete_prestamo_bp
+
 # ── App ───────────────────────────────────────────────────────────────────────
 app = Flask(__name__)
 CORS(app)
@@ -73,6 +78,11 @@ app.register_blueprint(read_usr_bp)
 app.register_blueprint(create_usr_bp)
 app.register_blueprint(update_usr_bp)
 app.register_blueprint(delete_usr_bp)
+
+app.register_blueprint(create_prestamo_bp)
+app.register_blueprint(read_prestamo_bp)
+app.register_blueprint(update_prestamo_bp)
+app.register_blueprint(delete_prestamo_bp)
 # ── Conexión a DB ─────────────────────────────────────────────────────────────
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
