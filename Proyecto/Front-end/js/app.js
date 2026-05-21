@@ -78,6 +78,27 @@ function initGlobalApp() {
     });
 }
 
+
+// Actualiza el badge de consumibles en el sidebar desde cualquier página
+async function updateConsumiblesBadge() {
+    try {
+        const res = await fetch('http://localhost:5000/consumibles');
+        const data = await res.json();
+        const bajo = data.filter(c => c.stock_actual <= c.stock_minimo * 1.5).length;
+        
+        const badge = document.getElementById('badge-bajo');
+        if (badge) {
+            badge.textContent = bajo;
+            badge.style.display = bajo > 0 ? '' : 'none';
+        }
+    } catch (err) {
+        console.warn('No se pudo actualizar badge consumibles:', err);
+    }
+}
+
+// Ejecutar al cargar la página
+updateConsumiblesBadge();
+
 function initPageFeatures() {
     const pageRoot = document.querySelector('#tab-content') || document.querySelector('.main-content');
     if (!pageRoot) return;
