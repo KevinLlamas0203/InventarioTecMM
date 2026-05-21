@@ -20,14 +20,20 @@ from Activos.createActivos import create_bp
 from Activos.readActivos   import read_bp
 from Activos.updateActivos import update_bp
 from Activos.deleteActivos import delete_bp
+
 from Movimientos.createMovimientos import create_bp as create_movimientos_bp
 from Movimientos.readMovimientos import read_bp as read_movimientos_bp
+
 from Asignaciones.asignaciones import asignaciones_bp
-# ── Imports de blueprints ─────────────────────────────────────────────────────
-from createActivos import create_bp
-from readActivos   import read_bp
-from updateActivos import update_bp
-from deleteActivos import delete_bp
+
+from Consumibles.createConsumibles import create_consumible_bp
+from Consumibles.readConsumibles import read_consumible_bp
+from Consumibles.updateConsumibles import update_consumible_bp
+from Consumibles.deleteConsumibles import delete_consumible_bp
+
+from Reporte.createReporte import create_reporte_bp
+from Reporte.readReporte import read_reporte_bp
+
 
 from Historial.createHistorial import create_historial_bp
 from Historial.readHistorial import read_historial_bp

@@ -15,7 +15,6 @@
     <link rel="shortcut icon" href="../../images/favicon_io/favicon.ico">
     <style>
         /* ── Historial-specific styles ── */
-<<<<<<< HEAD
         .audit-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -65,19 +64,73 @@
         .spinner { width:20px; height:20px; border:2px solid var(--color-border); border-top-color:var(--color-primary); border-radius:50%; animation:spin 0.7s linear infinite; }
         @keyframes spin { to { transform:rotate(360deg); } }
         .empty-state { text-align:center; padding:3rem; color:var(--color-text-secondary); }
+
+        /* ── Toast ── */
+        #toast-container {
+            position: fixed; bottom: 24px; right: 24px;
+            z-index: 9999; display: flex; flex-direction: column;
+            gap: 10px; align-items: flex-end; pointer-events: none;
+        }
+        .toast-item {
+            background: var(--color-surface, #1e1e2e);
+            border: 1px solid var(--color-border, #2a2a3a);
+            border-left: 4px solid var(--color-info, #339af0);
+            border-radius: 10px; padding: 14px 18px;
+            font-size: 0.92rem; font-weight: 500;
+            color: var(--color-text, #e8e8f0);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+            max-width: 320px; min-width: 220px; line-height: 1.45;
+            opacity: 0; transform: translateX(20px);
+            transition: opacity 0.22s ease, transform 0.22s ease;
+        }
+        .toast-item.show { opacity: 1; transform: translateX(0); }
+        .toast-item.toast-success { border-left-color: var(--color-success, #51cf66); }
+        .toast-item.toast-error   { border-left-color: var(--color-danger,  #ff6b6b); }
+        .toast-item.toast-warning { border-left-color: var(--color-warning, #ffd43b); }
+        .toast-item.toast-info    { border-left-color: var(--color-info,    #339af0); }
+
+        /* ── Responsive hamburguesa ── */
+        .mobile-menu-btn {
+            display: none; position: fixed; top: 14px; left: 14px;
+            z-index: 1100; background: var(--color-surface, #1e1e2e);
+            border: 1px solid var(--color-border, #2a2a3a); border-radius: 8px;
+            width: 40px; height: 40px; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--color-text, #e8e8f0);
+        }
+        .mobile-menu-btn svg { width: 20px; height: 20px; stroke: currentColor; }
+        .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1050; }
+        @media (max-width: 768px) {
+            .mobile-menu-btn { display: flex; }
+            .sidebar { position: fixed !important; top: 0; left: 0; bottom: 0; z-index: 1100; transform: translateX(-110%); transition: transform 0.28s ease; width: 260px !important; }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .sidebar-backdrop.show { display: block; }
+            .sidebar-toggle { display: none; }
+            .main-content { margin-left: 0 !important; padding-top: 60px; }
+            .dashboard-layout { grid-template-columns: 1fr !important; }
+        }
     </style>
 </head>
 <body class="dashboard-page">
+
+<!-- Botón hamburguesa móvil -->
+<button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menú">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12h18M3 6h18M3 18h18"/>
+    </svg>
+</button>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
 <div class="dashboard-layout">
 
     <!-- ═══════════════ SIDEBAR ═══════════════ -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-brand">
-                <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="5" y="5" width="30" height="30" rx="6" fill="currentColor" opacity="0.2"/>
-                    <path d="M13 16h14M13 20h14M13 24h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="28" cy="24" r="2" fill="currentColor"/>
+                <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="2" width="28" height="28" rx="6" fill="currentColor" opacity="0.15"/>
+                    <rect x="7" y="10" width="18" height="2.5" rx="1.2" fill="currentColor"/>
+                    <rect x="7" y="15" width="18" height="2.5" rx="1.2" fill="currentColor"/>
+                    <rect x="7" y="20" width="12" height="2.5" rx="1.2" fill="currentColor"/>
                 </svg>
                 <span class="brand-name">Sistema de Inventario</span>
             </div>
@@ -119,6 +172,13 @@
                     </svg>
                     <span>Consumibles</span>
                     <span class="nav-badge warning">12</span>
+                </a>
+                <a href="prestamos.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-width="2"/>
+                        <path d="M9 12l2 2 4-4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Préstamos</span>
                 </a>
             </div>
             <div class="nav-section">
@@ -195,7 +255,7 @@
             </div>
         </header>
 
-        <!-- ── Stats (calculadas desde la API) ── -->
+        <!-- ── Stats ── -->
         <div class="audit-stats">
             <div class="stat-card success">
                 <div class="stat-icon">
@@ -205,7 +265,6 @@
                     <span class="stat-label">Creaciones hoy</span>
                     <span class="stat-value" id="statCreaciones">—</span>
                 </div>
-<<<<<<< HEAD
                 <span class="stat-change positive" id="statCreacionesNote"></span>
             </div>
             <div class="stat-card info">
@@ -215,144 +274,12 @@
                 <div class="stat-content">
                     <span class="stat-label">Ediciones hoy</span>
                     <span class="stat-value" id="statEdiciones">—</span>
-=======
-
-                <div class="nav-section">
-                    <span class="nav-section-title">Reportes</span>
-                    <a href="reportes.html" class="nav-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/>
-                            <polyline points="14 2 14 8 20 8" stroke-width="2"/>
-                            <line x1="16" y1="13" x2="8" y2="13" stroke-width="2"/>
-                            <line x1="16" y1="17" x2="8" y2="17" stroke-width="2"/>
-                            <polyline points="10 9 9 9 8 9" stroke-width="2"/>
-                        </svg>
-                        <span>Reportes</span>
-                    </a>
-                    <a href="historial.html" class="nav-item active">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <circle cx="12" cy="12" r="10" stroke-width="2"/>
-                            <polyline points="12 6 12 12 16 14" stroke-width="2"/>
-                        </svg>
-                        <span>Historial</span>
-                    </a>
-                </div>
-
-                <div class="nav-section">
-                    <span class="nav-section-title">Configuración</span>
-                    <a href="usuarios.html" class="nav-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/>
-                            <circle cx="9" cy="7" r="4" stroke-width="2"/>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/>
-                        </svg>
-                        <span>Usuarios</span>
-                    </a>
-                    <a href="ajustes.html" class="nav-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-    <circle cx="12" cy="12" r="3"></circle>
-</svg>
-                        <span>Ajustes</span>
-                    </a>
-                </div>
-            </nav>
-
-            <div class="sidebar-footer">
-                <div class="user-profile">
-                    <div class="user-avatar">AD</div>
-                    <div class="user-info">
-                        <span class="user-name">Admin ISC</span>
-                        <span class="user-role">Administrador</span>
-                    </div>
-                </div>
-                <button class="btn-icon logout-btn" aria-label="Cerrar sesión">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </button>
-            </div>
-        </aside>
-
-        <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
-        <main class="main-content">
-            <header class="content-header">
-                <div class="header-left">
-                    <h1 class="page-title">Registro de Historial</h1>
-                    <p class="page-subtitle">Historial completo de cambios y actividades del sistema</p>
-                </div>
-                <div class="header-right">
-                    <button class="btn-secondary" onclick="exportarHistorial()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/>
-                            <polyline points="7 10 12 15 17 10" stroke-width="2"/>
-                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/>
-                        </svg>
-                        <span>Exportar Historial</span>
-                    </button>
-                </div>
-            </header>
-
-            <!-- ── Stats ── -->
-            <div class="historial-stats">
-                <div class="stat-card success">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/></svg>
-                    </div>
-                    <div class="stat-content">
-                        <span class="stat-label">Creaciones hoy</span>
-                        <span class="stat-value">8</span>
-                    </div>
-                    <span class="stat-change positive">↑ 3 más que ayer</span>
-                </div>
-                <div class="stat-card info">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/></svg>
-                    </div>
-                    <div class="stat-content">
-                        <span class="stat-label">Ediciones hoy</span>
-                        <span class="stat-value">14</span>
-                    </div>
-                    <span class="stat-change">Normal</span>
-                </div>
-                <div class="stat-card warning">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6" stroke-width="2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/></svg>
-                    </div>
-                    <div class="stat-content">
-                        <span class="stat-label">Eliminaciones hoy</span>
-                        <span class="stat-value">2</span>
-                    </div>
-                    <span class="stat-change negative">↑ 1 más que ayer</span>
-                </div>
-                <div class="stat-card primary">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/></svg>
-                    </div>
-                    <div class="stat-content">
-                        <span class="stat-label">Usuarios activos</span>
-                        <span class="stat-value">3</span>
-                    </div>
-                    <span class="stat-change">En sesión ahora</span>
->>>>>>> main
                 </div>
                 <span class="stat-change" id="statEdicionesNote"></span>
             </div>
-<<<<<<< HEAD
             <div class="stat-card warning">
                 <div class="stat-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6" stroke-width="2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/></svg>
-=======
-
-            <!-- ── Filters ── -->
-            <div class="toolbar">
-                <div class="search-box">
-                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <circle cx="11" cy="11" r="8" stroke-width="2"/>
-                        <path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <input type="text" placeholder="Buscar por usuario, módulo o detalles…" class="search-input" id="historialSearch">
->>>>>>> main
                 </div>
                 <div class="stat-content">
                     <span class="stat-label">Eliminaciones hoy</span>
@@ -360,221 +287,9 @@
                 </div>
                 <span class="stat-change negative" id="statEliminacionesNote"></span>
             </div>
-<<<<<<< HEAD
             <div class="stat-card primary">
                 <div class="stat-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/></svg>
-=======
-
-            <!-- ── Historial Table ── -->
-            <div class="card table-card">
-                <div class="table-wrapper">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th><input type="checkbox" class="table-checkbox" id="selectAll"></th>
-                                <th>Fecha y hora</th>
-                                <th>Usuario</th>
-                                <th>Acción</th>
-                                <th>Módulo</th>
-                                <th>Detalles</th>
-                                <th>IP</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historialBody">
-                            <!-- Row 1 -->
-                            <tr data-accion="Creación" data-usuario="Admin ISC" data-modulo="Activos">
-                                <td><input type="checkbox" class="table-checkbox"></td>
-                                <td>
-                                    <div class="datetime-cell">
-                                        <span class="datetime-date">15 Feb 2026</span>
-                                        <span class="datetime-time">10:45:22</span>
-                                    </div>
-                                </td>
-                                <td>Admin ISC</td>
-                                <td>
-                                    <div class="event-cell">
-                                        <span class="event-dot dot-creacion"></span>
-                                        <span class="badge badge-creacion">Creación</span>
-                                    </div>
-                                </td>
-                                <td>Activos</td>
-                                <td><span class="detail-text" title="Registró nuevo activo: Laptop Dell XPS (HW-2026-045)">Registró nuevo activo: Laptop Dell XPS (HW-2026-045)</span></td>
-                                <td><span class="ip-address">192.168.1.15</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action" title="Ver detalles" onclick="verDetalle(this)">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <!-- Row 2 -->
-                            <tr data-accion="Edición" data-usuario="Soporte" data-modulo="Consumibles">
-                                <td><input type="checkbox" class="table-checkbox"></td>
-                                <td>
-                                    <div class="datetime-cell">
-                                        <span class="datetime-date">15 Feb 2026</span>
-                                        <span class="datetime-time">09:12:10</span>
-                                    </div>
-                                </td>
-                                <td>Soporte</td>
-                                <td>
-                                    <div class="event-cell">
-                                        <span class="event-dot dot-edicion"></span>
-                                        <span class="badge badge-edicion">Edición</span>
-                                    </div>
-                                </td>
-                                <td>Consumibles</td>
-                                <td><span class="detail-text" title="Actualizó stock: Cable HDMI (Stock: 15 → 20)">Actualizó stock: Cable HDMI (Stock: 15 → 20)</span></td>
-                                <td><span class="ip-address">192.168.1.22</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action" title="Ver detalles" onclick="verDetalle(this)">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <!-- Row 3 -->
-                            <tr data-accion="Eliminación" data-usuario="Admin ISC" data-modulo="Usuarios">
-                                <td><input type="checkbox" class="table-checkbox"></td>
-                                <td>
-                                    <div class="datetime-cell">
-                                        <span class="datetime-date">14 Feb 2026</span>
-                                        <span class="datetime-time">16:30:00</span>
-                                    </div>
-                                </td>
-                                <td>Admin ISC</td>
-                                <td>
-                                    <div class="event-cell">
-                                        <span class="event-dot dot-eliminacion"></span>
-                                        <span class="badge badge-eliminacion">Eliminación</span>
-                                    </div>
-                                </td>
-                                <td>Usuarios</td>
-                                <td><span class="detail-text" title="Eliminó usuario: jdoe (ID: 45)">Eliminó usuario: jdoe (ID: 45)</span></td>
-                                <td><span class="ip-address">192.168.1.15</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action" title="Ver detalles" onclick="verDetalle(this)">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <!-- Row 4 -->
-                            <tr data-accion="Asignación" data-usuario="Admin ISC" data-modulo="Asignaciones">
-                                <td><input type="checkbox" class="table-checkbox"></td>
-                                <td>
-                                    <div class="datetime-cell">
-                                        <span class="datetime-date">14 Feb 2026</span>
-                                        <span class="datetime-time">11:05:44</span>
-                                    </div>
-                                </td>
-                                <td>Admin ISC</td>
-                                <td>
-                                    <div class="event-cell">
-                                        <span class="event-dot dot-asignacion"></span>
-                                        <span class="badge badge-asignacion">Asignación</span>
-                                    </div>
-                                </td>
-                                <td>Asignaciones</td>
-                                <td><span class="detail-text" title="Asignó MacBook Pro (LAP-2024-045) a María López">Asignó MacBook Pro (LAP-2024-045) a María López</span></td>
-                                <td><span class="ip-address">192.168.1.15</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action" title="Ver detalles" onclick="verDetalle(this)">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <!-- Row 5 -->
-                            <tr data-accion="Login" data-usuario="Docente" data-modulo="Sistema">
-                                <td><input type="checkbox" class="table-checkbox"></td>
-                                <td>
-                                    <div class="datetime-cell">
-                                        <span class="datetime-date">14 Feb 2026</span>
-                                        <span class="datetime-time">08:00:03</span>
-                                    </div>
-                                </td>
-                                <td>Docente</td>
-                                <td>
-                                    <div class="event-cell">
-                                        <span class="event-dot dot-login"></span>
-                                        <span class="badge badge-login">Login</span>
-                                    </div>
-                                </td>
-                                <td>Sistema</td>
-                                <td><span class="detail-text" title="Inicio de sesión exitoso (profesor.garcia@tsj.mx)">Inicio de sesión exitoso (profesor.garcia@tsj.mx)</span></td>
-                                <td><span class="ip-address">192.168.1.37</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action" title="Ver detalles" onclick="verDetalle(this)">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <!-- Row 6 -->
-                            <tr data-accion="Creación" data-usuario="Admin ISC" data-modulo="Consumibles">
-                                <td><input type="checkbox" class="table-checkbox"></td>
-                                <td>
-                                    <div class="datetime-cell">
-                                        <span class="datetime-date">13 Feb 2026</span>
-                                        <span class="datetime-time">15:22:11</span>
-                                    </div>
-                                </td>
-                                <td>Admin ISC</td>
-                                <td>
-                                    <div class="event-cell">
-                                        <span class="event-dot dot-creacion"></span>
-                                        <span class="badge badge-creacion">Creación</span>
-                                    </div>
-                                </td>
-                                <td>Consumibles</td>
-                                <td><span class="detail-text" title="Registró nuevo consumible: Tóner HP 85A (CON-2026-018)">Registró nuevo consumible: Tóner HP 85A (CON-2026-018)</span></td>
-                                <td><span class="ip-address">192.168.1.15</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action" title="Ver detalles" onclick="verDetalle(this)">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <!-- Row 7 -->
-                            <tr data-accion="Edición" data-usuario="Soporte" data-modulo="Activos">
-                                <td><input type="checkbox" class="table-checkbox"></td>
-                                <td>
-                                    <div class="datetime-cell">
-                                        <span class="datetime-date">13 Feb 2026</span>
-                                        <span class="datetime-time">10:44:30</span>
-                                    </div>
-                                </td>
-                                <td>Soporte</td>
-                                <td>
-                                    <div class="event-cell">
-                                        <span class="event-dot dot-edicion"></span>
-                                        <span class="badge badge-edicion">Edición</span>
-                                    </div>
-                                </td>
-                                <td>Activos</td>
-                                <td><span class="detail-text" title="Cambió estado de PC-Lab2-012 a 'Mantenimiento'">Cambió estado de PC-Lab2-012 a 'Mantenimiento'</span></td>
-                                <td><span class="ip-address">192.168.1.22</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action" title="Ver detalles" onclick="verDetalle(this)">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
->>>>>>> main
                 </div>
                 <div class="stat-content">
                     <span class="stat-label">Usuarios activos hoy</span>
@@ -644,7 +359,6 @@
                     </tbody>
                 </table>
             </div>
-
             <div class="table-footer">
                 <div class="table-info" id="tableInfo">Cargando…</div>
                 <div class="pagination" id="paginationControls"></div>
@@ -675,18 +389,16 @@
 // ════════════════════════════════════════════════
 //  CONFIG
 // ════════════════════════════════════════════════
-const API_BASE = 'http://localhost:5000';        // Si Flask corre en el mismo origen déjalo vacío.
-                              // Si corre en otro puerto usa: 'http://localhost:5000'
+const API_BASE = 'http://localhost:5000';
 const PER_PAGE = 10;
 
 // ════════════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════════════
-let allRows    = [];   // todos los registros traídos de la API
-let filtered   = [];   // después de aplicar filtros cliente
+let allRows     = [];
+let filtered    = [];
 let currentPage = 1;
 
-<<<<<<< HEAD
 // ════════════════════════════════════════════════
 //  FETCH desde /historial
 // ════════════════════════════════════════════════
@@ -694,125 +406,54 @@ async function fetchHistorial() {
     try {
         const res = await fetch(`${API_BASE}/historial`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        allRows = await res.json();
+        allRows  = await res.json();
         filtered = [...allRows];
         calcStats();
         renderTable();
     } catch (err) {
-        document.getElementById('auditBody').innerHTML = `
-            <tr><td colspan="8">
-                <div class="empty-state">
-                    ⚠️ No se pudo cargar el historial: ${err.message}
-=======
-        // ── Filtering ──
-        function applyHistorialFilters() {
-            const search  = document.getElementById('historialSearch').value.toLowerCase();
-            const accion  = document.getElementById('filterAccion').value;
-            const usuario = document.getElementById('filterUsuario').value;
-            const modulo  = document.getElementById('filterModulo').value;
-
-            document.querySelectorAll('#historialBody tr').forEach(row => {
-                const text   = row.textContent.toLowerCase();
-                const rAcc   = row.dataset.accion   || '';
-                const rUser  = row.dataset.usuario  || '';
-                const rMod   = row.dataset.modulo   || '';
-
-                const matchSearch  = !search  || text.includes(search);
-                const matchAccion  = !accion  || rAcc   === accion;
-                const matchUsuario = !usuario || rUser  === usuario;
-                const matchModulo  = !modulo  || rMod   === modulo;
-
-                row.style.display = (matchSearch && matchAccion && matchUsuario && matchModulo) ? '' : 'none';
-            });
-        }
-
-        ['historialSearch', 'filterAccion', 'filterUsuario', 'filterModulo', 'filterFecha'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('input', applyHistorialFilters);
-        });
-
-        // Select all
-        document.getElementById('selectAll').addEventListener('change', function() {
-            document.querySelectorAll('#historialBody .table-checkbox').forEach(cb => cb.checked = this.checked);
-        });
-
-        // ── Detail Modal ──
-        function verDetalle(btn) {
-            const row = btn.closest('tr');
-            const cells = row.querySelectorAll('td');
-            const fecha    = cells[1].textContent.trim();
-            const usuario  = cells[2].textContent.trim();
-            const accion   = cells[3].querySelector('.badge')?.textContent.trim() || '—';
-            const modulo   = cells[4].textContent.trim();
-            const detalles = cells[5].querySelector('.detail-text')?.getAttribute('title') || '—';
-            const ip       = cells[6].textContent.trim();
-
-            document.getElementById('modalContent').innerHTML = `
-                <div style="display:flex;flex-direction:column;gap:1rem;">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-                        <div>
-                            <p style="font-size:.8rem;color:var(--color-text-secondary);margin-bottom:4px;">Fecha y hora</p>
-                            <p style="font-weight:500;">${fecha}</p>
-                        </div>
-                        <div>
-                            <p style="font-size:.8rem;color:var(--color-text-secondary);margin-bottom:4px;">Usuario</p>
-                            <p style="font-weight:500;">${usuario}</p>
-                        </div>
-                        <div>
-                            <p style="font-size:.8rem;color:var(--color-text-secondary);margin-bottom:4px;">Acción</p>
-                            <p>${accion}</p>
-                        </div>
-                        <div>
-                            <p style="font-size:.8rem;color:var(--color-text-secondary);margin-bottom:4px;">Módulo</p>
-                            <p style="font-weight:500;">${modulo}</p>
-                        </div>
-                    </div>
-                    <div>
-                        <p style="font-size:.8rem;color:var(--color-text-secondary);margin-bottom:4px;">Detalles</p>
-                        <p style="background:var(--color-surface-raised);padding:.75rem 1rem;border-radius:var(--radius-sm);font-size:.9rem;">${detalles}</p>
-                    </div>
-                    <div>
-                        <p style="font-size:.8rem;color:var(--color-text-secondary);margin-bottom:4px;">Dirección IP</p>
-                        <p style="font-family:'Courier New',monospace;">${ip}</p>
-                    </div>
-                    <div style="margin-top:.5rem;">
-                        <button class="btn-secondary" onclick="closeModal()" style="width:100%;justify-content:center;">Cerrar</button>
-                    </div>
->>>>>>> main
-                </div>
-            </td></tr>`;
-        document.getElementById('tableInfo').textContent = 'Error al cargar datos';
+        // Fallback con datos de demostración cuando el servidor no está disponible
+        console.warn('[fetchHistorial] Sin conexión, usando datos de demostración:', err.message);
+        allRows = DEMO_ROWS;
+        filtered = [...allRows];
+        calcStats();
+        renderTable();
     }
 }
 
 // ════════════════════════════════════════════════
-//  STATS calculadas sobre los datos reales
+//  DATOS DE DEMOSTRACIÓN (cuando no hay backend)
+// ════════════════════════════════════════════════
+const hoy = new Date().toISOString().slice(0, 10);
+const DEMO_ROWS = [
+    { historial_id:1, fecha_accion: hoy+'T10:45:22', usuario:'Admin ISC',  accion:'CREAR',    entidad:'activo',      entidad_id:45,  detalle:'Registró nuevo activo: Laptop Dell XPS (HW-2026-045)' },
+    { historial_id:2, fecha_accion: hoy+'T09:12:10', usuario:'Soporte',    accion:'EDITAR',   entidad:'consumible',  entidad_id:18,  detalle:'Actualizó stock: Cable HDMI (Stock: 15 → 20)' },
+    { historial_id:3, fecha_accion: hoy+'T08:30:00', usuario:'Admin ISC',  accion:'ELIMINAR', entidad:'usuario',     entidad_id:45,  detalle:'Eliminó usuario: jdoe (ID: 45)' },
+    { historial_id:4, fecha_accion: hoy+'T08:00:03', usuario:'Docente',    accion:'LOGIN',    entidad:'sistema',     entidad_id:null,detalle:'Inicio de sesión exitoso (profesor.garcia@tsj.mx)' },
+    { historial_id:5, fecha_accion: hoy+'T07:55:10', usuario:'Admin ISC',  accion:'ASIGNAR',  entidad:'asignacion',  entidad_id:12,  detalle:'Asignó MacBook Pro (LAP-2024-045) a María López' },
+    { historial_id:6, fecha_accion: hoy+'T07:30:11', usuario:'Admin ISC',  accion:'CREAR',    entidad:'consumible',  entidad_id:18,  detalle:'Registró nuevo consumible: Tóner HP 85A (CON-2026-018)' },
+    { historial_id:7, fecha_accion: hoy+'T07:15:30', usuario:'Soporte',    accion:'EDITAR',   entidad:'activo',      entidad_id:12,  detalle:"Cambió estado de PC-Lab2-012 a 'Mantenimiento'" },
+    { historial_id:8, fecha_accion: hoy+'T06:50:44', usuario:'Admin ISC',  accion:'CREAR',    entidad:'activo',      entidad_id:46,  detalle:'Registró nuevo activo: Monitor LG 27" (MON-2026-046)' },
+];
+
+// ════════════════════════════════════════════════
+//  STATS
 // ════════════════════════════════════════════════
 function calcStats() {
-    const today = new Date().toISOString().slice(0, 10);
-    const todayRows = allRows.filter(r => (r.fecha_accion || '').slice(0, 10) === today);
-
+    const todayRows    = allRows.filter(r => (r.fecha_accion || '').slice(0, 10) === hoy);
     const creaciones   = todayRows.filter(r => r.accion === 'CREAR').length;
     const ediciones    = todayRows.filter(r => r.accion === 'EDITAR').length;
-    const eliminaciones = todayRows.filter(r => r.accion === 'ELIMINAR').length;
+    const eliminaciones= todayRows.filter(r => r.accion === 'ELIMINAR').length;
     const usuarios     = [...new Set(todayRows.map(r => r.usuario).filter(Boolean))].length;
 
-<<<<<<< HEAD
-    document.getElementById('statCreaciones').textContent   = creaciones;
-    document.getElementById('statEdiciones').textContent    = ediciones;
+    document.getElementById('statCreaciones').textContent    = creaciones;
+    document.getElementById('statEdiciones').textContent     = ediciones;
     document.getElementById('statEliminaciones').textContent = eliminaciones;
-    document.getElementById('statUsuarios').textContent     = usuarios;
-=======
-        function exportarHistorial() {
-            showToast('Exportando log de historial en CSV…', 'info');
-            setTimeout(() => showToast('Log exportado correctamente.', 'success'), 1800);
-        }
->>>>>>> main
+    document.getElementById('statUsuarios').textContent      = usuarios;
 
-    document.getElementById('statCreacionesNote').textContent   = creaciones > 0 ? `${creaciones} registro(s) hoy` : 'Sin creaciones hoy';
-    document.getElementById('statEdicionesNote').textContent    = ediciones  > 0 ? `${ediciones} edición(es) hoy`  : 'Sin ediciones hoy';
-    document.getElementById('statEliminacionesNote').textContent = eliminaciones > 0 ? `${eliminaciones} eliminación(es)` : 'Sin eliminaciones hoy';
-    document.getElementById('statUsuariosNote').textContent     = usuarios   > 0 ? 'En actividad hoy' : 'Sin actividad hoy';
+    document.getElementById('statCreacionesNote').textContent    = creaciones > 0   ? `${creaciones} registro(s) hoy`    : 'Sin creaciones hoy';
+    document.getElementById('statEdicionesNote').textContent     = ediciones  > 0   ? `${ediciones} edición(es) hoy`     : 'Sin ediciones hoy';
+    document.getElementById('statEliminacionesNote').textContent = eliminaciones > 0? `${eliminaciones} eliminación(es)` : 'Sin eliminaciones hoy';
+    document.getElementById('statUsuariosNote').textContent      = usuarios   > 0   ? 'En actividad hoy'                 : 'Sin actividad hoy';
 }
 
 // ════════════════════════════════════════════════
@@ -885,11 +526,9 @@ function renderTable() {
         </tr>`;
     }).join('');
 
-    // Info
     document.getElementById('tableInfo').innerHTML =
         `Mostrando <strong>${start + 1}–${Math.min(start + PER_PAGE, total)}</strong> de <strong>${total}</strong> registros`;
 
-    // Paginación
     renderPagination(total);
 }
 
@@ -904,11 +543,8 @@ function renderPagination(total) {
 
     const pages = paginationRange(currentPage, totalPages);
     pages.forEach(p => {
-        if (p === '…') {
-            html += `<span class="pagination-dots">…</span>`;
-        } else {
-            html += `<button class="pagination-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
-        }
+        if (p === '…') html += `<span class="pagination-dots">…</span>`;
+        else html += `<button class="pagination-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
     });
 
     html += `<button class="pagination-btn" ${currentPage===totalPages?'disabled':''} onclick="goPage(${currentPage+1})">
@@ -931,13 +567,13 @@ function goPage(p) {
 }
 
 // ════════════════════════════════════════════════
-//  FILTERS (cliente, sin nueva petición)
+//  FILTERS
 // ════════════════════════════════════════════════
 function applyFilters() {
     const search  = document.getElementById('auditSearch').value.toLowerCase();
     const accion  = document.getElementById('filterAccion').value;
     const entidad = document.getElementById('filterEntidad').value;
-    const fecha   = document.getElementById('filterFecha').value; // YYYY-MM-DD
+    const fecha   = document.getElementById('filterFecha').value;
 
     filtered = allRows.filter(row => {
         const text = `${row.usuario||''} ${row.entidad||''} ${row.detalle||''} ${row.accion||''}`.toLowerCase();
@@ -1024,7 +660,6 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal()
 // ════════════════════════════════════════════════
 function exportarHistorial() {
     if (filtered.length === 0) { showToast('No hay datos para exportar.', 'warning'); return; }
-
     const headers = ['historial_id','fecha_accion','usuario','accion','entidad','entidad_id','detalle'];
     const rows = filtered.map(r =>
         headers.map(h => {
@@ -1032,13 +667,13 @@ function exportarHistorial() {
             return `"${v.replace(/"/g,'""')}"`;
         }).join(',')
     );
-    const csv = [headers.join(','), ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const csv  = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
     a.href = url;
     a.download = `historial_${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
+    document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
     showToast('Historial exportado correctamente.', 'success');
 }
@@ -1047,24 +682,22 @@ function exportarHistorial() {
 //  TOAST
 // ════════════════════════════════════════════════
 function showToast(message, type = 'info') {
-    let container = document.querySelector('.toast-container');
+    let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
-        container.className = 'toast-container';
-        container.style.cssText = 'position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:9999;';
+        container.id = 'toast-container';
         document.body.appendChild(container);
     }
-    const colors = { info:'var(--color-info)', success:'var(--color-success)', warning:'var(--color-warning)', error:'var(--color-danger)' };
     const toast = document.createElement('div');
-    toast.style.cssText = `background:var(--color-surface);border:1px solid var(--color-border);border-left:4px solid ${colors[type]||colors.info};padding:12px 18px;border-radius:8px;font-size:.9rem;box-shadow:var(--shadow-md);max-width:320px;opacity:0;transform:translateX(20px);transition:all .25s ease;`;
+    toast.className = `toast-item toast-${type}`;
     toast.textContent = message;
     container.appendChild(toast);
-    requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
-    setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)'; setTimeout(() => toast.remove(), 300); }, 3500);
+    requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 250); }, 3000);
 }
 
 // ════════════════════════════════════════════════
-//  SIDEBAR / LOGOUT
+//  SIDEBAR / LOGOUT / HAMBURGUESA
 // ════════════════════════════════════════════════
 document.querySelector('.sidebar-toggle').addEventListener('click', function() {
     document.querySelector('.sidebar').classList.toggle('collapsed');
@@ -1074,6 +707,16 @@ document.querySelector('.logout-btn').addEventListener('click', function() {
         window.location.href = '../login.html';
     }
 });
+(function() {
+    const menuBtn  = document.getElementById('mobileMenuBtn');
+    const sidebar  = document.querySelector('.sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    menuBtn.addEventListener('click', () => { sidebar.classList.add('mobile-open'); backdrop.classList.add('show'); });
+    backdrop.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); backdrop.classList.remove('show'); });
+    sidebar.querySelectorAll('.nav-item').forEach(i => i.addEventListener('click', () => {
+        sidebar.classList.remove('mobile-open'); backdrop.classList.remove('show');
+    }));
+})();
 
 // ════════════════════════════════════════════════
 //  INIT
