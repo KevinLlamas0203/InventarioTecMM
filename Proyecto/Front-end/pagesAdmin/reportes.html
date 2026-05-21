@@ -154,6 +154,64 @@
             height: 40px;
             align-items: center;
             justify-content: center;
+
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .report-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke-width: 2;
+        }
+
+        .report-icon.blue {
+            background: rgba(51, 154, 240, 0.15);
+            color: var(--color-info);
+        }
+
+        .report-icon.green {
+            background: rgba(81, 207, 102, 0.15);
+            color: var(--color-success);
+        }
+
+        .report-icon.red {
+            background: rgba(255, 107, 107, 0.15);
+            color: var(--color-danger);
+        }
+
+        .report-card h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .report-card p {
+            font-size: 0.9rem;
+            color: var(--color-text-secondary);
+            line-height: 1.5;
+        }
+
+        .report-card .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .report-card .form-group label {
+            font-size: 0.82rem;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+        }
+
+        .report-card select {
+            padding: 8px 12px;
+            background: var(--color-surface-raised);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            color: var(--color-text);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+
             cursor: pointer;
             color: var(--color-text, #e8e8f0);
         }
@@ -301,9 +359,34 @@
                 <div class="stat-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/><polyline points="14 2 14 8 20 8" stroke-width="2"/></svg>
                 </div>
+<<<<<<< HEAD
                 <div class="stat-content">
                     <span class="stat-label">Reportes este mes</span>
                     <span class="stat-value" id="stat-reportes-mes">—</span>
+=======
+
+                <div class="nav-section">
+                    <span class="nav-section-title">Gestión</span>
+                    <a href="ModuloActivo.html" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2" />
+                            <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                        <span>Módulo de Activos</span>
+                        <span class="nav-badge">245</span>
+                    </a>
+                    <a href="consumibles.html" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path
+                                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+                                stroke-width="2" />
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2" />
+                            <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2" />
+                        </svg>
+                        <span>Consumibles</span>
+                        <span class="nav-badge warning">12</span>
+                    </a>
+>>>>>>> main
                 </div>
                 <span class="stat-change positive" id="stat-diferencia">Cargando…</span>
             </div>
@@ -317,6 +400,7 @@
                 </div>
                 <span class="stat-change">Registrados en el sistema</span>
             </div>
+<<<<<<< HEAD
             <div class="stat-card warning">
                 <div class="stat-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/><line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round"/></svg>
@@ -326,6 +410,150 @@
                     <span class="stat-value" id="stat-alertas">—</span>
                 </div>
                 <span class="stat-change negative" id="stat-alertas-label">Consumibles con stock bajo</span>
+=======
+
+            <!-- ── Report Generator Cards ── -->
+            <div class="reports-grid">
+
+                <!-- Reporte General -->
+                <div class="card report-card">
+                    <div class="card-header">
+                        <div class="report-icon blue">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path
+                                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+                                    stroke-width="2" />
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2" />
+                                <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Reporte General</h3>
+                            <p>Reporte completo de todos los activos y consumibles registrados en el sistema.</p>
+                        </div>
+                    </div>
+                    <div class="report-card-body">
+                        <div class="form-group">
+                            <label>Formato de exportación</label>
+                            <select id="fmt-general">
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel (XLSX)</option>
+                                <option value="csv">CSV</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Rango de fechas</label>
+                            <select>
+                                <option>Últimos 30 días</option>
+                                <option>Últimos 3 meses</option>
+                                <option>Este año</option>
+                                <option>Todo el historial</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn-primary"
+                        onclick="generarReporte('Reporte General', document.getElementById('fmt-general').value)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
+                            <polyline points="7 10 12 15 17 10" stroke-width="2" />
+                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" />
+                        </svg>
+                        <span>Descargar Reporte</span>
+                    </button>
+                </div>
+
+                <!-- Reporte por Laboratorio -->
+                <div class="card report-card">
+                    <div class="card-header">
+                        <div class="report-icon green">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" stroke-width="2" />
+                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" stroke-width="2" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Reporte por Laboratorio</h3>
+                            <p>Listado de activos asignados por laboratorio o área específica del plantel.</p>
+                        </div>
+                    </div>
+                    <div class="report-card-body">
+                        <div class="form-group">
+                            <label>Seleccionar laboratorio</label>
+                            <select id="select-laboratorio">
+                                <option value="all">Todos los laboratorios</option>
+                                <option value="lab1">Laboratorio 1</option>
+                                <option value="lab2">Laboratorio 2</option>
+                                <option value="admin">Administración</option>
+                                <option value="docentes">Sala de Docentes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Formato de exportación</label>
+                            <select id="fmt-laboratorio">
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel (XLSX)</option>
+                                <option value="csv">CSV</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn-primary"
+                        onclick="generarReporte('Reporte por Laboratorio', document.getElementById('fmt-laboratorio').value)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
+                            <polyline points="7 10 12 15 17 10" stroke-width="2" />
+                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" />
+                        </svg>
+                        <span>Descargar Reporte</span>
+                    </button>
+                </div>
+
+                <!-- Reporte de Alertas -->
+                <div class="card report-card">
+                    <div class="card-header">
+                        <div class="report-icon red">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path
+                                    d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                                    stroke-width="2" />
+                                <line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round" />
+                                <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3>Reporte de Alertas</h3>
+                            <p>Consumibles con nivel de inventario bajo o en estado crítico que requieren reposición.</p>
+                        </div>
+                    </div>
+                    <div class="report-card-body">
+                        <div class="form-group">
+                            <label>Umbral de alerta</label>
+                            <select>
+                                <option>Stock crítico (≤5 unidades)</option>
+                                <option>Stock bajo (≤10 unidades)</option>
+                                <option>Todos los consumibles</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Formato de exportación</label>
+                            <select id="fmt-alertas">
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel (XLSX)</option>
+                                <option value="csv">CSV</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn-primary"
+                        onclick="generarReporte('Reporte de Alertas', document.getElementById('fmt-alertas').value)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
+                            <polyline points="7 10 12 15 17 10" stroke-width="2" />
+                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" />
+                        </svg>
+                        <span>Descargar Reporte</span>
+                    </button>
+                </div>
+
+>>>>>>> main
             </div>
         </div>
 
@@ -335,12 +563,129 @@
             <!-- Reporte General -->
             <div class="card report-card">
                 <div class="card-header">
+<<<<<<< HEAD
                     <div class="report-icon blue">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/><polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2"/><line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/></svg>
                     </div>
                     <div>
                         <h3>Reporte General</h3>
                         <p>Reporte completo de todos los activos y consumibles registrados en el sistema.</p>
+=======
+                    <h3 class="card-title">Historial de Descargas</h3>
+                    <button class="btn-secondary" onclick="limpiarHistorial()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="3 6 5 6 21 6" stroke-width="2" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                stroke-width="2" />
+                        </svg>
+                        <span>Limpiar historial</span>
+                    </button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Reporte</th>
+                                <th>Usuario</th>
+                                <th>Fecha y hora</th>
+                                <th>Formato</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historialBody">
+                            <tr>
+                                <td>
+                                    <div class="asset-info">
+                                        <span class="asset-name">Reporte General</span>
+                                        <span class="asset-specs">Todo el historial · 245 activos</span>
+                                    </div>
+                                </td>
+                                <td>Admin ISC</td>
+                                <td>15 Feb 2026, 10:30 AM</td>
+                                <td><span class="badge badge-pdf">PDF</span></td>
+                                <td><span class="status status-available">Completado</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Descargar de nuevo"
+                                            onclick="showToast('Descargando reporte…', 'info')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
+                                                <polyline points="7 10 12 15 17 10" stroke-width="2" />
+                                                <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="asset-info">
+                                        <span class="asset-name">Reporte por Laboratorio</span>
+                                        <span class="asset-specs">Laboratorio 1 · 38 activos</span>
+                                    </div>
+                                </td>
+                                <td>Admin ISC</td>
+                                <td>14 Feb 2026, 09:15 AM</td>
+                                <td><span class="badge badge-xlsx">XLSX</span></td>
+                                <td><span class="status status-available">Completado</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Descargar de nuevo"
+                                            onclick="showToast('Descargando reporte…', 'info')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
+                                                <polyline points="7 10 12 15 17 10" stroke-width="2" />
+                                                <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="asset-info">
+                                        <span class="asset-name">Reporte de Alertas</span>
+                                        <span class="asset-specs">Stock crítico · 7 consumibles</span>
+                                    </div>
+                                </td>
+                                <td>Admin ISC</td>
+                                <td>13 Feb 2026, 04:00 PM</td>
+                                <td><span class="badge badge-csv">CSV</span></td>
+                                <td><span class="status status-available">Completado</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action" title="Descargar de nuevo"
+                                            onclick="showToast('Descargando reporte…', 'info')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
+                                                <polyline points="7 10 12 15 17 10" stroke-width="2" />
+                                                <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer">
+                    <div class="table-info">Mostrando <strong>1-3</strong> de <strong>24</strong> reportes</div>
+                    <div class="pagination">
+                        <button class="pagination-btn" disabled>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="15 18 9 12 15 6" stroke-width="2" />
+                            </svg>
+                        </button>
+                        <button class="pagination-btn active">1</button>
+                        <button class="pagination-btn">2</button>
+                        <button class="pagination-btn">3</button>
+                        <button class="pagination-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="9 18 15 12 9 6" stroke-width="2" />
+                            </svg>
+                        </button>
+>>>>>>> main
                     </div>
                 </div>
                 <div class="report-card-body">
