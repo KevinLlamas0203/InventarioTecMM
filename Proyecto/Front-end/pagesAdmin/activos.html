@@ -191,7 +191,8 @@
                         <circle cx="11" cy="11" r="8" stroke-width="2"/>
                         <path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
                     </svg>
-                    <input type="text" placeholder="Buscar por ID, nombre, categoría..." class="search-input">
+                    <input type="text" placeholder="Buscar por ID, nombre, categoría..." class="search-input" aria-label="Buscar activos" aria-describedby="searchHelp">
+                    <span id="searchHelp" style="display:none">Busca por ID, nombre o categoría del activo</span>
                 </div>
                 
                 <div class="filters">
@@ -266,23 +267,25 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Nombre del activo</label>
-                            <input type="text" id="inputNombre" placeholder="Ej: MacBook Pro 16 pulgadas" required minlength="3" maxlength="120" autocomplete="off">
+                            <input type="text" id="inputNombre" placeholder="Ej: MacBook Pro 16 pulgadas" required minlength="3" maxlength="120" autocomplete="off" aria-required="true" aria-describedby="nombreHelp">
+                            <small id="nombreHelp" style="font-size:0.75rem;color:var(--color-text-secondary);display:block;margin-top:0.25rem">Mínimo 3 caracteres</small>
                         </div>
                         <div class="form-group">
                             <label>ID del activo</label>
-                            <input type="text" placeholder="Generado automáticamente" disabled>
+                            <input type="text" id="activoIdDisplay" placeholder="Se genera automáticamente" disabled aria-describedby="idHelp">
+                            <small id="idHelp" style="font-size:0.75rem;color:var(--color-text-secondary);display:block;margin-top:0.25rem">Se asigna al guardar</small>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Categoría</label>
-                            <select id="inputCategoria" required>
+                            <label>Categoría <span style="color:var(--color-danger)">*</span></label>
+                            <select id="inputCategoria" required aria-required="true">
                                 <option value="">Seleccionar categoría</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Estado</label>
-                            <select id="inputEstado" required>
+                            <label>Estado <span style="color:var(--color-danger)">*</span></label>
+                            <select id="inputEstado" required aria-required="true">
                                 <option value="">Seleccionar estado</option>
                             </select>
                         </div>
@@ -293,22 +296,25 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Ubicación</label>
-                            <select id="inputUbicacion" required>
+                            <label>Ubicación <span style="color:var(--color-danger)">*</span></label>
+                            <select id="inputUbicacion" required aria-required="true" aria-describedby="ubicacionHelp">
                                 <option value="">Seleccionar ubicación</option>
                             </select>
+                            <small id="ubicacionHelp" style="font-size:0.75rem;color:var(--color-text-secondary);display:block;margin-top:0.25rem">Campo obligatorio</small>
                         </div>
                         <div class="form-group">
                             <label>Asignado a</label>
-                            <select id="inputAsignadoA">
+                            <select id="inputAsignadoA" aria-describedby="asignadoHelp">
                                 <option value="">No asignado</option>
                             </select>
+                            <small id="asignadoHelp" style="font-size:0.75rem;color:var(--color-text-secondary);display:block;margin-top:0.25rem">Opcional. Si se asigna, el estado será "En uso"</small>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Fecha de alta</label>
-                            <input type="date" id="inputFechaAlta" required>
+                            <label>Fecha de alta <span style="color:var(--color-danger)">*</span></label>
+                            <input type="date" id="inputFechaAlta" required aria-required="true" aria-describedby="fechaHelp">
+                            <small id="fechaHelp" style="font-size:0.75rem;color:var(--color-text-secondary);display:block;margin-top:0.25rem">Fecha pasada o actual. Hoy por defecto</small>
                         </div>
                     </div>
                     <div class="modal-actions">

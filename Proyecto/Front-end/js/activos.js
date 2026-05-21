@@ -1,4 +1,4 @@
-function getApiUrl() {
+﻿function getApiUrl() {
     return window.API_URL || "http://127.0.0.1:5000";
 }
 
@@ -190,8 +190,10 @@ function populateSelects() {
         inputAsignadoA.innerHTML = '';
         inputAsignadoA.appendChild(new Option('No asignado', ''));
         assetCatalogs.usuarios.forEach(user => {
-            const value = user.nombre_completo || user.correo_electronico;
-            const label = user.correo_electronico ? `${value} - ${user.correo_electronico}` : value;
+            const nombreCompleto = user.nombre_completo ?? user.correo_electronico ?? '';
+            const correo = user.correo_electronico ?? '';
+            const label = correo ? `${nombreCompleto} (${correo})` : nombreCompleto;
+            const value = nombreCompleto || correo;
             if (value) inputAsignadoA.appendChild(new Option(label, value));
         });
         inputAsignadoA.value = current;
@@ -412,7 +414,7 @@ async function cambiarEstadoRapido(id, nuevoEstado, selectElement) {
 
         selectElement.className = `status-select ${STATUS_CLASSES[nuevoEstado] || 'status-available'}`;
         await Promise.all([cargarActivos(false), refreshRelatedMovimientos()]);
-        notify('Estado actualizado correctamente', 'success');
+        notify(`Estado actualizado: ${previousValue} → ${nuevoEstado}`, 'success');
     } catch (err) {
         console.error(err);
         if (previousValue) selectElement.value = previousValue;
@@ -427,6 +429,7 @@ async function abrirEditar(activoId) {
         await loadAssetCatalogs();
         populateSelects();
         setFormValue('activoId', asset.activo_id);
+        setFormValue('activoIdDisplay', `#${asset.activo_id}`);
         setFormValue('inputNombre', asset.nombre);
         setFormValue('inputCategoria', asset.categoria);
         setFormValue('inputEstado', asset.estado);
@@ -537,7 +540,7 @@ function obtenerDatosFormulario() {
         descripcion: getValue('inputDescripcion') || null,
         categoria: getValue('inputCategoria'),
         estado: getValue('inputEstado'),
-        ubicacion: getValue('inputUbicacion') || null,
+        ubicacion: getValue('inputUbicacion'),
         asignado_a: getValue('inputAsignadoA') || null,
         fecha_alta: getValue('inputFechaAlta') || null
     };
@@ -562,7 +565,11 @@ function validateAssetPayload(payload) {
     if (!payload.fecha_alta) {
         return { ok: false, field: 'inputFechaAlta', message: 'Selecciona la fecha de alta.' };
     }
-    if (new Date(payload.fecha_alta) > new Date()) {
+    const selectedDate = new Date(payload.fecha_alta);
+    const today = new Date();
+    selectedDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    if (selectedDate > today) {
         return { ok: false, field: 'inputFechaAlta', message: 'La fecha de alta no puede ser futura.' };
     }
     if (payload.descripcion && payload.descripcion.length > 500) {
@@ -608,7 +615,13 @@ function updateSummary() {
 
 function setTableLoading(isLoading) {
     const table = getPageRoot()?.querySelector('.table-card');
+    const tbody = getPageRoot()?.querySelector('.data-table tbody');
+    
     table?.classList.toggle('is-loading', isLoading);
+    
+    if (isLoading && tbody) {
+        tbody.innerHTML = '<tr><td colspan="9" class="empty-cell">Cargando activos...</td></tr>';
+    }
 }
 
 function renderEmptyState(message) {
@@ -636,17 +649,17 @@ function refreshRelatedMovimientos() {
 }
 
 function getValue(id) {
-    return document.getElementById(id)?.value.trim() || '';
+    return document.getElementById(id)?.value.trim() ?? '';
 }
 
 function setFormValue(id, value) {
     const el = document.getElementById(id);
-    if (el) el.value = value || '';
+    if (el) el.value = value ?? '';
 }
 
 function setText(id, value) {
     const el = document.getElementById(id);
-    if (el) el.textContent = value;
+    if (el) el.textContent = value ?? '-';
 }
 
 function normalize(value) {
