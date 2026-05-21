@@ -38,6 +38,11 @@ from Reportes.readReporte import read_reporte_bp
 from Historial.createHistorial import create_historial_bp
 from Historial.readHistorial import read_historial_bp
 
+from Usuarios.readUsuario         import read_usr_bp
+from Usuarios.createUsuario        import create_usr_bp
+from Usuarios.updateUsuario        import update_usr_bp
+from Usuarios.deleteUsuario        import delete_usr_bp
+
 # ── App ───────────────────────────────────────────────────────────────────────
 app = Flask(__name__)
 CORS(app)
@@ -64,6 +69,10 @@ app.register_blueprint(read_reporte_bp)
 app.register_blueprint(create_historial_bp)
 app.register_blueprint(read_historial_bp)
 
+app.register_blueprint(read_usr_bp)
+app.register_blueprint(create_usr_bp)
+app.register_blueprint(update_usr_bp)
+app.register_blueprint(delete_usr_bp)
 # ── Conexión a DB ─────────────────────────────────────────────────────────────
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
