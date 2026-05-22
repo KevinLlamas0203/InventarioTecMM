@@ -6,6 +6,9 @@ from flask import Blueprint, jsonify, request
 from Activos.db_helpers import get_connection, get_or_create_fk_id, get_user_id, get_fk_id
 from Activos.sync_helpers import create_movement_record
 
+# ── Helper de historial ───────────────────────────────────────────────────────
+from Historial.historial_helper import registrar_historial
+
 create_bp = Blueprint("create_bp", __name__)
 
 
@@ -83,11 +86,11 @@ def create_activo():
         return jsonify({"error": "No se recibieron datos para registrar el activo."}), 400
 
     try:
-        nombre = clean_text(data.get("nombre"), "nombre", required=True)
+        nombre      = clean_text(data.get("nombre"),      "nombre",      required=True)
         descripcion = clean_text(data.get("descripcion"), "descripcion")
         categoria = clean_text(data.get("categoria"), "categoria", required=True)
         estado = clean_text(data.get("estado"), "estado", required=True)
-        ubicacion = clean_text(data.get("ubicacion"), "ubicacion", required=True)
+        ubicacion = clean_text(data.get("ubicacion"), "ubicacion")
         asignado_a = clean_text(data.get("asignado_a"), "asignado_a")
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
@@ -100,12 +103,15 @@ def create_activo():
     if data.get("fecha_alta") and not fecha_alta:
         return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD."}), 400
 
+    # Obtener el usuario que realiza la acción (para el historial)
+    usuario_accion = data.get("usuario_accion", asignado_a or "Admin")
+
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
                 fk_categoria = get_or_create_fk_id(cur, "categorias", "id_categoria", "nombre", categoria)
                 fk_ubicacion = get_or_create_fk_id(cur, "ubicaciones", "id_ubicacion", "nombre", ubicacion)
-                fk_usuario = get_user_id(cur, asignado_a)
+                fk_usuario   = get_user_id(cur, asignado_a)
 
                 if asignado_a and fk_usuario is None:
                     return jsonify({"error": f"No se puede registrar el activo: el usuario asignado no existe ({asignado_a})."}), 400
@@ -181,6 +187,21 @@ def create_activo():
                     )
 
             conn.commit()
+
+        # ── Registrar en historial (fuera del with, después del commit) ───────
+        detalle = f"Registró nuevo activo: {nombre} (ID: {nuevo_id})"
+        if asignado_a:
+            detalle += f" — asignado a {asignado_a}"
+        if ubicacion:
+            detalle += f" — ubicación: {ubicacion}"
+
+        registrar_historial(
+            accion     = "CREAR",
+            entidad    = "activo",
+            entidad_id = nuevo_id,
+            usuario    = usuario_accion,
+            detalle    = detalle,
+        )
 
         return jsonify({"mensaje": "Activo creado exitosamente", "activo_id": nuevo_id}), 201
 
