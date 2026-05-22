@@ -82,7 +82,7 @@ function initGlobalApp() {
 // Actualiza el badge de consumibles en el sidebar desde cualquier página
 async function updateConsumiblesBadge() {
     try {
-        const res = await fetch('http://localhost:5000/consumibles');
+        const res = await fetch(`${window.API_URL}/consumibles`);
         const data = await res.json();
         const bajo = data.filter(c => c.stock_actual <= c.stock_minimo * 1.5).length;
         
@@ -93,6 +93,22 @@ async function updateConsumiblesBadge() {
         }
     } catch (err) {
         console.warn('No se pudo actualizar badge consumibles:', err);
+    }
+}
+
+// Actualiza el badge de activos en el sidebar desde cualquier página
+async function updateActivosBadge() {
+    try {
+        const res = await fetch(`${window.API_URL}/activos`);
+        const data = await res.json();
+        const count = Array.isArray(data) ? data.length : (data.total || 0);
+        const badge = document.getElementById('badge-activos');
+        if (badge) {
+            badge.textContent = count;
+            badge.style.display = count > 0 ? '' : 'none';
+        }
+    } catch (err) {
+        console.warn('No se pudo actualizar badge activos:', err);
     }
 }
 
@@ -291,6 +307,7 @@ async function loadDashboardData() {
 
 // Ejecutar al cargar la página
 updateConsumiblesBadge();
+updateActivosBadge();
 
 function initPageFeatures() {
     const pageRoot = document.querySelector('#tab-content') || document.querySelector('.main-content');
