@@ -3,6 +3,7 @@ import psycopg2
 import psycopg2.extras
 import os
 import json
+import sys
 
 update_prestamo_bp = Blueprint('update_prestamo', __name__)
 
@@ -61,4 +62,7 @@ def update_prestamo(id_prestamo):
         }), 200
 
     except Exception as e:
+        print(f"❌ Error al actualizar préstamo: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
         return jsonify({"success": False, "message": str(e)}), 500

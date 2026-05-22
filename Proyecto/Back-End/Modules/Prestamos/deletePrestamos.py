@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify
 import psycopg2
 import os
+import sys
 
 delete_prestamo_bp = Blueprint('delete_prestamo', __name__)
 
@@ -33,4 +34,7 @@ def delete_prestamo(id_prestamo):
         }), 200
 
     except Exception as e:
+        print(f"❌ Error al eliminar préstamo: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
         return jsonify({"success": False, "message": str(e)}), 500

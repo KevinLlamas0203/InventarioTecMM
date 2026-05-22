@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 import psycopg2
 import psycopg2.extras
 import os
+import sys
 
 read_prestamo_bp = Blueprint('read_prestamo', __name__)
 
@@ -58,6 +59,9 @@ def get_prestamos():
         }), 200
 
     except Exception as e:
+        print(f"❌ Error al leer préstamos: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
         return jsonify({"success": False, "message": str(e)}), 500
 
 
@@ -87,6 +91,9 @@ def get_stats():
             "vencido":   row[4]
         }), 200
     except Exception as e:
+        print(f"❌ Error al leer stats: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
         return jsonify({"success": False, "message": str(e)}), 500
 
 
@@ -111,4 +118,7 @@ def get_prestamo(id_prestamo):
         return jsonify({"success": True, "prestamo": p}), 200
 
     except Exception as e:
+        print(f"❌ Error al leer préstamo específico: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
         return jsonify({"success": False, "message": str(e)}), 500
