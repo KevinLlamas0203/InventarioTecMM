@@ -1,14 +1,44 @@
 from flask import Blueprint, jsonify
 import psycopg2, os
-from datetime import datetime, date
+from datetime import date
 from dateutil.relativedelta import relativedelta
 
-read_reporte_bp = Blueprint("read_reporte_bp", __name__)
+read_prestamo_bp = Blueprint("read_prestamo_bp", __name__)
 
 def get_connection():
     return psycopg2.connect(os.getenv("DATABASE_URL"))
 
-@read_reporte_bp.route("/reportes/stats", methods=["GET"])
+# ─── Listar préstamos ───────────────────────────────
+@read_prestamo_bp.route("/prestamos", methods=["GET"])
+def get_prestamos():
+    try:
+        conn = get_connection()
+        cur  = conn.cursor()
+
+        cur.execute("""
+            SELECT id, folio, solicitante, alumnos, docente, lab,
+                   inicio, fin, items, notas, estado
+            FROM prestamos
+            ORDER BY inicio DESC
+        """)
+        rows = cur.fetchall()
+        cols = [desc[0] for desc in cur.description]
+
+        cur.close()
+        conn.close()
+
+        prestamos = [dict(zip(cols, row)) for row in rows]
+
+        return jsonify({
+            "success": True,
+            "prestamos": prestamos
+        }), 200
+
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+# ─── Estadísticas de préstamos ──────────────────────
+@read_prestamo_bp.route("/prestamos/stats", methods=["GET"])
 def get_stats():
     try:
         conn = get_connection()
@@ -20,37 +50,42 @@ def get_stats():
         inicio_mes_pasado = (inicio_mes - relativedelta(months=1))
         fin_mes_pasado    = inicio_mes
 
-        # Reportes este mes
-        cur.execute("SELECT COUNT(*) FROM reportes WHERE fecha >= %s", (inicio_mes,))
-        reportes_mes = cur.fetchone()[0]
+        # Préstamos este mes
+        cur.execute("SELECT COUNT(*) FROM prestamos WHERE inicio >= %s", (inicio_mes,))
+        prestamos_mes = cur.fetchone()[0]
 
-        # Reportes mes pasado (para calcular diferencia)
+        # Préstamos mes pasado
         cur.execute("""
-            SELECT COUNT(*) FROM reportes
-            WHERE fecha >= %s AND fecha < %s
+            SELECT COUNT(*) FROM prestamos
+            WHERE inicio >= %s AND inicio < %s
         """, (inicio_mes_pasado, fin_mes_pasado))
-        reportes_mes_pasado = cur.fetchone()[0]
+        prestamos_mes_pasado = cur.fetchone()[0]
 
-        # Total activos
-        cur.execute("SELECT COUNT(*) FROM activos")
-        total_activos = cur.fetchone()[0]
+        # Totales por estado
+        cur.execute("SELECT COUNT(*) FROM prestamos WHERE estado = 'Pendiente'")
+        pendientes = cur.fetchone()[0]
 
-        # Total consumibles con stock bajo (≤10)
-        cur.execute("SELECT COUNT(*) FROM consumibles WHERE stock_actual <= 10")
-        alertas_stock = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM prestamos WHERE estado = 'Activo'")
+        activos = cur.fetchone()[0]
+
+        cur.execute("SELECT COUNT(*) FROM prestamos WHERE estado = 'Devuelto'")
+        devueltos = cur.fetchone()[0]
+
+        cur.execute("SELECT COUNT(*) FROM prestamos WHERE estado = 'Vencido'")
+        vencidos = cur.fetchone()[0]
 
         cur.close()
         conn.close()
 
-        diferencia = reportes_mes - reportes_mes_pasado
-
         return jsonify({
-            "reportes_mes":        reportes_mes,
-            "reportes_mes_pasado": reportes_mes_pasado,
-            "diferencia_mes":      diferencia,
-            "total_activos":       total_activos,
-            "alertas_stock":       alertas_stock,
+            "success": True,
+            "total": prestamos_mes,
+            "pendiente": pendientes,
+            "activo": activos,
+            "devuelto": devueltos,
+            "vencido": vencidos,
+            "mes_pasado": prestamos_mes_pasado
         }), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"success": False, "message": str(e)}), 500
