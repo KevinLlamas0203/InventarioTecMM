@@ -100,7 +100,7 @@ def create_usuario():
             """
             INSERT INTO usuarios
                 (nombre, apellido_paterno, apellido_materno,
-                 numero_telefonico, dirrecion, correo_electronico, nivel_acceso)
+                 numero_telefonico, direccion, correo_electronico, nivel_acceso)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             RETURNING id_usuario
             """,
@@ -133,7 +133,7 @@ def create_usuario():
                 'apellido_paterno':   apellido_paterno,
                 'apellido_materno':   apellido_materno,
                 'numero_telefonico':  numero_telefonico,
-                'dirreccion':          direccion,
+                'direcccion':          direccion,
                 'correo_electronico': correo_electronico,
                 'nivel_acceso':       nivel_acceso,
                 'credencial': {

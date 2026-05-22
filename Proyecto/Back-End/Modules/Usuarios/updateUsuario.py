@@ -162,7 +162,7 @@ def update_usuario(id_usuario):
             """
             SELECT
                 u.id_usuario, u.nombre, u.apellido_paterno, u.apellido_materno,
-                u.numero_telefonico, u.dirrecion, u.correo_electronico, u.nivel_acceso,
+                u.numero_telefonico, u.direccion, u.correo_electronico, u.nivel_acceso,
                 c.id_credencial, c.email
             FROM usuarios u
             LEFT JOIN credenciales c ON c.fk_id_usuario = u.id_usuario
