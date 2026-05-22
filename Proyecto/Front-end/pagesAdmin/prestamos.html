@@ -401,12 +401,14 @@
             color: var(--color-text-secondary, #888); font-size: 0.9rem;
         }
         .empty-state svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.3; }
+
     </style>
 </head>
 <body class="dashboard-page">
 <div class="dashboard-layout">
 
 <!-- SIDEBAR  -->
+
 <aside class="sidebar">
     <div class="sidebar-header">
         <div class="sidebar-brand">
@@ -507,19 +509,23 @@
             </a>
         </div>
 
-        <div class="sidebar-footer">
-            <div class="user-profile">
-                <div class="user-avatar">AD</div>
-                <div class="user-info">
-                    <span class="user-name">Admin ISC</span>
-                    <span class="user-role">Administrador</span>
-                </div>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-profile">
+            <div class="user-avatar">AD</div>
+            <div class="user-info">
+                <span class="user-name">Admin ISC</span>
+                <span class="user-role">Administrador</span>
             </div>
-            <button class="btn-icon logout-btn" aria-label="Cerrar sesión">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-width="2" stroke-linecap="round"/></svg>
-            </button>
         </div>
-    </aside>
+        <button class="btn-icon logout-btn" aria-label="Cerrar sesión">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </div>
+</aside>
 
     <!-- MAIN -->
     <main class="main-content">
@@ -776,6 +782,8 @@
 
 <script src="../js/app.js"></script>
 <script src="../js/theme-toggle.js"></script>
+<script src="../js/control-nivel.js"></script>
+
 <script>
 // ═══════════════════════════════════════════════════════════════════════════════
 // DATOS INICIALES
@@ -1279,19 +1287,24 @@ function showToast(message, type = 'info') {
 // ═══════════════════════════════════════════════════════════════════════════════
 // SIDEBAR / LOGOUT / HAMBURGUESA
 // ═══════════════════════════════════════════════════════════════════════════════
-document.querySelector('.sidebar-toggle').addEventListener('click', () => {
+const sidebarToggle = document.querySelector('.sidebar-toggle');
+if (sidebarToggle) sidebarToggle.addEventListener('click', () => {
     document.querySelector('.sidebar').classList.toggle('collapsed');
 });
-document.querySelector('.logout-btn').addEventListener('click', () => {
-    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) window.location.href = '../login.html';
+const logoutBtn = document.querySelector('.logout-btn');
+if (logoutBtn) logoutBtn.addEventListener('click', () => {
+    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+        localStorage.removeItem('usuario');
+        window.location.href = '../login.html';
+    }
 });
 (function() {
     const menuBtn  = document.getElementById('mobileMenuBtn');
     const sidebar  = document.querySelector('.sidebar');
     const backdrop = document.getElementById('sidebarBackdrop');
-    menuBtn.addEventListener('click', () => { sidebar.classList.add('mobile-open'); backdrop.classList.add('show'); });
-    backdrop.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); backdrop.classList.remove('show'); });
-    sidebar.querySelectorAll('.nav-item').forEach(i => i.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); backdrop.classList.remove('show'); }));
+    if (menuBtn)  menuBtn.addEventListener('click', () => { sidebar.classList.add('mobile-open'); if(backdrop) backdrop.classList.add('show'); });
+    if (backdrop) backdrop.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); backdrop.classList.remove('show'); });
+    if (sidebar)  sidebar.querySelectorAll('.nav-item').forEach(i => i.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); if(backdrop) backdrop.classList.remove('show'); }));
 })();
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1376,5 +1389,12 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarCatalogos();   // Carga activos y consumibles desde la API
 });
 </script>
+    <!-- Elementos para menú móvil -->
+    <button id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Abrir menú" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/>
+        </svg>
+    </button>
+    <div id="sidebarBackdrop" class="sidebar-backdrop" style="display:none"></div>
 </body>
 </html>
