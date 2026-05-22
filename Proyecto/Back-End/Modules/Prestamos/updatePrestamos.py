@@ -1,94 +1,64 @@
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import json, os
 from flask import Blueprint, request, jsonify
-from datetime import datetime
+import psycopg2
+import psycopg2.extras
+import os
+import json
 
 update_prestamo_bp = Blueprint('update_prestamo', __name__)
 
-ESTADOS_VALIDOS = ['Pendiente', 'Activo', 'Devuelto', 'Cancelado', 'Vencido']
-
 def get_connection():
-    return psycopg2.connect(os.environ['DATABASE_URL'], sslmode='require')
+    return psycopg2.connect(os.getenv("DATABASE_URL"))
 
-# ── Editar datos del préstamo ───────────────────────────────────
-@update_prestamo_bp.route('/prestamos/<int:prestamo_id>', methods=['PUT'])
-def editar_prestamo(prestamo_id):
+@update_prestamo_bp.route("/prestamos/<int:id_prestamo>", methods=["PUT"])
+def update_prestamo(id_prestamo):
     data = request.get_json()
-    conn = get_connection()
+
     try:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SELECT estado FROM prestamos WHERE id = %s", (prestamo_id,))
-            row = cur.fetchone()
-            if not row:
-                return jsonify({'error': 'Préstamo no encontrado'}), 404
+        conn = get_connection()
+        cur  = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-            # Solo se puede editar si está Pendiente o Activo
-            if row['estado'] not in ['Pendiente', 'Activo']:
-                return jsonify({'error': 'Solo se pueden editar préstamos Pendientes o Activos'}), 400
+        campos  = []
+        valores = []
 
-            inicio = datetime.fromisoformat(data['inicio'])
-            fin    = datetime.fromisoformat(data['fin'])
-            if fin <= inicio:
-                return jsonify({'error': 'La devolución debe ser posterior al inicio'}), 400
+        for campo in ["solicitante", "alumnos", "docente", "lab", "inicio", "fin", "notas", "estado"]:
+            if campo in data:
+                campos.append(f"{campo} = %s")
+                valores.append(data[campo])
 
-            cur.execute("""
-                UPDATE prestamos SET
-                  solicitante = %s, alumnos = %s, docente = %s,
-                  lab = %s, inicio = %s, fin = %s,
-                  items = %s, notas = %s
-                WHERE id = %s
-                RETURNING *
-            """, (
-                data['solicitante'].strip(),
-                int(data['alumnos']),
-                data['docente'].strip(),
-                data['lab'],
-                inicio, fin,
-                json.dumps(data['items']),
-                data.get('notas', '').strip(),
-                prestamo_id
-            ))
+        if "items" in data:
+            campos.append("items = %s")
+            valores.append(json.dumps(data["items"]))
 
-            actualizado = dict(cur.fetchone())
-            conn.commit()
-            return jsonify({
-                'message': 'Préstamo actualizado',
-                'prestamo': actualizado
-            }), 200
+        if not campos:
+            return jsonify({"success": False, "message": "No hay campos para actualizar"}), 400
 
-    except Exception as e:
-        conn.rollback()
-        return jsonify({'error': str(e)}), 500
-    finally:
+        valores.append(id_prestamo)
+        cur.execute(f"""
+            UPDATE prestamos SET {', '.join(campos)}
+            WHERE id = %s
+        """, valores)
+
+        conn.commit()
+
+        # Devolver registro actualizado
+        cur.execute("SELECT * FROM prestamos WHERE id = %s", (id_prestamo,))
+        row = cur.fetchone()
+        cur.close()
         conn.close()
 
-# ── Cambiar solo el estado ──────────────────────────────────────
-@update_prestamo_bp.route('/prestamos/<int:prestamo_id>/estado', methods=['PATCH'])
-def cambiar_estado(prestamo_id):
-    data        = request.get_json()
-    nuevo_estado = data.get('estado')
+        if not row:
+            return jsonify({"success": False, "message": "Préstamo no encontrado"}), 404
 
-    if nuevo_estado not in ESTADOS_VALIDOS:
-        return jsonify({'error': 'Estado no válido'}), 400
+        p = dict(row)
+        for campo in ["inicio", "fin", "creado_en"]:
+            if p.get(campo):
+                p[campo] = p[campo].isoformat()
 
-    conn = get_connection()
-    try:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute(
-                "UPDATE prestamos SET estado = %s WHERE id = %s RETURNING folio, estado",
-                (nuevo_estado, prestamo_id)
-            )
-            if cur.rowcount == 0:
-                return jsonify({'error': 'Préstamo no encontrado'}), 404
-            resultado = dict(cur.fetchone())
-            conn.commit()
-            return jsonify({
-                'message': f"Estado actualizado a {nuevo_estado}",
-                'prestamo': resultado
-            }), 200
+        return jsonify({
+            "success":  True,
+            "message":  "Préstamo actualizado correctamente",
+            "prestamo": p
+        }), 200
+
     except Exception as e:
-        conn.rollback()
-        return jsonify({'error': str(e)}), 500
-    finally:
-        conn.close()
+        return jsonify({"success": False, "message": str(e)}), 500

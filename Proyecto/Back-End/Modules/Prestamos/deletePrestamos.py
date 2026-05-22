@@ -1,40 +1,36 @@
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import os
 from flask import Blueprint, jsonify
+import psycopg2
+import os
 
 delete_prestamo_bp = Blueprint('delete_prestamo', __name__)
 
 def get_connection():
-    return psycopg2.connect(os.environ['DATABASE_URL'], sslmode='require')
+    return psycopg2.connect(os.getenv("DATABASE_URL"))
 
-@delete_prestamo_bp.route('/prestamos/<int:prestamo_id>', methods=['DELETE'])
-def eliminar_prestamo(prestamo_id):
-    conn = get_connection()
+@delete_prestamo_bp.route("/prestamos/<int:id_prestamo>", methods=["DELETE"])
+def delete_prestamo(id_prestamo):
     try:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            # Guardar datos antes de borrar para el mensaje de confirmación
-            cur.execute(
-                "SELECT folio, solicitante FROM prestamos WHERE id = %s",
-                (prestamo_id,)
-            )
-            prestamo = cur.fetchone()
-            if not prestamo:
-                return jsonify({'error': 'Préstamo no encontrado'}), 404
+        conn = get_connection()
+        cur  = conn.cursor()
 
-            cur.execute("DELETE FROM prestamos WHERE id = %s", (prestamo_id,))
-            conn.commit()
+        cur.execute("SELECT folio FROM prestamos WHERE id = %s", (id_prestamo,))
+        row = cur.fetchone()
 
-            return jsonify({
-                'message': f"Préstamo {prestamo['folio']} eliminado correctamente",
-                'eliminado': {
-                    'folio': prestamo['folio'],
-                    'solicitante': prestamo['solicitante']
-                }
-            }), 200
+        if not row:
+            cur.close()
+            conn.close()
+            return jsonify({"success": False, "message": "Préstamo no encontrado"}), 404
+
+        folio = row[0]
+        cur.execute("DELETE FROM prestamos WHERE id = %s", (id_prestamo,))
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "message": f"Préstamo {folio} eliminado correctamente"
+        }), 200
 
     except Exception as e:
-        conn.rollback()
-        return jsonify({'error': str(e)}), 500
-    finally:
-        conn.close()
+        return jsonify({"success": False, "message": str(e)}), 500
