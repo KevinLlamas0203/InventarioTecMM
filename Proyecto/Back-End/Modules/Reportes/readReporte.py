@@ -3,13 +3,13 @@ import psycopg2, os
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
-read_prestamo_bp = Blueprint("read_prestamo_bp", __name__)
+read_reporte_bp = Blueprint("read_reporte_bp", __name__)
 
 def get_connection():
     return psycopg2.connect(os.getenv("DATABASE_URL"))
 
 # ─── Listar préstamos ───────────────────────────────
-@read_prestamo_bp.route("/prestamos", methods=["GET"])
+@read_reporte_bp.route("/reportes", methods=["GET"])
 def get_prestamos():
     try:
         conn = get_connection()
@@ -38,7 +38,7 @@ def get_prestamos():
         return jsonify({"success": False, "message": str(e)}), 500
 
 # ─── Estadísticas de préstamos ──────────────────────
-@read_prestamo_bp.route("/prestamos/stats", methods=["GET"])
+@read_reporte_bp.route("/reportes/stats", methods=["GET"])
 def get_stats():
     try:
         conn = get_connection()
