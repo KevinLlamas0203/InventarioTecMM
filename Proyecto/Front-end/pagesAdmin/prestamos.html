@@ -14,112 +14,393 @@
     <link rel="manifest" href="../../images/favicon_io/site.webmanifest">
     <link rel="shortcut icon" href="../../images/favicon_io/favicon.ico">
     <style>
-        /* ── Layout helpers ───────────────────────────────────────────────── */
-        .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:var(--spacing-lg);margin-bottom:var(--spacing-xl)}
+        /* ── Layout general ──────────────────────────────────────────────────── */
+        .prestamos-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
 
-        /* ── Filtros ──────────────────────────────────────────────────────── */
-        .filter-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:var(--spacing-lg)}
-        .filter-bar select,.filter-bar input{padding:8px 12px;background:var(--color-surface-raised);border:1px solid var(--color-border);border-radius:var(--radius-sm);color:var(--color-text);font-family:var(--font-body);font-size:.88rem;cursor:pointer}
-        .filter-bar select:focus,.filter-bar input:focus{outline:none;border-color:var(--color-primary)}
-        .filter-bar input{min-width:220px}
+        /* ── Tabs ────────────────────────────────────────────────────────────── */
+        .tabs-bar {
+            display: flex;
+            gap: 4px;
+            background: var(--color-surface-raised, #16161e);
+            border: 1px solid var(--color-border, #2a2a3a);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: var(--spacing-lg);
+            width: fit-content;
+        }
+        .tab-btn {
+            padding: 8px 20px;
+            border-radius: 7px;
+            border: none;
+            background: transparent;
+            color: var(--color-text-secondary, #888);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.18s, color 0.18s;
+            white-space: nowrap;
+        }
+        .tab-btn.active {
+            background: var(--color-primary, #5c6bc0);
+            color: #fff;
+        }
+        .tab-btn:hover:not(.active) {
+            background: rgba(255,255,255,0.05);
+            color: var(--color-text, #e8e8f0);
+        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
 
-        /* ── Estado badges ────────────────────────────────────────────────── */
-        .badge-pendiente {background:rgba(255,212,59,.15); color:#ffd43b}
-        .badge-activo    {background:rgba(51,154,240,.15);  color:#339af0}
-        .badge-devuelto  {background:rgba(81,207,102,.15);  color:#51cf66}
-        .badge-cancelado {background:rgba(134,142,150,.15); color:#868e96}
-        .badge-vencido   {background:rgba(255,107,107,.15); color:#ff6b6b}
+        /* ── Filtros ─────────────────────────────────────────────────────────── */
+        .filters-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: var(--spacing-lg);
+            align-items: center;
+        }
+        .filters-row input,
+        .filters-row select {
+            padding: 8px 12px;
+            background: var(--color-surface-raised, #16161e);
+            border: 1px solid var(--color-border, #2a2a3a);
+            border-radius: 8px;
+            color: var(--color-text, #e8e8f0);
+            font-family: var(--font-body);
+            font-size: 0.88rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .filters-row input { min-width: 220px; flex: 1; }
+        .filters-row input::placeholder { color: var(--color-text-secondary, #888); }
+        .filters-row input:focus,
+        .filters-row select:focus { border-color: var(--color-primary, #5c6bc0); }
 
-        /* ── Tipo badges ──────────────────────────────────────────────────── */
-        .badge-activo-tipo{background:rgba(51,154,240,.15);color:#339af0}
-        .badge-consumible {background:rgba(155,89,182,.15); color:#be85e8}
+        /* ── Cards de items disponibles ─────────────────────────────────────── */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+        .item-card {
+            background: var(--color-surface-raised, #16161e);
+            border: 1px solid var(--color-border, #2a2a3a);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: border-color 0.18s, transform 0.15s;
+            position: relative;
+        }
+        .item-card:hover { border-color: var(--color-primary, #5c6bc0); transform: translateY(-2px); }
+        .item-card.selected {
+            border-color: var(--color-primary, #5c6bc0);
+            background: rgba(92,107,192,0.08);
+        }
+        .item-card.no-stock { opacity: 0.5; pointer-events: none; }
+        .item-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+        .item-card-name { font-size: 0.95rem; font-weight: 600; color: var(--color-text, #e8e8f0); line-height: 1.35; }
+        .item-card-meta { font-size: 0.8rem; color: var(--color-text-secondary, #888); }
+        .item-card-lab  { font-size: 0.78rem; color: var(--color-text-secondary, #888); display: flex; align-items: center; gap: 4px; }
+        .item-card-lab svg { width: 12px; height: 12px; }
+        .item-card-stock { font-size: 0.82rem; font-weight: 600; }
+        .item-card-stock.ok      { color: var(--color-success, #51cf66); }
+        .item-card-stock.warning { color: var(--color-warning, #ffd43b); }
+        .item-card-stock.empty   { color: var(--color-danger,  #ff6b6b); }
+        .item-qty-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .qty-btn {
+            width: 28px; height: 28px;
+            border-radius: 6px;
+            border: 1px solid var(--color-border, #2a2a3a);
+            background: var(--color-surface, #1e1e2e);
+            color: var(--color-text, #e8e8f0);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s;
+        }
+        .qty-btn:hover { background: rgba(255,255,255,0.08); }
+        .qty-input {
+            width: 44px;
+            text-align: center;
+            padding: 4px;
+            background: var(--color-surface, #1e1e2e);
+            border: 1px solid var(--color-border, #2a2a3a);
+            border-radius: 6px;
+            color: var(--color-text, #e8e8f0);
+            font-size: 0.9rem;
+            font-family: var(--font-body);
+        }
+        .qty-input:focus { outline: none; border-color: var(--color-primary, #5c6bc0); }
+        .btn-apartar {
+            width: 100%;
+            padding: 8px;
+            border-radius: 7px;
+            border: none;
+            background: var(--color-primary, #5c6bc0);
+            color: #fff;
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+            margin-top: auto;
+        }
+        .btn-apartar:hover { opacity: 0.85; }
+        .selected-check {
+            position: absolute;
+            top: 10px; right: 10px;
+            width: 20px; height: 20px;
+            background: var(--color-primary, #5c6bc0);
+            border-radius: 50%;
+            display: none;
+            align-items: center; justify-content: center;
+        }
+        .selected-check svg { width: 11px; height: 11px; stroke: #fff; stroke-width: 3; }
+        .item-card.selected .selected-check { display: flex; }
 
-        /* ── Botones de acción ────────────────────────────────────────────── */
-        .btn-loading{opacity:.7;pointer-events:none}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:middle}
+        /* ── Carrito / Resumen de préstamo ──────────────────────────────────── */
+        .prestamo-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: var(--spacing-lg);
+            align-items: start;
+        }
+        @media (max-width: 900px) {
+            .prestamo-layout { grid-template-columns: 1fr; }
+            .carrito-panel { position: static !important; }
+        }
+        .carrito-panel {
+            position: sticky;
+            top: 20px;
+        }
+        .carrito-card {
+            background: var(--color-surface-raised, #16161e);
+            border: 1px solid var(--color-border, #2a2a3a);
+            border-radius: 14px;
+            padding: 20px;
+        }
+        .carrito-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .carrito-title .badge-count {
+            background: var(--color-primary, #5c6bc0);
+            color: #fff;
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .carrito-empty {
+            text-align: center;
+            color: var(--color-text-secondary, #888);
+            font-size: 0.85rem;
+            padding: 24px 0;
+        }
+        .carrito-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+        .carrito-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            background: var(--color-surface, #1e1e2e);
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+        .carrito-item-name { font-weight: 500; color: var(--color-text, #e8e8f0); max-width: 160px; }
+        .carrito-item-qty  { color: var(--color-text-secondary, #888); font-size: 0.8rem; }
+        .carrito-item-del  {
+            background: none; border: none; cursor: pointer;
+            color: var(--color-danger, #ff6b6b); font-size: 1rem; padding: 2px 4px;
+            border-radius: 4px; line-height: 1;
+        }
+        .carrito-item-del:hover { background: rgba(255,107,107,0.1); }
+        .carrito-divider { border: none; border-top: 1px solid var(--color-border, #2a2a3a); margin: 12px 0; }
+        .carrito-form { display: flex; flex-direction: column; gap: 10px; }
+        .carrito-form label { font-size: 0.8rem; color: var(--color-text-secondary, #888); font-weight: 500; margin-bottom: 2px; display: block; }
+        .carrito-form input,
+        .carrito-form select,
+        .carrito-form textarea {
+            width: 100%;
+            padding: 8px 10px;
+            background: var(--color-surface, #1e1e2e);
+            border: 1px solid var(--color-border, #2a2a3a);
+            border-radius: 8px;
+            color: var(--color-text, #e8e8f0);
+            font-family: var(--font-body);
+            font-size: 0.87rem;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.15s;
+        }
+        .carrito-form input:focus,
+        .carrito-form select:focus,
+        .carrito-form textarea:focus { border-color: var(--color-primary, #5c6bc0); }
+        .carrito-form textarea { resize: vertical; min-height: 64px; }
+        .btn-confirmar {
+            width: 100%;
+            padding: 11px;
+            border-radius: 9px;
+            border: none;
+            background: var(--color-primary, #5c6bc0);
+            color: #fff;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.15s;
+            margin-top: 4px;
+        }
+        .btn-confirmar:hover { opacity: 0.87; }
+        .btn-confirmar:disabled { opacity: 0.45; cursor: not-allowed; }
 
-        /* ── Modal ────────────────────────────────────────────────────────── */
-        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9000;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .22s ease;pointer-events:none}
-        .modal-overlay.show{opacity:1;pointer-events:all}
-        .modal-panel{background:var(--color-surface,#1a1a2e);border:1px solid var(--color-border,#2e2e45);border-radius:16px;width:min(96vw,680px);max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.6);transform:translateY(16px) scale(.97);transition:transform .22s ease}
-        .modal-overlay.show .modal-panel{transform:translateY(0) scale(1)}
-        .modal-header{display:flex;align-items:center;justify-content:space-between;padding:22px 28px 0}
-        .modal-header h2{font-size:1.15rem;font-weight:700;color:var(--color-text,#fff)}
-        .modal-close{background:none;border:none;color:var(--color-text-secondary,#aaa);cursor:pointer;font-size:1.4rem;line-height:1;padding:4px 8px;border-radius:6px;transition:background .15s}
-        .modal-close:hover{background:var(--color-surface-raised,#252540)}
-        .modal-body{padding:20px 28px 28px}
+        /* ── Tabla de préstamos activos ──────────────────────────────────────── */
+        .estado-badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+        .estado-activo    { background: rgba(81,207,102,0.15); color: var(--color-success, #51cf66); }
+        .estado-apartado  { background: rgba(255,212,59,0.15);  color: var(--color-warning, #ffd43b); }
+        .estado-vencido   { background: rgba(255,107,107,0.15); color: var(--color-danger,  #ff6b6b); }
+        .estado-devuelto  { background: rgba(150,150,180,0.15); color: #9696b4; }
 
-        /* ── Formulario ───────────────────────────────────────────────────── */
-        .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-        .form-grid .full{grid-column:1/-1}
-        .form-group{display:flex;flex-direction:column;gap:6px}
-        .form-group label{font-size:.82rem;color:var(--color-text-secondary,#aaa);font-weight:500}
-        .form-group input,.form-group select,.form-group textarea{padding:9px 12px;background:var(--color-surface-raised,#252540);border:1px solid var(--color-border,#333);border-radius:8px;color:var(--color-text,#fff);font-family:var(--font-body);font-size:.9rem;transition:border-color .18s}
-        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--color-primary,#6c63ff)}
-        .form-group textarea{resize:vertical;min-height:72px}
-        .form-section-title{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-secondary,#aaa);margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--color-border,#333)}
+        /* ── Toast ───────────────────────────────────────────────────────────── */
+        #toast-container {
+            position: fixed; bottom: 24px; right: 24px;
+            z-index: 9999; display: flex; flex-direction: column;
+            gap: 10px; align-items: flex-end; pointer-events: none;
+        }
+        .toast-item {
+            background: var(--color-surface, #1e1e2e);
+            border: 1px solid var(--color-border, #2a2a3a);
+            border-left: 4px solid var(--color-info, #339af0);
+            border-radius: 10px; padding: 14px 18px;
+            font-size: 0.92rem; font-weight: 500;
+            color: var(--color-text, #e8e8f0);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+            max-width: 320px; min-width: 220px; line-height: 1.45;
+            opacity: 0; transform: translateX(20px);
+            transition: opacity 0.22s ease, transform 0.22s ease;
+        }
+        .toast-item.show { opacity: 1; transform: translateX(0); }
+        .toast-item.toast-success { border-left-color: var(--color-success, #51cf66); }
+        .toast-item.toast-error   { border-left-color: var(--color-danger,  #ff6b6b); }
+        .toast-item.toast-warning { border-left-color: var(--color-warning, #ffd43b); }
+        .toast-item.toast-info    { border-left-color: var(--color-info,    #339af0); }
 
-        /* ── Items del préstamo ───────────────────────────────────────────── */
-        .items-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
-        .item-row{display:grid;grid-template-columns:1fr auto 90px 36px;gap:8px;align-items:center}
-        .item-row select,.item-row input{padding:7px 10px;background:var(--color-surface-raised,#252540);border:1px solid var(--color-border,#333);border-radius:7px;color:var(--color-text,#fff);font-family:var(--font-body);font-size:.85rem}
-        .item-row input[type=number]{width:100%;text-align:center}
-        .item-row .btn-remove{background:rgba(255,107,107,.12);border:none;border-radius:7px;color:#ff6b6b;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;transition:background .15s}
-        .item-row .btn-remove:hover{background:rgba(255,107,107,.25)}
-        .btn-add-item{display:inline-flex;align-items:center;gap:6px;background:none;border:1px dashed var(--color-border,#444);border-radius:8px;color:var(--color-text-secondary,#aaa);cursor:pointer;font-size:.85rem;padding:7px 14px;transition:all .18s;font-family:inherit}
-        .btn-add-item:hover{border-color:var(--color-primary,#6c63ff);color:var(--color-primary,#6c63ff)}
+        /* ── Modal ───────────────────────────────────────────────────────────── */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 10000; display: flex;
+            align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.2s ease; pointer-events: none;
+        }
+        .modal-overlay.show { opacity: 1; pointer-events: all; }
+        .modal-box {
+            background: var(--color-surface, #1e1e2e);
+            border: 1px solid var(--color-border, #2a2a3a);
+            border-radius: 16px; padding: 32px 28px 24px;
+            width: min(92vw, 440px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            transform: scale(0.92); transition: transform 0.22s ease;
+        }
+        .modal-overlay.show .modal-box { transform: scale(1); }
+        .modal-title { font-size: 1.05rem; font-weight: 700; color: var(--color-text, #e8e8f0); margin-bottom: 6px; }
+        .modal-desc  { font-size: 0.87rem; color: var(--color-text-secondary, #888); line-height: 1.5; margin-bottom: 20px; }
+        .modal-detail-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+        .modal-detail-row  { display: flex; justify-content: space-between; font-size: 0.85rem; }
+        .modal-detail-row span:first-child { color: var(--color-text-secondary, #888); }
+        .modal-detail-row span:last-child  { color: var(--color-text, #e8e8f0); font-weight: 500; }
+        .modal-actions { display: flex; gap: 10px; }
+        .modal-actions .btn-cancel {
+            flex: 1; padding: 10px 16px; border-radius: 8px;
+            border: 1px solid var(--color-border, #2a2a3a);
+            background: transparent; color: var(--color-text-secondary, #888);
+            font-size: 0.9rem; font-weight: 500; cursor: pointer;
+            font-family: var(--font-body); transition: background 0.15s;
+        }
+        .modal-actions .btn-cancel:hover { background: rgba(255,255,255,0.05); }
+        .modal-actions .btn-ok {
+            flex: 1; padding: 10px 16px; border-radius: 8px; border: none;
+            background: var(--color-primary, #5c6bc0); color: #fff;
+            font-size: 0.9rem; font-weight: 600; cursor: pointer;
+            font-family: var(--font-body); transition: opacity 0.15s;
+        }
+        .modal-actions .btn-ok:hover { opacity: 0.85; }
+        .modal-actions .btn-danger {
+            flex: 1; padding: 10px 16px; border-radius: 8px; border: none;
+            background: var(--color-danger, #ff6b6b); color: #fff;
+            font-size: 0.9rem; font-weight: 600; cursor: pointer;
+            font-family: var(--font-body); transition: opacity 0.15s;
+        }
+        .modal-actions .btn-danger:hover { opacity: 0.85; }
 
-        /* ── Acciones modal ───────────────────────────────────────────────── */
-        .modal-footer{display:flex;gap:12px;justify-content:flex-end;padding-top:20px;border-top:1px solid var(--color-border,#333);margin-top:20px}
+        /* ── Responsive hamburguesa ──────────────────────────────────────────── */
+        .mobile-menu-btn {
+            display: none; position: fixed; top: 14px; left: 14px;
+            z-index: 1100; background: var(--color-surface, #1e1e2e);
+            border: 1px solid var(--color-border, #2a2a3a); border-radius: 8px;
+            width: 40px; height: 40px; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--color-text, #e8e8f0);
+        }
+        .mobile-menu-btn svg { width: 20px; height: 20px; stroke: currentColor; }
+        .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1050; }
+        @media (max-width: 768px) {
+            .mobile-menu-btn { display: flex; }
+            .sidebar { position: fixed !important; top: 0; left: 0; bottom: 0; z-index: 1100; transform: translateX(-110%); transition: transform 0.28s ease; width: 260px !important; }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .sidebar-backdrop.show { display: block; }
+            .sidebar-toggle { display: none; }
+            .main-content { margin-left: 0 !important; padding-top: 60px; }
+            .dashboard-layout { grid-template-columns: 1fr !important; }
+            .prestamo-layout { grid-template-columns: 1fr; }
+            .tabs-bar { width: 100%; overflow-x: auto; }
+        }
 
-        /* ── Detail modal ─────────────────────────────────────────────────── */
-        .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
-        .detail-field label{font-size:.75rem;color:var(--color-text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px}
-        .detail-field span{font-size:.92rem;color:var(--color-text,#fff)}
-        .detail-items-table{width:100%;border-collapse:collapse;font-size:.88rem}
-        .detail-items-table th{text-align:left;color:var(--color-text-secondary);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;padding:6px 8px;border-bottom:1px solid var(--color-border)}
-        .detail-items-table td{padding:8px 8px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--color-text)}
+        .btn-loading { opacity: 0.7; pointer-events: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 6px; vertical-align: middle; }
 
-        /* ── Timeline de estado ───────────────────────────────────────────── */
-        .status-timeline{display:flex;align-items:center;gap:0;margin:16px 0}
-        .st-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
-        .st-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--color-border,#333);background:var(--color-surface-raised,#252540);display:flex;align-items:center;justify-content:center;font-size:.7rem;z-index:1;position:relative;transition:all .2s}
-        .st-dot.done{background:var(--color-success,#51cf66);border-color:var(--color-success,#51cf66);color:#fff}
-        .st-dot.active{background:var(--color-info,#339af0);border-color:var(--color-info,#339af0);color:#fff}
-        .st-dot.danger{background:var(--color-danger,#ff6b6b);border-color:var(--color-danger,#ff6b6b);color:#fff}
-        .st-label{font-size:.72rem;color:var(--color-text-secondary);text-align:center}
-        .st-line{flex:1;height:2px;background:var(--color-border,#333);margin-top:-14px}
-        .st-line.done{background:var(--color-success,#51cf66)}
+        .btn-devolver {
+            padding: 5px 12px; border-radius: 6px; border: 1px solid var(--color-success, #51cf66);
+            background: transparent; color: var(--color-success, #51cf66);
+            font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: var(--font-body);
+            transition: background 0.15s;
+        }
+        .btn-devolver:hover { background: rgba(81,207,102,0.12); }
+        .btn-cancelar-prestamo {
+            padding: 5px 12px; border-radius: 6px; border: 1px solid var(--color-danger, #ff6b6b);
+            background: transparent; color: var(--color-danger, #ff6b6b);
+            font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: var(--font-body);
+            transition: background 0.15s;
+        }
+        .btn-cancelar-prestamo:hover { background: rgba(255,107,107,0.1); }
 
-        /* ── Toast notificación ───────────────────────────────────────────── */
-        .toast-stack{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:9999;pointer-events:none}
-        .toast-notif{background:var(--color-surface,#1e1e2e);border:1px solid var(--color-border,#333);border-radius:10px;padding:13px 16px;max-width:310px;box-shadow:0 6px 24px rgba(0,0,0,.4);opacity:0;transform:translateX(20px);transition:opacity .25s,transform .25s;pointer-events:auto;display:flex;align-items:flex-start;gap:10px}
-        .toast-notif.show{opacity:1;transform:translateX(0)}
-        .tn-bar{width:3px;border-radius:3px;align-self:stretch;flex-shrink:0}
-        .tn-icon{font-size:1.2rem;flex-shrink:0}
-        .tn-body{flex:1;min-width:0}
-        .tn-title{font-size:.88rem;font-weight:700;color:var(--color-text,#fff);display:block;margin-bottom:1px}
-        .tn-line{font-size:.78rem;color:var(--color-text-secondary,#aaa);display:block}
-
-        /* ── Confirm modal ────────────────────────────────────────────────── */
-        .confirm-box{background:var(--color-surface,#1e1e2e);border:1px solid var(--color-border,#333);border-radius:14px;padding:28px 30px;max-width:min(90vw,380px);width:100%;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.5);transform:scale(.92);transition:transform .2s}
-        .modal-overlay.show .confirm-box{transform:scale(1)}
-        .confirm-icon{font-size:2.2rem;display:block;margin-bottom:10px}
-        .confirm-title{font-size:1rem;font-weight:700;color:var(--color-text,#fff);margin-bottom:6px}
-        .confirm-desc{font-size:.85rem;color:var(--color-text-secondary,#aaa);line-height:1.5;margin-bottom:22px}
-        .confirm-actions{display:flex;gap:10px;justify-content:center}
-        .btn-confirm{padding:8px 22px;border-radius:8px;border:none;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s}
-        .btn-confirm:hover{opacity:.85}
-        .btn-confirm.danger{background:var(--color-danger,#ff6b6b);color:#fff}
-        .btn-confirm.success{background:var(--color-success,#51cf66);color:#111}
-        .btn-confirm.info{background:var(--color-info,#339af0);color:#fff}
-        .btn-cancel-c{padding:8px 22px;border-radius:8px;border:1px solid var(--color-border,#444);background:transparent;color:var(--color-text,#fff);font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit}
-
-        /* ── Tabla vacía ──────────────────────────────────────────────────── */
-        .empty-state{text-align:center;padding:3rem 1rem;color:var(--color-text-secondary)}
-        .empty-state svg{width:48px;height:48px;opacity:.3;margin-bottom:12px}
-        .empty-state p{font-size:.95rem}
+        .empty-state {
+            text-align: center; padding: 40px 20px;
+            color: var(--color-text-secondary, #888); font-size: 0.9rem;
+        }
+        .empty-state svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.3; }
     </style>
 </head>
 <body class="dashboard-page">
@@ -225,653 +506,919 @@
                 <span>Ajustes</span>
             </a>
         </div>
-    </nav>
-
-    <div class="sidebar-footer">
-        <div class="user-profile">
-            <div class="user-avatar">AD</div>
-            <div class="user-info">
-                <span class="user-name">Admin ISC</span>
-                <span class="user-role">Administrador</span>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <span class="nav-section-title">Principal</span>
+                <a href="dashboard_admin.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" stroke-width="2" rx="1"/><rect x="14" y="3" width="7" height="7" stroke-width="2" rx="1"/><rect x="14" y="14" width="7" height="7" stroke-width="2" rx="1"/><rect x="3" y="14" width="7" height="7" stroke-width="2" rx="1"/></svg>
+                    <span>Dashboard</span>
+                </a>
             </div>
+            <div class="nav-section">
+                <span class="nav-section-title">Gestión</span>
+                <a href="ModuloActivo.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/><path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/></svg>
+                    <span>Módulo de Activos</span><span class="nav-badge">245</span>
+                </a>
+                <a href="consumibles.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/><polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2"/><line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/></svg>
+                    <span>Consumibles</span><span class="nav-badge warning">12</span>
+                </a>
+                <a href="prestamos.html" class="nav-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-width="2"/><path d="M9 12l2 2 4-4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span>Préstamos</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-section-title">Reportes</span>
+                <a href="reportes.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/><polyline points="14 2 14 8 20 8" stroke-width="2"/><line x1="16" y1="13" x2="8" y2="13" stroke-width="2"/><line x1="16" y1="17" x2="8" y2="17" stroke-width="2"/></svg>
+                    <span>Reportes</span>
+                </a>
+                <a href="auditoria.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/><polyline points="12 6 12 12 16 14" stroke-width="2"/></svg>
+                    <span>Historial</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-section-title">Configuración</span>
+                <a href="usuarios.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/></svg>
+                    <span>Usuarios</span>
+                </a>
+                <a href="ajustes.html" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <span>Ajustes</span>
+                </a>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">AD</div>
+                <div class="user-info">
+                    <span class="user-name">Admin ISC</span>
+                    <span class="user-role">Administrador</span>
+                </div>
+            </div>
+            <button class="btn-icon logout-btn" aria-label="Cerrar sesión">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
         </div>
-        <button class="btn-icon logout-btn" aria-label="Cerrar sesión">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-        </button>
-    </div>
-</aside>
+    </aside>
 
     <!-- MAIN -->
     <main class="main-content">
         <header class="content-header">
             <div class="header-left">
                 <h1 class="page-title">Módulo de Préstamos</h1>
-                <p class="page-subtitle">Gestiona préstamos de activos y consumibles por laboratorio</p>
+                <p class="page-subtitle">Gestiona préstamos y apartados de activos, consumibles y laboratorios</p>
             </div>
             <div class="header-right">
-                <button class="btn-primary" onclick="abrirModalNuevo()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19" stroke-width="2"/><line x1="5" y1="12" x2="19" y2="12" stroke-width="2"/></svg>
-                    <span>Nuevo Préstamo</span>
+                <button class="btn-secondary" onclick="exportarPrestamos()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/><polyline points="7 10 12 15 17 10" stroke-width="2"/><line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/></svg>
+                    <span>Exportar</span>
                 </button>
             </div>
         </header>
 
         <!-- Stats -->
-        <div class="stats-row" id="statsRow">
+        <div class="prestamos-stats">
             <div class="stat-card primary">
-                <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="14" rx="2" stroke-width="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" stroke-width="2"/></svg></div>
-                <div class="stat-content"><span class="stat-label">Total préstamos</span><span class="stat-value" id="st-total">0</span></div>
-                <span class="stat-change">Registrados</span>
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-width="2"/></svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Préstamos activos</span>
+                    <span class="stat-value" id="stat-activos-prestamos">0</span>
+                </div>
+                <span class="stat-change" id="stat-activos-label">En curso</span>
             </div>
             <div class="stat-card warning">
-                <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/><polyline points="12 6 12 12 16 14" stroke-width="2"/></svg></div>
-                <div class="stat-content"><span class="stat-label">Pendientes</span><span class="stat-value" id="st-pendiente">0</span></div>
-                <span class="stat-change">Por entregar</span>
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/><polyline points="12 6 12 12 16 14" stroke-width="2"/></svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Apartados</span>
+                    <span class="stat-value" id="stat-apartados">0</span>
+                </div>
+                <span class="stat-change">Pendientes de entrega</span>
             </div>
-            <div class="stat-card primary" style="--stat-color:var(--color-info,#339af0)">
-                <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 11 12 14 22 4" stroke-width="2"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke-width="2"/></svg></div>
-                <div class="stat-content"><span class="stat-label">Activos</span><span class="stat-value" id="st-activo">0</span></div>
-                <span class="stat-change">En uso ahora</span>
+            <div class="stat-card danger">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/><line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Vencidos</span>
+                    <span class="stat-value" id="stat-vencidos">0</span>
+                </div>
+                <span class="stat-change negative" id="stat-vencidos-label">Requieren atención</span>
             </div>
             <div class="stat-card success">
-                <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke-width="2"/><polyline points="22 4 12 14.01 9 11.01" stroke-width="2"/></svg></div>
-                <div class="stat-content"><span class="stat-label">Devueltos</span><span class="stat-value" id="st-devuelto">0</span></div>
-                <span class="stat-change">Completados</span>
-            </div>
-            <div class="stat-card danger" style="--stat-color:var(--color-danger,#ff6b6b)">
-                <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/><line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round"/></svg></div>
-                <div class="stat-content"><span class="stat-label">Vencidos</span><span class="stat-value" id="st-vencido">0</span></div>
-                <span class="stat-change negative">Requieren atención</span>
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Devueltos este mes</span>
+                    <span class="stat-value" id="stat-devueltos">0</span>
+                </div>
+                <span class="stat-change positive">Completados</span>
             </div>
         </div>
 
-        <!-- Filtros -->
-        <div class="filter-bar">
-            <input type="text" id="buscar" placeholder="🔍  Buscar por alumno, docente o folio…" oninput="renderTabla()">
-            <select id="filtroEstado" onchange="renderTabla()">
-                <option value="">Todos los estados</option>
-                <option value="Pendiente">Pendiente</option>
-                <option value="Activo">Activo</option>
-                <option value="Devuelto">Devuelto</option>
-                <option value="Cancelado">Cancelado</option>
-                <option value="Vencido">Vencido</option>
-            </select>
-            <select id="filtroLab" onchange="renderTabla()">
-                <option value="">Todos los laboratorios</option>
-                <option value="Lab Cómputo A">Lab. Cómputo Edificio A</option>
-                <option value="Lab Cómputo B">Lab. Cómputo Edificio B</option>
-                <option value="Lab Sistemas">Lab. de Sistemas</option>
-                <option value="Lab Alimentos">Lab. de Alimentos</option>
-            </select>
+        <!-- Tabs principales -->
+        <div class="tabs-bar">
+            <button class="tab-btn active" onclick="switchTab('nuevo')">Nuevo Préstamo</button>
+            <button class="tab-btn" onclick="switchTab('activos')">Préstamos Activos</button>
+            <button class="tab-btn" onclick="switchTab('historial')">Historial</button>
         </div>
 
-        <!-- Tabla -->
-        <div class="card table-card">
-            <div class="table-wrapper">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Folio</th>
-                            <th>Solicitante / Alumnos</th>
-                            <th>Docente</th>
-                            <th>Laboratorio</th>
-                            <th>Período</th>
-                            <th>Artículos</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaBody"></tbody>
-                </table>
+        <!-- ── TAB: NUEVO PRÉSTAMO ───────────────────────────────────────── -->
+        <div class="tab-panel active" id="tab-nuevo">
+            <div class="prestamo-layout">
+
+                <!-- Panel izquierdo: catálogo -->
+                <div>
+                    <!-- Sub-tabs de tipo -->
+                    <div class="tabs-bar" style="margin-bottom:16px;">
+                        <button class="tab-btn active" onclick="switchCatalogo('activos')">Activos</button>
+                        <button class="tab-btn" onclick="switchCatalogo('consumibles')">Consumibles</button>
+                        <button class="tab-btn" onclick="switchCatalogo('laboratorios')">Laboratorios</button>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="filters-row">
+                        <input type="text" id="buscarItem" placeholder="Buscar por nombre, código o laboratorio..." oninput="filtrarItems()">
+                        <select id="filtroLab" onchange="filtrarItems()">
+                            <option value="">Todas las ubicaciones</option>
+                        </select>
+                    </div>
+
+                    <!-- Catálogo: Activos -->
+                    <div id="catalogo-activos" class="catalogo-panel">
+                        <div class="items-grid" id="grid-activos"></div>
+                    </div>
+
+                    <!-- Catálogo: Consumibles -->
+                    <div id="catalogo-consumibles" class="catalogo-panel" style="display:none;">
+                        <div class="items-grid" id="grid-consumibles"></div>
+                    </div>
+
+                    <!-- Catálogo: Laboratorios -->
+                    <div id="catalogo-laboratorios" class="catalogo-panel" style="display:none;">
+                        <div class="items-grid" id="grid-laboratorios"></div>
+                    </div>
+                </div>
+
+                <!-- Panel derecho: carrito -->
+                <div class="carrito-panel">
+                    <div class="carrito-card">
+                        <div class="carrito-title">
+                            Resumen del préstamo
+                            <span class="badge-count" id="carrito-count">0</span>
+                        </div>
+                        <div id="carrito-empty" class="carrito-empty">
+                            Selecciona items del catálogo para agregarlos al préstamo.
+                        </div>
+                        <div class="carrito-items" id="carrito-items" style="display:none;"></div>
+                        <hr class="carrito-divider">
+                        <div class="carrito-form">
+                            <div>
+                                <label>Solicitante *</label>
+                                <input type="text" id="c-solicitante" placeholder="Nombre completo">
+                            </div>
+                            <div>
+                                <label>Número de control / ID</label>
+                                <input type="text" id="c-control" placeholder="Ej. 20230001">
+                            </div>
+                            <div>
+                                <label>Tipo de préstamo *</label>
+                                <select id="c-tipo">
+                                    <option value="prestamo">Préstamo</option>
+                                    <option value="apartado">Apartado</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Fecha de devolución *</label>
+                                <input type="date" id="c-fecha-devolucion">
+                            </div>
+                            <div>
+                                <label>Observaciones</label>
+                                <textarea id="c-observaciones" placeholder="Notas adicionales..."></textarea>
+                            </div>
+                            <button class="btn-confirmar" id="btn-confirmar" onclick="confirmarPrestamo()" disabled>
+                                Confirmar préstamo
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="table-footer">
-                <div class="table-info">Mostrando <strong id="count-showing">0</strong> de <strong id="count-total">0</strong> préstamos</div>
+        </div>
+
+        <!-- ── TAB: PRÉSTAMOS ACTIVOS ────────────────────────────────────── -->
+        <div class="tab-panel" id="tab-activos">
+            <div class="filters-row" style="margin-bottom:16px;">
+                <input type="text" id="buscarActivo" placeholder="Buscar por solicitante, item o folio..." oninput="filtrarActivos()" style="min-width:220px;flex:1;padding:8px 12px;background:var(--color-surface-raised,#16161e);border:1px solid var(--color-border,#2a2a3a);border-radius:8px;color:var(--color-text,#e8e8f0);font-family:var(--font-body);font-size:0.88rem;outline:none;">
+                <select id="filtroEstado" onchange="filtrarActivos()" style="padding:8px 12px;background:var(--color-surface-raised,#16161e);border:1px solid var(--color-border,#2a2a3a);border-radius:8px;color:var(--color-text,#e8e8f0);font-family:var(--font-body);font-size:0.88rem;outline:none;">
+                    <option value="">Todos los estados</option>
+                    <option value="activo">Activo</option>
+                    <option value="apartado">Apartado</option>
+                    <option value="vencido">Vencido</option>
+                </select>
+            </div>
+            <div class="card table-card">
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Folio</th>
+                                <th>Solicitante</th>
+                                <th>Items</th>
+                                <th>Tipo</th>
+                                <th>Fecha préstamo</th>
+                                <th>Devolución</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-activos">
+                            <tr><td colspan="8"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-width="2"/></svg><br>No hay préstamos activos.</div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TAB: HISTORIAL ────────────────────────────────────────────── -->
+        <div class="tab-panel" id="tab-historial">
+            <div class="card table-card">
+                <div class="card-header">
+                    <h3 class="card-title">Historial de préstamos</h3>
+                    <button class="btn-secondary" onclick="limpiarHistorialPrestamos()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6" stroke-width="2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/></svg>
+                        <span>Limpiar historial</span>
+                    </button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Folio</th>
+                                <th>Solicitante</th>
+                                <th>Items</th>
+                                <th>Tipo</th>
+                                <th>Fecha</th>
+                                <th>Devolución</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-historial">
+                            <tr><td colspan="7"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/><polyline points="12 6 12 12 16 14" stroke-width="2"/></svg><br>No hay registros en el historial.</div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════════
-     MODAL NUEVO / EDITAR PRÉSTAMO
-══════════════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="modalForm">
-    <div class="modal-panel">
-        <div class="modal-header">
-            <h2 id="modalFormTitle">Nuevo Préstamo</h2>
-            <button class="modal-close" onclick="cerrarModalForm()">✕</button>
-        </div>
-        <div class="modal-body">
-
-            <!-- Sección: Solicitante -->
-            <p class="form-section-title">Datos del solicitante</p>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Nombre del solicitante *</label>
-                    <input type="text" id="f-solicitante" placeholder="Ej: Juan Pérez García">
-                </div>
-                <div class="form-group">
-                    <label>Número de alumnos *</label>
-                    <input type="number" id="f-alumnos" min="1" max="500" placeholder="Ej: 25">
-                </div>
-                <div class="form-group full">
-                    <label>Docente a cargo *</label>
-                    <input type="text" id="f-docente" placeholder="Ej: Dr. Martínez López">
-                </div>
-            </div>
-
-            <!-- Sección: Laboratorio y tiempo -->
-            <p class="form-section-title">Laboratorio y período</p>
-            <div class="form-grid">
-                <div class="form-group full">
-                    <label>Laboratorio *</label>
-                    <select id="f-lab">
-                        <option value="">— Seleccionar laboratorio —</option>
-                        <option value="Lab Cómputo A">Lab. de Cómputo Edificio A</option>
-                        <option value="Lab Cómputo B">Lab. de Cómputo Edificio B</option>
-                        <option value="Lab Sistemas">Lab. de Sistemas</option>
-                        <option value="Lab Alimentos">Lab. de Alimentos</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Fecha y hora de inicio *</label>
-                    <input type="datetime-local" id="f-inicio">
-                </div>
-                <div class="form-group">
-                    <label>Fecha y hora de devolución *</label>
-                    <input type="datetime-local" id="f-fin">
-                </div>
-            </div>
-
-            <!-- Sección: Artículos -->
-            <p class="form-section-title">Artículos a prestar</p>
-            <div class="items-list" id="itemsList"></div>
-            <button class="btn-add-item" onclick="agregarItemRow()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19" stroke-width="2"/><line x1="5" y1="12" x2="19" y2="12" stroke-width="2"/></svg>
-                Agregar artículo
-            </button>
-
-            <!-- Sección: Observaciones -->
-            <p class="form-section-title">Observaciones</p>
-            <div class="form-grid">
-                <div class="form-group full">
-                    <label>Notas adicionales</label>
-                    <textarea id="f-notas" placeholder="Condiciones especiales, acuerdos, etc."></textarea>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="cerrarModalForm()">Cancelar</button>
-                <button class="btn-primary" id="btnGuardar" onclick="guardarPrestamo()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke-width="2"/><polyline points="17 21 17 13 7 13 7 21" stroke-width="2"/><polyline points="7 3 7 8 15 8" stroke-width="2"/></svg>
-                    Guardar préstamo
-                </button>
-            </div>
+<!-- Modal: confirmar devolución -->
+<div class="modal-overlay" id="modalDevolucion">
+    <div class="modal-box">
+        <div class="modal-title">Registrar devolución</div>
+        <div class="modal-desc">Confirma que los siguientes items han sido devueltos en buen estado.</div>
+        <div class="modal-detail-list" id="modal-devolucion-detalle"></div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="cerrarModal('modalDevolucion')">Cancelar</button>
+            <button class="btn-ok" onclick="procesarDevolucion()">Confirmar devolución</button>
         </div>
     </div>
 </div>
 
-
-<script src="../js/control-nivel.js"></script>
-<!-- ══════════════════════════════════════════════════════════════
-     MODAL DETALLE
-══════════════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="modalDetalle">
-    <div class="modal-panel">
-        <div class="modal-header">
-            <h2>Detalle del Préstamo</h2>
-            <button class="modal-close" onclick="cerrarModalDetalle()">✕</button>
-        </div>
-        <div class="modal-body" id="detalleBody"></div>
-    </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════════
-     MODAL CONFIRMACIÓN
-══════════════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="modalConfirm">
-    <div class="confirm-box">
-        <span class="confirm-icon" id="ci-icon">❓</span>
-        <p class="confirm-title" id="ci-title"></p>
-        <p class="confirm-desc"  id="ci-desc"></p>
-        <div class="confirm-actions">
-            <button class="btn-cancel-c" onclick="cerrarConfirm()">Cancelar</button>
-            <button class="btn-confirm danger" id="ci-btn" onclick="ejecutarConfirm()">Confirmar</button>
+<!-- Modal: cancelar préstamo -->
+<div class="modal-overlay" id="modalCancelar">
+    <div class="modal-box">
+        <div class="modal-title">Cancelar préstamo</div>
+        <div class="modal-desc">Esta acción cancelará el préstamo y devolverá los items al inventario.</div>
+        <div class="modal-detail-list" id="modal-cancelar-detalle"></div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="cerrarModal('modalCancelar')">Volver</button>
+            <button class="btn-danger" onclick="procesarCancelacion()">Cancelar préstamo</button>
         </div>
     </div>
 </div>
 
-<!-- Toast stack -->
-<div class="toast-stack" id="toastStack"></div>
+<!-- Modal: limpiar historial -->
+<div class="modal-overlay" id="modalLimpiarPrestamos">
+    <div class="modal-box">
+        <div class="modal-title">Limpiar historial de préstamos</div>
+        <div class="modal-desc">Se eliminarán permanentemente todos los registros devueltos y cancelados del historial. Esta acción no se puede deshacer.</div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="cerrarModal('modalLimpiarPrestamos')">Cancelar</button>
+            <button class="btn-danger" onclick="confirmarLimpiarPrestamos()">Sí, limpiar</button>
+        </div>
+    </div>
+</div>
 
 <script src="../js/app.js"></script>
 <script src="../js/theme-toggle.js"></script>
 <script>
-
-//  Datos demo + localStorage
-
-const LS_KEY = 'prestamos_v2';
-
-const DEMO = [
-    {
-        id:'P-001', solicitante:'Laura Ramírez Torres', alumnos:28, docente:'Dr. Héctor Morales',
-        lab:'Lab Cómputo A', inicio:'2026-05-15T08:00', fin:'2026-05-15T10:00',
-        items:[{tipo:'Activo',nombre:'Laptop Dell Inspiron',cantidad:28},{tipo:'Consumible',nombre:'USB 32 GB',cantidad:28}],
-        notas:'Práctica de redes.', estado:'Devuelto', folio:'P-001'
-    },
-    {
-        id:'P-002', solicitante:'Carlos Mendoza Ríos', alumnos:20, docente:'Mtra. Sofía Luna',
-        lab:'Lab Sistemas', inicio:'2026-05-20T10:00', fin:'2026-05-20T12:00',
-        items:[{tipo:'Activo',nombre:'Proyector Epson',cantidad:1},{tipo:'Consumible',nombre:'Papel bond A4',cantidad:100}],
-        notas:'Exposición final.', estado:'Activo', folio:'P-002'
-    },
-    {
-        id:'P-003', solicitante:'Grupo ISC-5A', alumnos:35, docente:'Ing. Roberto Díaz',
-        lab:'Lab Alimentos', inicio:'2026-05-21T14:00', fin:'2026-05-21T18:00',
-        items:[{tipo:'Consumible',nombre:'Guantes de látex',cantidad:70},{tipo:'Consumible',nombre:'Cofia',cantidad:35}],
-        notas:'', estado:'Pendiente', folio:'P-003'
-    },
-    {
-        id:'P-004', solicitante:'María Castillo López', alumnos:15, docente:'Dr. Juan Pérez',
-        lab:'Lab Cómputo B', inicio:'2026-05-10T09:00', fin:'2026-05-10T11:00',
-        items:[{tipo:'Activo',nombre:'Monitor 24"',cantidad:15}],
-        notas:'Examen parcial.', estado:'Vencido', folio:'P-004'
-    }
+// ═══════════════════════════════════════════════════════════════════════════════
+// DATOS INICIALES
+// ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+// CATÁLOGOS — se cargan dinámicamente desde la API
+// ═══════════════════════════════════════════════════════════════════════════════
+let ACTIVOS_CATALOGO      = [];
+let CONSUMIBLES_CATALOGO  = [];
+let LABORATORIOS_CATALOGO = [
+    { id:'L001', nombre:'Laboratorio de Cómputo Edificio A', tipo:'laboratorio', lab:'Edificio A', stock:1, capacidad:'30 alumnos', horario:'7:00 - 21:00' },
+    { id:'L002', nombre:'Laboratorio de Cómputo Edificio B', tipo:'laboratorio', lab:'Edificio B', stock:1, capacidad:'25 alumnos', horario:'7:00 - 21:00' },
+    { id:'L003', nombre:'Laboratorio de Sistemas',           tipo:'laboratorio', lab:'Edificio C', stock:1, capacidad:'20 alumnos', horario:'8:00 - 18:00' },
+    { id:'L004', nombre:'Laboratorio de Alimentos',          tipo:'laboratorio', lab:'Edificio D', stock:1, capacidad:'15 alumnos', horario:'8:00 - 17:00' },
 ];
 
-function cargarDatos() {
-    try {
-        const d = localStorage.getItem(LS_KEY);
-        return d ? JSON.parse(d) : [...DEMO];
-    } catch(e) { return [...DEMO]; }
-}
-function guardarDatos(lista) {
-    try { localStorage.setItem(LS_KEY, JSON.stringify(lista)); } catch(e) {}
-}
-let prestamos = cargarDatos();
+// ═══════════════════════════════════════════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════════════════════════════════════════
+const API_PRESTAMOS = 'http://localhost:5000';
+let carrito = [];         // { id, nombre, tipo, lab, qty, stock }
+let catalogoActual = 'activos';
+let prestamoAccionId = null;  // ID del préstamo sobre el que se ejecuta una acción
 
-// ═══════════════════════════════════════════════════════════
-//  Utilidades
-// ═══════════════════════════════════════════════════════════
-const statusClass = { Pendiente:'badge-pendiente', Activo:'badge-activo', Devuelto:'badge-devuelto', Cancelado:'badge-cancelado', Vencido:'badge-vencido' };
-const statusIcon  = { Pendiente:'⏳', Activo:'🔵', Devuelto:'✅', Cancelado:'⛔', Vencido:'⚠️' };
+const LS_PRESTAMOS   = 'prestamos_activos';
+const LS_HISTORIAL_P = 'prestamos_historial';
 
-function fmtDT(dt) {
-    if (!dt) return '—';
-    const d = new Date(dt);
-    return d.toLocaleString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
-}
-function duracion(ini, fin) {
-    if (!ini||!fin) return '—';
-    const ms = new Date(fin)-new Date(ini);
-    if (ms<=0) return '—';
-    const h = Math.floor(ms/3600000), m = Math.floor((ms%3600000)/60000);
-    return h>0 ? `${h}h${m>0?' '+m+'min':''}` : `${m} min`;
-}
-function genFolio() {
-    const n = prestamos.length + 1;
-    return 'P-' + String(n).padStart(3,'0');
-}
+function cargarPrestamos()   { try { return JSON.parse(localStorage.getItem(LS_PRESTAMOS))   || []; } catch { return []; } }
+function cargarHistorialP()  { try { return JSON.parse(localStorage.getItem(LS_HISTORIAL_P)) || []; } catch { return []; } }
+function guardarPrestamos(d) { localStorage.setItem(LS_PRESTAMOS,   JSON.stringify(d)); }
+function guardarHistorialP(d){ localStorage.setItem(LS_HISTORIAL_P, JSON.stringify(d)); }
 
-// ═══════════════════════════════════════════════════════════
-//  Stats
-// ═══════════════════════════════════════════════════════════
-function actualizarStats() {
-    const cnt = s => prestamos.filter(p=>p.estado===s).length;
-    document.getElementById('st-total').textContent     = prestamos.length;
-    document.getElementById('st-pendiente').textContent = cnt('Pendiente');
-    document.getElementById('st-activo').textContent    = cnt('Activo');
-    document.getElementById('st-devuelto').textContent  = cnt('Devuelto');
-    document.getElementById('st-vencido').textContent   = cnt('Vencido');
-}
-
-// ═══════════════════════════════════════════════════════════
-//  Render tabla
-// ═══════════════════════════════════════════════════════════
-function renderTabla() {
-    const buscar = document.getElementById('buscar').value.toLowerCase();
-    const fEst   = document.getElementById('filtroEstado').value;
-    const fLab   = document.getElementById('filtroLab').value;
-
-    const filtrados = prestamos.filter(p => {
-        const txt = (p.solicitante+p.docente+p.folio).toLowerCase();
-        return (!buscar || txt.includes(buscar))
-            && (!fEst || p.estado === fEst)
-            && (!fLab || p.lab === fLab);
+// ═══════════════════════════════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════════════════════════════
+function switchTab(tab) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    // Resaltar botón correcto (primer nivel de tabs)
+    const btns = document.querySelectorAll('.tabs-bar:first-of-type .tab-btn');
+    btns.forEach((b, i) => {
+        const tabs = ['nuevo','activos','historial'];
+        b.classList.toggle('active', tabs[i] === tab);
     });
+    if (tab === 'activos')   renderTabActivos();
+    if (tab === 'historial') renderTabHistorial();
+}
 
-    const tbody = document.getElementById('tablaBody');
-    tbody.innerHTML = '';
+function switchCatalogo(tipo) {
+    catalogoActual = tipo;
+    document.querySelectorAll('.catalogo-panel').forEach(p => p.style.display = 'none');
+    document.getElementById('catalogo-' + tipo).style.display = '';
+    // Actualizar sub-tabs
+    const subtabs = document.querySelectorAll('#tab-nuevo .tabs-bar .tab-btn');
+    const tipos = ['activos','consumibles','laboratorios'];
+    subtabs.forEach((b,i) => b.classList.toggle('active', tipos[i] === tipo));
+    filtrarItems();
+}
 
-    if (!filtrados.length) {
-        tbody.innerHTML = `<tr><td colspan="8">
-            <div class="empty-state">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="14" rx="2" stroke-width="1.5"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" stroke-width="1.5"/></svg>
-                <p>No se encontraron préstamos</p>
-            </div></td></tr>`;
-        document.getElementById('count-showing').textContent = '0';
-        document.getElementById('count-total').textContent   = prestamos.length;
+// ═══════════════════════════════════════════════════════════════════════════════
+// RENDERIZAR CATÁLOGOS
+// ═══════════════════════════════════════════════════════════════════════════════
+function renderCatalogo(lista, gridId) {
+    const grid = document.getElementById(gridId);
+    if (!lista.length) {
+        grid.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke-width="2"/></svg><br>Sin resultados para los filtros aplicados.</div>';
         return;
     }
+    grid.innerHTML = lista.map(item => {
+        const enCarrito = carrito.find(c => c.id === item.id);
+        const stockClass = item.stock === 0 ? 'empty' : item.stock <= 3 ? 'warning' : 'ok';
+        const stockLabel = item.stock === 0 ? 'Sin disponibilidad' : `${item.stock} disponible${item.stock !== 1 ? 's' : ''}`;
+        const extra = item.tipo === 'laboratorio'
+            ? `<div class="item-card-meta">Cap: ${item.capacidad} · ${item.horario}</div>`
+            : item.tipo === 'consumible'
+            ? `<div class="item-card-meta">${item.unidad} · ${item.codigo||item.id}</div>`
+            : `<div class="item-card-meta">Código: ${item.codigo}</div>`;
 
-    filtrados.forEach(p => {
-        const sc  = statusClass[p.estado] || '';
-        const dur = duracion(p.inicio, p.fin);
-        const artResumen = p.items.map(i=>`${i.nombre} (${i.cantidad})`).join(', ');
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><strong style="font-size:.82rem;letter-spacing:.04em">${p.folio}</strong></td>
-            <td>
-                <div class="asset-info">
-                    <span class="asset-name">${p.solicitante}</span>
-                    <span class="asset-specs">👥 ${p.alumnos} alumnos</span>
+        return `
+        <div class="item-card ${item.stock===0?'no-stock':''} ${enCarrito?'selected':''}" id="card-${item.id}">
+            <div class="selected-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="item-card-header">
+                <div>
+                    <div class="item-card-name">${item.nombre}</div>
+                    ${extra}
                 </div>
-            </td>
-            <td><span style="font-size:.88rem">${p.docente}</span></td>
-            <td><span style="font-size:.85rem">${p.lab}</span></td>
-            <td>
-                <div class="asset-info">
-                    <span class="asset-name" style="font-size:.82rem">${fmtDT(p.inicio)}</span>
-                    <span class="asset-specs">⏱ ${dur}</span>
-                </div>
-            </td>
-            <td><span style="font-size:.82rem;color:var(--color-text-secondary)">${artResumen.length>40?artResumen.slice(0,40)+'…':artResumen}</span></td>
-            <td><span class="badge ${sc}">${statusIcon[p.estado]||''} ${p.estado}</span></td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn-action" title="Ver detalle" onclick="verDetalle('${p.id}')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
-                    </button>
-                    ${p.estado==='Pendiente'?`
-                    <button class="btn-action" title="Marcar como Activo" onclick="cambiarEstado('${p.id}','Activo')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 11 12 14 22 4" stroke-width="2"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke-width="2"/></svg>
-                    </button>`:''}
-                    ${p.estado==='Activo'?`
-                    <button class="btn-action" title="Marcar como Devuelto" onclick="cambiarEstado('${p.id}','Devuelto')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke-width="2"/><polyline points="16 17 21 12 16 7" stroke-width="2"/><line x1="21" y1="12" x2="9" y2="12" stroke-width="2"/></svg>
-                    </button>`:''}
-                    ${(p.estado==='Pendiente'||p.estado==='Activo')?`
-                    <button class="btn-action" title="Cancelar" onclick="pedirCancelar('${p.id}')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/><line x1="15" y1="9" x2="9" y2="15" stroke-width="2"/><line x1="9" y1="9" x2="15" y2="15" stroke-width="2"/></svg>
-                    </button>`:''}
-                    <button class="btn-action" title="Eliminar" onclick="pedirEliminar('${p.id}')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6" stroke-width="2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/></svg>
-                    </button>
-                </div>
-            </td>`;
-        tbody.appendChild(tr);
-    });
-
-    document.getElementById('count-showing').textContent = filtrados.length;
-    document.getElementById('count-total').textContent   = prestamos.length;
+                <div class="item-card-stock ${stockClass}">${stockLabel}</div>
+            </div>
+            <div class="item-card-lab">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>
+                ${item.lab}
+            </div>
+            ${item.tipo !== 'laboratorio' ? `
+            <div class="item-qty-control">
+                <button class="qty-btn" onclick="cambiarQty('${item.id}',-1)">−</button>
+                <input class="qty-input" type="number" id="qty-${item.id}" value="${enCarrito?enCarrito.qty:1}" min="1" max="${item.stock}" onchange="setQty('${item.id}',this.value)">
+                <button class="qty-btn" onclick="cambiarQty('${item.id}',1)">+</button>
+            </div>` : ''}
+            <button class="btn-apartar" onclick="toggleCarrito('${item.id}')">
+                ${enCarrito ? 'Quitar del préstamo' : item.tipo==='laboratorio' ? 'Apartar laboratorio' : 'Agregar al préstamo'}
+            </button>
+        </div>`;
+    }).join('');
 }
 
-// ═══════════════════════════════════════════════════════════
-//  Modal nuevo / editar
-// ═══════════════════════════════════════════════════════════
-let editandoId = null;
+function filtrarItems() {
+    const buscar = document.getElementById('buscarItem').value.toLowerCase();
+    const lab    = document.getElementById('filtroLab').value;
 
-function abrirModalNuevo() {
-    editandoId = null;
-    document.getElementById('modalFormTitle').textContent = 'Nuevo Préstamo';
-    document.getElementById('f-solicitante').value = '';
-    document.getElementById('f-alumnos').value     = '';
-    document.getElementById('f-docente').value     = '';
-    document.getElementById('f-lab').value         = '';
-    document.getElementById('f-inicio').value      = '';
-    document.getElementById('f-fin').value         = '';
-    document.getElementById('f-notas').value       = '';
-    document.getElementById('itemsList').innerHTML = '';
-    agregarItemRow();
-    document.getElementById('modalForm').classList.add('show');
+    const filtrar = lista => lista.filter(i =>
+        (!buscar || i.nombre.toLowerCase().includes(buscar) || (i.codigo||'').toLowerCase().includes(buscar) || i.lab.toLowerCase().includes(buscar)) &&
+        (!lab    || i.lab === lab)
+    );
+
+    renderCatalogo(filtrar(ACTIVOS_CATALOGO),      'grid-activos');
+    renderCatalogo(filtrar(CONSUMIBLES_CATALOGO),  'grid-consumibles');
+    renderCatalogo(filtrar(LABORATORIOS_CATALOGO), 'grid-laboratorios');
 }
 
-function cerrarModalForm() {
-    document.getElementById('modalForm').classList.remove('show');
-}
+// ═══════════════════════════════════════════════════════════════════════════════
+// CARRITO
+// ═══════════════════════════════════════════════════════════════════════════════
+function toggleCarrito(id) {
+    const todos = [...ACTIVOS_CATALOGO, ...CONSUMIBLES_CATALOGO, ...LABORATORIOS_CATALOGO];
+    const item  = todos.find(i => i.id === id);
+    const idx   = carrito.findIndex(c => c.id === id);
 
-function agregarItemRow(item) {
-    const list = document.getElementById('itemsList');
-    const div  = document.createElement('div');
-    div.className = 'item-row';
-    div.innerHTML = `
-        <select class="item-tipo">
-            <option value="Activo"     ${item&&item.tipo==='Activo'?'selected':''}>Activo</option>
-            <option value="Consumible" ${item&&item.tipo==='Consumible'?'selected':''}>Consumible</option>
-        </select>
-        <input type="text" class="item-nombre" placeholder="Nombre del artículo" value="${item?item.nombre:''}" style="flex:2">
-        <input type="number" class="item-cant" placeholder="Cant." min="1" value="${item?item.cantidad:1}">
-        <button class="btn-remove" onclick="this.parentElement.remove()" title="Quitar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke-width="2"/></svg>
-        </button>`;
-    list.appendChild(div);
-}
-
-function guardarPrestamo() {
-    const sol  = document.getElementById('f-solicitante').value.trim();
-    const alum = document.getElementById('f-alumnos').value;
-    const doc  = document.getElementById('f-docente').value.trim();
-    const lab  = document.getElementById('f-lab').value;
-    const ini  = document.getElementById('f-inicio').value;
-    const fin  = document.getElementById('f-fin').value;
-    const not  = document.getElementById('f-notas').value.trim();
-
-    if (!sol||!alum||!doc||!lab||!ini||!fin) {
-        showToast({tipo:'warning',titulo:'Campos incompletos',lineas:['Completa todos los campos obligatorios.']});
-        return;
-    }
-    if (new Date(fin)<=new Date(ini)) {
-        showToast({tipo:'warning',titulo:'Fechas inválidas',lineas:['La devolución debe ser posterior al inicio.']});
-        return;
-    }
-
-    const rows  = document.querySelectorAll('#itemsList .item-row');
-    const items = [];
-    let itemsOk = true;
-    rows.forEach(r => {
-        const tipo   = r.querySelector('.item-tipo').value;
-        const nombre = r.querySelector('.item-nombre').value.trim();
-        const cant   = parseInt(r.querySelector('.item-cant').value)||0;
-        if (!nombre||cant<1) { itemsOk=false; return; }
-        items.push({tipo,nombre,cantidad:cant});
-    });
-    if (!items.length||!itemsOk) {
-        showToast({tipo:'warning',titulo:'Artículos incompletos',lineas:['Agrega al menos un artículo válido.']});
-        return;
-    }
-
-    if (editandoId) {
-        const idx = prestamos.findIndex(p=>p.id===editandoId);
-        if (idx>=0) {
-            prestamos[idx] = {...prestamos[idx], solicitante:sol, alumnos:parseInt(alum), docente:doc, lab, inicio:ini, fin, items, notas:not};
-            showToast({tipo:'success',titulo:'Préstamo actualizado',lineas:[sol]});
-        }
+    if (idx > -1) {
+        carrito.splice(idx, 1);
     } else {
-        const folio = genFolio();
-        prestamos.unshift({id:folio,folio,solicitante:sol,alumnos:parseInt(alum),docente:doc,lab,inicio:ini,fin,items,notas:not,estado:'Pendiente'});
-        showToast({tipo:'success',titulo:'Préstamo registrado',lineas:[folio+' · '+sol,'Estado: Pendiente']});
+        const qtyEl = document.getElementById('qty-' + id);
+        const qty   = qtyEl ? parseInt(qtyEl.value) || 1 : 1;
+        carrito.push({ id: item.id, nombre: item.nombre, tipo: item.tipo, lab: item.lab, qty, stock: item.stock });
+    }
+    renderCarrito();
+    filtrarItems();
+}
+
+function cambiarQty(id, delta) {
+    const todos = [...ACTIVOS_CATALOGO, ...CONSUMIBLES_CATALOGO, ...LABORATORIOS_CATALOGO];
+    const item  = todos.find(i => i.id === id);
+    const qtyEl = document.getElementById('qty-' + id);
+    if (!qtyEl) return;
+    let v = Math.min(Math.max(1, parseInt(qtyEl.value || 1) + delta), item.stock);
+    qtyEl.value = v;
+    // Actualizar en carrito si ya está
+    const enCarrito = carrito.find(c => c.id === id);
+    if (enCarrito) { enCarrito.qty = v; renderCarrito(); }
+}
+
+function setQty(id, val) {
+    const todos = [...ACTIVOS_CATALOGO, ...CONSUMIBLES_CATALOGO, ...LABORATORIOS_CATALOGO];
+    const item  = todos.find(i => i.id === id);
+    let v = Math.min(Math.max(1, parseInt(val) || 1), item.stock);
+    document.getElementById('qty-' + id).value = v;
+    const enCarrito = carrito.find(c => c.id === id);
+    if (enCarrito) { enCarrito.qty = v; renderCarrito(); }
+}
+
+function renderCarrito() {
+    const countEl   = document.getElementById('carrito-count');
+    const emptyEl   = document.getElementById('carrito-empty');
+    const itemsEl   = document.getElementById('carrito-items');
+    const btnConf   = document.getElementById('btn-confirmar');
+
+    countEl.textContent = carrito.length;
+
+    if (!carrito.length) {
+        emptyEl.style.display = '';
+        itemsEl.style.display = 'none';
+        btnConf.disabled = true;
+        return;
     }
 
-    guardarDatos(prestamos);
-    cerrarModalForm();
-    renderTabla();
+    emptyEl.style.display = 'none';
+    itemsEl.style.display = '';
+    btnConf.disabled = false;
+
+    itemsEl.innerHTML = carrito.map(c => `
+        <div class="carrito-item">
+            <div>
+                <div class="carrito-item-name">${c.nombre}</div>
+                <div class="carrito-item-qty">${c.tipo === 'laboratorio' ? 'Apartado' : `Cantidad: ${c.qty}`} · ${c.lab}</div>
+            </div>
+            <button class="carrito-item-del" onclick="toggleCarrito('${c.id}')" title="Quitar">×</button>
+        </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CONFIRMAR PRÉSTAMO
+// ═══════════════════════════════════════════════════════════════════════════════
+async function confirmarPrestamo() {
+    const solicitante = document.getElementById('c-solicitante').value.trim();
+    const control     = document.getElementById('c-control').value.trim();
+    const tipo        = document.getElementById('c-tipo').value;
+    const fechaDev    = document.getElementById('c-fecha-devolucion').value;
+    const obs         = document.getElementById('c-observaciones').value.trim();
+
+    if (!solicitante) { showToast('Ingresa el nombre del solicitante.', 'warning'); return; }
+    if (!fechaDev)    { showToast('Selecciona la fecha de devolución.', 'warning'); return; }
+    if (!carrito.length) { showToast('Agrega al menos un item al préstamo.', 'warning'); return; }
+
+    const fechaMin = new Date().toISOString().slice(0,10);
+    if (fechaDev < fechaMin) { showToast('La fecha de devolución no puede ser anterior a hoy.', 'warning'); return; }
+
+    const folio    = 'P' + Date.now().toString().slice(-6);
+    const ahora    = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+    const nuevo = {
+        id: folio, solicitante, control, tipo,
+        fechaPrestamo: ahora,
+        fechaDevolucion: fechaDev,
+        observaciones: obs,
+        items: carrito.map(c => ({ ...c })),
+        estado: tipo === 'apartado' ? 'apartado' : 'activo',
+        id_servidor: null
+    };
+
+    // Intentar registrar en el servidor
+    try {
+        const res = await fetch(`${API_PRESTAMOS}/prestamos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                solicitante, control, tipo,
+                fecha_devolucion: fechaDev,
+                observaciones: obs,
+                items: carrito.map(c => ({ id: c.id, nombre: c.nombre, tipo: c.tipo, qty: c.qty }))
+            })
+        });
+        const data = await res.json();
+        if (data.success && data.id) {
+            nuevo.id_servidor = data.id;
+        }
+    } catch(e) {
+        // Sin servidor: guardar solo en local
+        console.warn('[confirmarPrestamo] Sin conexión al servidor, guardando localmente.');
+    }
+
+    const prestamos = cargarPrestamos();
+    prestamos.unshift(nuevo);
+    guardarPrestamos(prestamos);
+
+    // Resetear
+    carrito = [];
+    renderCarrito();
+    filtrarItems();
+    document.getElementById('c-solicitante').value     = '';
+    document.getElementById('c-control').value         = '';
+    document.getElementById('c-fecha-devolucion').value= '';
+    document.getElementById('c-observaciones').value   = '';
+
     actualizarStats();
+    showToast(`Préstamo ${folio} registrado correctamente.`, 'success');
+    setTimeout(() => switchTab('activos'), 800);
 }
 
-// ═══════════════════════════════════════════════════════════
-//  Ver detalle
-// ═══════════════════════════════════════════════════════════
-function verDetalle(id) {
-    const p = prestamos.find(x=>x.id===id);
-    if (!p) return;
+// ═══════════════════════════════════════════════════════════════════════════════
+// RENDERIZAR TABLA ACTIVOS
+// ═══════════════════════════════════════════════════════════════════════════════
+function renderTabActivos(filtro = '') {
+    const tbody = document.getElementById('tbody-activos');
+    let prestamos = cargarPrestamos().filter(p => p.estado !== 'devuelto' && p.estado !== 'cancelado');
 
-    const estados = ['Pendiente','Activo','Devuelto'];
-    const si = estados.indexOf(p.estado);
+    // Marcar vencidos automáticamente
+    const hoy = new Date().toISOString().slice(0,10);
+    prestamos.forEach(p => { if (p.estado === 'activo' && p.fechaDevolucion < hoy) p.estado = 'vencido'; });
+    guardarPrestamos([...prestamos, ...cargarPrestamos().filter(p => p.estado === 'devuelto' || p.estado === 'cancelado')]);
 
-    const timelineHTML = `
-        <div class="status-timeline">
-            <div class="st-step">
-                <div class="st-dot ${si>=0?'done':''}">✓</div>
-                <span class="st-label">Pendiente</span>
-            </div>
-            <div class="st-line ${si>=1?'done':''}"></div>
-            <div class="st-step">
-                <div class="st-dot ${si===1?'active':si>1?'done':p.estado==='Vencido'?'danger':''}">
-                    ${si>1?'✓':si===1?'●':p.estado==='Vencido'?'!':''}
-                </div>
-                <span class="st-label">Activo</span>
-            </div>
-            <div class="st-line ${si>=2?'done':''}"></div>
-            <div class="st-step">
-                <div class="st-dot ${si>=2?'done':p.estado==='Cancelado'?'danger':''}">
-                    ${si>=2?'✓':p.estado==='Cancelado'?'✕':''}
-                </div>
-                <span class="st-label">${p.estado==='Cancelado'?'Cancelado':'Devuelto'}</span>
-            </div>
-        </div>`;
+    const estadoFiltro = document.getElementById('filtroEstado')?.value || '';
+    const textFiltro   = (document.getElementById('buscarActivo')?.value || '').toLowerCase();
 
-    const itemsRows = p.items.map(i=>`
-        <tr>
-            <td><span class="badge ${i.tipo==='Activo'?'badge-activo-tipo':'badge-consumible'}">${i.tipo}</span></td>
-            <td>${i.nombre}</td>
-            <td style="text-align:center"><strong>${i.cantidad}</strong></td>
-        </tr>`).join('');
+    prestamos = prestamos.filter(p =>
+        (!estadoFiltro || p.estado === estadoFiltro) &&
+        (!textFiltro   || p.solicitante.toLowerCase().includes(textFiltro) || p.id.toLowerCase().includes(textFiltro) || p.items.some(i => i.nombre.toLowerCase().includes(textFiltro)))
+    );
 
-    document.getElementById('detalleBody').innerHTML = `
-        <div class="detail-grid">
-            <div class="detail-field"><label>Folio</label><span>${p.folio}</span></div>
-            <div class="detail-field"><label>Estado</label><span class="badge ${statusClass[p.estado]||''}">${statusIcon[p.estado]||''} ${p.estado}</span></div>
-            <div class="detail-field"><label>Solicitante</label><span>${p.solicitante}</span></div>
-            <div class="detail-field"><label>No. de alumnos</label><span>👥 ${p.alumnos}</span></div>
-            <div class="detail-field"><label>Docente a cargo</label><span>${p.docente}</span></div>
-            <div class="detail-field"><label>Laboratorio</label><span>${p.lab}</span></div>
-            <div class="detail-field"><label>Inicio</label><span>${fmtDT(p.inicio)}</span></div>
-            <div class="detail-field"><label>Devolución</label><span>${fmtDT(p.fin)}</span></div>
-            <div class="detail-field"><label>Duración</label><span>⏱ ${duracion(p.inicio,p.fin)}</span></div>
-            ${p.notas?`<div class="detail-field"><label>Notas</label><span>${p.notas}</span></div>`:''}
-        </div>
-        ${timelineHTML}
-        <p class="form-section-title">Artículos prestados</p>
-        <table class="detail-items-table">
-            <thead><tr><th>Tipo</th><th>Artículo</th><th style="text-align:center">Cantidad</th></tr></thead>
-            <tbody>${itemsRows}</tbody>
-        </table>
-        <div class="modal-footer">
-            <button class="btn-secondary" onclick="cerrarModalDetalle()">Cerrar</button>
-            ${p.estado==='Pendiente'||p.estado==='Activo'?`<button class="btn-primary" onclick="cerrarModalDetalle();abrirEditar('${p.id}')">Editar</button>`:''}
-        </div>`;
+    if (!prestamos.length) {
+        tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-width="2"/></svg><br>No hay préstamos activos.</div></td></tr>';
+        return;
+    }
 
-    document.getElementById('modalDetalle').classList.add('show');
+    tbody.innerHTML = prestamos.map(p => {
+        const estadoClass = { activo:'estado-activo', apartado:'estado-apartado', vencido:'estado-vencido' }[p.estado] || 'estado-activo';
+        const estadoLabel = { activo:'Activo', apartado:'Apartado', vencido:'Vencido' }[p.estado] || p.estado;
+        const itemsResumen = p.items.slice(0,2).map(i => i.nombre).join(', ') + (p.items.length > 2 ? ` +${p.items.length-2}` : '');
+        return `<tr>
+            <td><span style="font-weight:600;color:var(--color-primary,#5c6bc0)">${p.id}</span></td>
+            <td><div class="asset-info"><span class="asset-name">${p.solicitante}</span><span class="asset-specs">${p.control||'—'}</span></div></td>
+            <td><div class="asset-info"><span class="asset-name" style="font-size:0.85rem">${itemsResumen}</span><span class="asset-specs">${p.items.length} item${p.items.length!==1?'s':''}</span></div></td>
+            <td><span class="badge" style="text-transform:capitalize">${p.tipo}</span></td>
+            <td style="font-size:0.85rem">${p.fechaPrestamo}</td>
+            <td style="font-size:0.85rem;${p.estado==='vencido'?'color:var(--color-danger,#ff6b6b);font-weight:600':''}">${p.fechaDevolucion}</td>
+            <td><span class="estado-badge ${estadoClass}">${estadoLabel}</span></td>
+            <td><div class="action-buttons" style="gap:6px">
+                <button class="btn-devolver" onclick="abrirDevolucion('${p.id}')">Devolver</button>
+                <button class="btn-cancelar-prestamo" onclick="abrirCancelacion('${p.id}')">Cancelar</button>
+            </div></td>
+        </tr>`;
+    }).join('');
 }
 
-function cerrarModalDetalle() {
-    document.getElementById('modalDetalle').classList.remove('show');
+function filtrarActivos() { renderTabActivos(); }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DEVOLUCIÓN Y CANCELACIÓN
+// ═══════════════════════════════════════════════════════════════════════════════
+function abrirDevolucion(id) {
+    prestamoAccionId = id;
+    const p = cargarPrestamos().find(x => x.id === id);
+    document.getElementById('modal-devolucion-detalle').innerHTML = `
+        <div class="modal-detail-row"><span>Folio</span><span>${p.id}</span></div>
+        <div class="modal-detail-row"><span>Solicitante</span><span>${p.solicitante}</span></div>
+        <div class="modal-detail-row"><span>Items</span><span>${p.items.map(i=>i.nombre).join(', ')}</span></div>
+        <div class="modal-detail-row"><span>Fecha devolución</span><span>${p.fechaDevolucion}</span></div>`;
+    document.getElementById('modalDevolucion').classList.add('show');
 }
 
-function abrirEditar(id) {
-    const p = prestamos.find(x=>x.id===id);
-    if (!p) return;
-    editandoId = id;
-    document.getElementById('modalFormTitle').textContent     = 'Editar Préstamo · ' + p.folio;
-    document.getElementById('f-solicitante').value = p.solicitante;
-    document.getElementById('f-alumnos').value     = p.alumnos;
-    document.getElementById('f-docente').value     = p.docente;
-    document.getElementById('f-lab').value         = p.lab;
-    document.getElementById('f-inicio').value      = p.inicio;
-    document.getElementById('f-fin').value         = p.fin;
-    document.getElementById('f-notas').value       = p.notas||'';
-    document.getElementById('itemsList').innerHTML = '';
-    p.items.forEach(i => agregarItemRow(i));
-    document.getElementById('modalForm').classList.add('show');
-}
-
-//  Cambiar estado
-function cambiarEstado(id, nuevoEstado) {
-    const p = prestamos.find(x=>x.id===id);
-    if (!p) return;
-    p.estado = nuevoEstado;
-    guardarDatos(prestamos);
-    renderTabla();
+function procesarDevolucion() {
+    const prestamos = cargarPrestamos();
+    const idx = prestamos.findIndex(p => p.id === prestamoAccionId);
+    if (idx > -1) {
+        prestamos[idx].estado = 'devuelto';
+        prestamos[idx].fechaDevolucionReal = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+        const historial = cargarHistorialP();
+        historial.unshift(prestamos[idx]);
+        guardarHistorialP(historial);
+        prestamos.splice(idx, 1);
+        guardarPrestamos(prestamos);
+    }
+    cerrarModal('modalDevolucion');
+    renderTabActivos();
     actualizarStats();
-    const msgs = { Activo:['🔵 Préstamo activado','Se marcó como entregado al solicitante.'], Devuelto:['✅ Préstamo devuelto','Artículos regresados correctamente.'] };
-    const m = msgs[nuevoEstado]||['Actualizado',''];
-    showToast({tipo: nuevoEstado==='Devuelto'?'success':'info', titulo:m[0], lineas:[p.folio+' · '+p.solicitante, m[1]]});
+    showToast(`Devolución registrada correctamente.`, 'success');
 }
 
-//  Confirm helpers
-let _confirmCb = null;
-function mostrarConfirm({icono,titulo,desc,label,clase,cb}) {
-    document.getElementById('ci-icon').textContent  = icono;
-    document.getElementById('ci-title').textContent = titulo;
-    document.getElementById('ci-desc').textContent  = desc;
-    const btn = document.getElementById('ci-btn');
-    btn.textContent = label;
-    btn.className   = 'btn-confirm ' + (clase||'danger');
-    _confirmCb = cb;
-    document.getElementById('modalConfirm').classList.add('show');
-}
-function cerrarConfirm() { document.getElementById('modalConfirm').classList.remove('show'); _confirmCb=null; }
-function ejecutarConfirm() { cerrarConfirm(); if(_confirmCb) _confirmCb(); }
-document.getElementById('modalConfirm').addEventListener('click', e => { if(e.target===e.currentTarget) cerrarConfirm(); });
-
-function pedirCancelar(id) {
-    const p = prestamos.find(x=>x.id===id);
-    if (!p) return;
-    mostrarConfirm({icono:'⛔',titulo:'¿Cancelar préstamo?',desc:'Se cancelará el préstamo '+p.folio+' de '+p.solicitante+'.',label:'Sí, cancelar',clase:'danger',cb:()=>{
-        p.estado='Cancelado'; guardarDatos(prestamos); renderTabla(); actualizarStats();
-        showToast({tipo:'warning',titulo:'Préstamo cancelado',lineas:[p.folio+' · '+p.solicitante]});
-    }});
+function abrirCancelacion(id) {
+    prestamoAccionId = id;
+    const p = cargarPrestamos().find(x => x.id === id);
+    document.getElementById('modal-cancelar-detalle').innerHTML = `
+        <div class="modal-detail-row"><span>Folio</span><span>${p.id}</span></div>
+        <div class="modal-detail-row"><span>Solicitante</span><span>${p.solicitante}</span></div>
+        <div class="modal-detail-row"><span>Items</span><span>${p.items.map(i=>i.nombre).join(', ')}</span></div>`;
+    document.getElementById('modalCancelar').classList.add('show');
 }
 
-function pedirEliminar(id) {
-    const p = prestamos.find(x=>x.id===id);
-    if (!p) return;
-    mostrarConfirm({icono:'🗑️',titulo:'¿Eliminar préstamo?',desc:'Se eliminará permanentemente el préstamo '+p.folio+'.',label:'Sí, eliminar',clase:'danger',cb:()=>{
-        prestamos = prestamos.filter(x=>x.id!==id);
-        guardarDatos(prestamos); renderTabla(); actualizarStats();
-        showToast({tipo:'info',titulo:'Préstamo eliminado',lineas:[p.folio+' · '+p.solicitante]});
-    }});
+async function procesarCancelacion() {
+    const prestamos = cargarPrestamos();
+    const idx = prestamos.findIndex(p => p.id === prestamoAccionId);
+    if (idx === -1) { cerrarModal('modalCancelar'); return; }
+
+    const prestamo = prestamos[idx];
+    const btnConfirmar = document.querySelector('#modalCancelar .btn-danger');
+    if (btnConfirmar) { btnConfirmar.disabled = true; btnConfirmar.textContent = 'Cancelando...'; }
+
+    // Intentar DELETE en el servidor si el préstamo tiene id numérico (viene del backend)
+    if (prestamo.id_servidor) {
+        try {
+            const res = await fetch(`${API_PRESTAMOS}/prestamos/${prestamo.id_servidor}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if (!data.success) {
+                showToast('Error al cancelar en servidor: ' + data.message, 'error');
+                if (btnConfirmar) { btnConfirmar.disabled = false; btnConfirmar.textContent = 'Cancelar préstamo'; }
+                return;
+            }
+        } catch (e) {
+            // Sin conexión al servidor: continuar solo con localStorage
+            console.warn('[procesarCancelacion] Sin conexión, operando en local:', e.message);
+        }
+    }
+
+    // Actualizar localStorage
+    prestamo.estado = 'cancelado';
+    const historial = cargarHistorialP();
+    historial.unshift(prestamo);
+    guardarHistorialP(historial);
+    prestamos.splice(idx, 1);
+    guardarPrestamos(prestamos);
+
+    cerrarModal('modalCancelar');
+    renderTabActivos();
+    actualizarStats();
+    showToast('Préstamo cancelado y movido al historial.', 'info');
 }
 
-//  Toast
-function showToast({tipo='info',titulo='',lineas=[]}) {
-    const colorMap = {info:'#339af0',success:'#51cf66',warning:'#ffd43b',error:'#ff6b6b'};
-    const iconMap  = {info:'ℹ️',success:'✅',warning:'⚠️',error:'❌'};
-    const stack    = document.getElementById('toastStack');
-    const t = document.createElement('div');
-    t.className = 'toast-notif';
-    t.innerHTML = `<div class="tn-bar" style="background:${colorMap[tipo]||'#339af0'}"></div>
-                   <span class="tn-icon">${iconMap[tipo]||'ℹ️'}</span>
-                   <div class="tn-body">
-                       <span class="tn-title">${titulo}</span>
-                       ${lineas.map(l=>`<span class="tn-line">${l}</span>`).join('')}
-                   </div>`;
-    stack.appendChild(t);
-    requestAnimationFrame(()=>t.classList.add('show'));
-    setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 3500);
+// ═══════════════════════════════════════════════════════════════════════════════
+// HISTORIAL
+// ═══════════════════════════════════════════════════════════════════════════════
+function renderTabHistorial() {
+    const tbody = document.getElementById('tbody-historial');
+    const items = cargarHistorialP();
+    if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/><polyline points="12 6 12 12 16 14" stroke-width="2"/></svg><br>No hay registros en el historial.</div></td></tr>';
+        return;
+    }
+    tbody.innerHTML = items.map(p => {
+        const estadoClass = { devuelto:'estado-devuelto', cancelado:'estado-vencido' }[p.estado] || 'estado-devuelto';
+        const estadoLabel = { devuelto:'Devuelto', cancelado:'Cancelado' }[p.estado] || p.estado;
+        const itemsResumen = p.items.slice(0,2).map(i => i.nombre).join(', ') + (p.items.length > 2 ? ` +${p.items.length-2}` : '');
+        return `<tr>
+            <td><span style="font-weight:600;color:var(--color-primary,#5c6bc0)">${p.id}</span></td>
+            <td>${p.solicitante}</td>
+            <td style="font-size:0.85rem">${itemsResumen}</td>
+            <td style="text-transform:capitalize">${p.tipo}</td>
+            <td style="font-size:0.85rem">${p.fechaPrestamo}</td>
+            <td style="font-size:0.85rem">${p.fechaDevolucion}</td>
+            <td><span class="estado-badge ${estadoClass}">${estadoLabel}</span></td>
+        </tr>`;
+    }).join('');
 }
 
+function limpiarHistorialPrestamos() {
+    document.getElementById('modalLimpiarPrestamos').classList.add('show');
+}
+function confirmarLimpiarPrestamos() {
+    guardarHistorialP([]);
+    renderTabHistorial();
+    cerrarModal('modalLimpiarPrestamos');
+    showToast('Historial de préstamos limpiado.', 'success');
+}
 
-//  Sidebar / logout
-document.querySelector('.sidebar-toggle').addEventListener('click', ()=>{
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════════════════════════════════════════
+function actualizarStats() {
+    const prestamos = cargarPrestamos();
+    const hoy = new Date().toISOString().slice(0,10);
+    const activos   = prestamos.filter(p => p.estado === 'activo').length;
+    const apartados = prestamos.filter(p => p.estado === 'apartado').length;
+    const vencidos  = prestamos.filter(p => p.estado === 'vencido' || (p.estado === 'activo' && p.fechaDevolucion < hoy)).length;
+
+    const mesActual  = new Date().getMonth();
+    const anioActual = new Date().getFullYear();
+    const devueltos  = cargarHistorialP().filter(p => {
+        if (p.estado !== 'devuelto') return false;
+        const d = new Date(p.fechaDevolucionReal || p.fechaPrestamo);
+        return d.getMonth() === mesActual && d.getFullYear() === anioActual;
+    }).length;
+
+    document.getElementById('stat-activos-prestamos').textContent = activos;
+    document.getElementById('stat-apartados').textContent         = apartados;
+    document.getElementById('stat-vencidos').textContent          = vencidos;
+    document.getElementById('stat-devueltos').textContent         = devueltos;
+
+    const labelVencidos = document.getElementById('stat-vencidos-label');
+    labelVencidos.textContent  = vencidos > 0 ? `${vencidos} préstamo${vencidos!==1?'s':''} vencido${vencidos!==1?'s':''}` : 'Sin vencimientos';
+    labelVencidos.className    = vencidos > 0 ? 'stat-change negative' : 'stat-change positive';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPORTAR
+// ═══════════════════════════════════════════════════════════════════════════════
+function exportarPrestamos() {
+    const prestamos = [...cargarPrestamos(), ...cargarHistorialP()];
+    if (!prestamos.length) { showToast('No hay préstamos para exportar.', 'warning'); return; }
+    const filas = [
+        ['Folio','Solicitante','Control','Tipo','Items','Fecha Préstamo','Fecha Devolución','Estado'],
+        ...prestamos.map(p => [p.id, p.solicitante, p.control||'', p.tipo, p.items.map(i=>i.nombre).join(' | '), p.fechaPrestamo, p.fechaDevolucion, p.estado])
+    ];
+    const csv  = filas.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a'); a.href = url;
+    a.download = `prestamos_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    showToast('Exportación completada.', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MODALES
+// ═══════════════════════════════════════════════════════════════════════════════
+function cerrarModal(id) { document.getElementById(id).classList.remove('show'); }
+document.addEventListener('click', e => {
+    ['modalDevolucion','modalCancelar','modalLimpiarPrestamos'].forEach(id => {
+        const el = document.getElementById(id);
+        if (e.target === el) cerrarModal(id);
+    });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════════════════════════
+function showToast(message, type = 'info') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = `toast-item toast-${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 250); }, 3000);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SIDEBAR / LOGOUT / HAMBURGUESA
+// ═══════════════════════════════════════════════════════════════════════════════
+document.querySelector('.sidebar-toggle').addEventListener('click', () => {
     document.querySelector('.sidebar').classList.toggle('collapsed');
 });
-document.querySelector('.logout-btn').addEventListener('click', ()=>{
-    mostrarConfirm({icono:'🚪',titulo:'¿Cerrar sesión?',desc:'Se cerrará tu sesión actual.',label:'Sí, salir',clase:'danger',cb:()=>{ window.location.href='../login.html'; }});
+document.querySelector('.logout-btn').addEventListener('click', () => {
+    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) window.location.href = '../login.html';
 });
+(function() {
+    const menuBtn  = document.getElementById('mobileMenuBtn');
+    const sidebar  = document.querySelector('.sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    menuBtn.addEventListener('click', () => { sidebar.classList.add('mobile-open'); backdrop.classList.add('show'); });
+    backdrop.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); backdrop.classList.remove('show'); });
+    sidebar.querySelectorAll('.nav-item').forEach(i => i.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); backdrop.classList.remove('show'); }));
+})();
 
-// Cerrar modales al hacer clic fuera
-['modalForm','modalDetalle'].forEach(id=>{
-    document.getElementById(id).addEventListener('click', e=>{ if(e.target===e.currentTarget) document.getElementById(id).classList.remove('show'); });
-});
+// ═══════════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+// CARGAR CATÁLOGOS DESDE LA API
+// ═══════════════════════════════════════════════════════════════════════════════
+async function cargarCatalogos() {
+    // Mostrar loading en los grids
+    ['grid-activos','grid-consumibles'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--color-text-secondary,#888);font-size:0.88rem;">Cargando...</div>';
+    });
 
+    // Cargar activos: GET /activos — solo los que están Disponibles
+    try {
+        const res  = await fetch(`${API_PRESTAMOS}/activos`);
+        const data = await res.json();
+        ACTIVOS_CATALOGO = data
+            .filter(a => a.estado === 'Disponible')
+            .map(a => ({
+                id:     'A' + a.activo_id,
+                id_real: a.activo_id,
+                nombre: a.nombre,
+                tipo:   'activo',
+                lab:    a.ubicacion || 'Sin ubicación',
+                stock:  1,           // Activos: disponibilidad unitaria
+                codigo: 'ID-' + a.activo_id,
+                descripcion: a.descripcion || ''
+            }));
+    } catch(e) {
+        console.warn('[cargarCatalogos] No se pudo cargar activos:', e.message);
+        ACTIVOS_CATALOGO = [];
+    }
 
-//  Init
+    // Cargar consumibles: GET /consumibles — solo los que tienen stock > 0
+    try {
+        const res  = await fetch(`${API_PRESTAMOS}/consumibles`);
+        const data = await res.json();
+        CONSUMIBLES_CATALOGO = data
+            .filter(c => c.stock_actual > 0)
+            .map(c => ({
+                id:     'C' + c.consumible_id,
+                id_real: c.consumible_id,
+                nombre: c.nombre,
+                tipo:   'consumible',
+                lab:    c.ubicacion || 'Sin ubicación',
+                stock:  c.stock_actual,
+                unidad: 'piezas',
+                descripcion: c.descripcion || '',
+                categoria: c.categoria || ''
+            }));
+    } catch(e) {
+        console.warn('[cargarCatalogos] No se pudo cargar consumibles:', e.message);
+        CONSUMIBLES_CATALOGO = [];
+    }
 
-document.addEventListener('DOMContentLoaded', ()=>{
+    // Llenar el select de ubicaciones dinámicamente con las ubicaciones reales
+    const filtroLab = document.getElementById('filtroLab');
+    if (filtroLab) {
+        filtroLab.innerHTML = '<option value="">Todas las ubicaciones</option>';
+        const ubicaciones = [...new Set([
+            ...ACTIVOS_CATALOGO.map(a => a.lab),
+            ...CONSUMIBLES_CATALOGO.map(c => c.lab),
+            ...LABORATORIOS_CATALOGO.map(l => l.lab)
+        ])].filter(Boolean).sort();
+        ubicaciones.forEach(ub => {
+            const opt = document.createElement('option');
+            opt.value = ub; opt.textContent = ub;
+            filtroLab.appendChild(opt);
+        });
+    }
+
+    // Renderizar catálogos con los datos cargados
+    filtrarItems();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('c-fecha-devolucion').min = new Date().toISOString().slice(0,10);
     actualizarStats();
-    renderTabla();
+    cargarCatalogos();   // Carga activos y consumibles desde la API
 });
 </script>
 </body>
