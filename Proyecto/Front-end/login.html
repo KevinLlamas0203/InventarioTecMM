@@ -185,9 +185,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
         if (data.success) {
             // ✅ GUARDAR DATOS EN LOCALSTORAGE
-            localStorage.setItem('usuario_id', data.usuario.id);
-            localStorage.setItem('nombre_usuario', data.usuario.nombre);
-            localStorage.setItem('nivel_usuario', data.usuario.nivel);
+            localStorage.setItem('usuario', JSON.stringify(data.usuario));
             
             // ✅ Redirigir al dashboard
             window.location.href = 'pagesAdmin/dashboard_admin.html';
