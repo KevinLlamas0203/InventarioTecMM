@@ -2,7 +2,7 @@
 
 Sistema web moderno para la gestión del inventario de activos y consumibles del área de Ingeniería en Sistemas Computacionales del Tecnológico Superior de Jalisco.
 
-## 🎨 Características de Diseño
+##  Características de Diseño
 
 - **Estética Moderna**: Diseño oscuro con acentos en la paleta de colores del TSJ
 - **Tipografía Distintiva**: Uso de Archivo para títulos y DM Sans para cuerpo
@@ -10,20 +10,59 @@ Sistema web moderno para la gestión del inventario de activos y consumibles del
 - **Responsive**: Adaptable a dispositivos móviles, tablets y desktop
 - **Interfaz Intuitiva**: Navegación clara y organizada por roles
 
-## 📁 Estructura de Archivos
+##  Estructura de Archivos
 
 ```
-proyecto-isc-frontend/
+Proyecto/
 │
-├── login.html          # Página de inicio de sesión
-├── dashboard.html      # Panel principal con estadísticas
-├── activos.html        # Gestión de activos (CRUD completo)
-├── styles.css          # Estilos globales del sistema
-├── app.js              # Funcionalidad JavaScript común
-└── README.md           # Este archivo
+├── Back-End/                        # Lógica del servidor y API
+│   ├── venv/                        # Entorno virtual de Python
+│   ├── .env                         # Variables de entorno (credenciales, configuración)
+│   ├── requirements.txt             # Lista de dependencias necesarias
+│   ├── serverFlask.py               # Servidor principal Flask
+│   └── Modules/                     # Módulos CRUD organizados por entidad
+│       ├── Activos/                 # Gestión de activos
+│       │   ├── createActivos.py     # Endpoint para crear activos
+│       │   ├── readActivos.py       # Endpoint para consultar activos
+│       │   ├── updateActivos.py     # Endpoint para actualizar activos
+│       │   └── deleteActivos.py     # Endpoint para eliminar activos
+│       ├── Reportes/                # Gestión de reportes
+│       │   ├── createReporte.py     # Crear reporte
+│       │   ├── readReporte.py       # Consultar reportes
+│       │   ├── updateReporte.py     # Actualizar reporte
+│       │   └── deleteReporte.py     # Eliminar reporte
+│       └── Historial/               # Registro de acciones y auditoría
+│           ├── createHistorial.py   # Crear registro en historial
+│           ├── readHistorial.py     # Consultar historial
+│           └── appReportes.py       # Configuración de blueprint/reportes
+│
+└── Front-end/                       # Interfaz gráfica del sistema
+    ├── css/                         # Estilos visuales
+    │   ├── styles.css               # Estilos globales
+    │   └── consumibles.css          # Estilos específicos para consumibles
+    ├── js/                          # Funcionalidad en JavaScript
+    │   ├── app.js                   # Funciones comunes
+    │   ├── activos.js               # Lógica de activos
+    │   ├── consumibles.js           # Lógica de consumibles
+    │   ├── control-nivel.js         # Control de niveles/stock
+    │   └── theme-toggle.js          # Cambio de tema (oscuro/claro)
+    ├── pagesAdmin/                  # Páginas HTML del sistema
+    │   ├── login.html               # Página de inicio de sesión
+    │   ├── dashboard_admin.html     # Panel principal con estadísticas
+    │   ├── activos.html             # Gestión de activos
+    │   ├── consumibles.html         # Gestión de consumibles
+    │   ├── asignaciones.html        # Control de asignaciones
+    │   ├── reportes.html            # Generación de reportes
+    │   ├── auditoria.html           # Historial de cambios
+    │   ├── usuarios.html            # Gestión de usuarios y roles
+    │   └── ajustes.html             # Configuración del sistema
+    └── images/                      # Recursos gráficos
+        ├── tsjLogo.png              # Logo institucional
+        └── favicon_io/              # Íconos para navegador
+
 ```
 
-## 🚀 Páginas Implementadas
+##  Páginas Implementadas
 
 ### 1. Login (login.html)
 - Diseño dividido con visualización de marca
@@ -49,7 +88,7 @@ proyecto-isc-frontend/
 - Paginación
 - Exportación de datos
 
-## 🎯 Funcionalidades Principales
+## Funcionalidades Principales
 
 ### Navegación
 - Sidebar colapsable en móviles
@@ -70,14 +109,50 @@ proyecto-isc-frontend/
 - Modales elegantes
 - Tooltips informativos
 
-## 🛠️ Tecnologías Utilizadas
+## Tecnologías Utilizadas
 
 - **HTML5**: Estructura semántica
 - **CSS3**: Variables CSS, Grid, Flexbox, Animaciones
 - **JavaScript**: Vanilla JS (sin frameworks)
 - **Google Fonts**: Archivo, DM Sans
 
-## 📱 Responsive Design
+## Instalación y Ejecución
+
+### 1. Entrar al directorio del backend
+cd Back-End/
+
+### 2. Instalar dependencias
+pip install -r requirements.txt
+
+### 3. Ejecutar el servidor Flask
+python serverFlask.py
+
+### 4. Abrir el frontend
+# Abre login.html en tu navegador o con Live Server en VS Code
+
+- El servidor Flask corre en http://127.0.0.1:5000.
+-  El archivo login.html carga en el navegador y se conecta al backend.
+
+## Credenciales de Prueba
+
+- Usuario: pepe
+- Contraseña: 1234
+
+
+##  Cómo Usar
+
+1. **Abrir login.html** en un navegador
+2. **Iniciar sesión** (cualquier usuario/contraseña redirige al dashboard)
+3. **Navegar** por las diferentes secciones del sistema
+4. **Interactuar** con los elementos (botones, filtros, modales)
+
+##  Requisitos Técnicos
+
+- Navegador moderno (Chrome, Firefox, Safari, Edge)
+- JavaScript habilitado
+- Conexión a internet (para fuentes de Google)
+
+##  Responsive Design
 
 El sistema se adapta a diferentes tamaños de pantalla:
 
@@ -92,18 +167,7 @@ El sistema se adapta a diferentes tamaños de pantalla:
 - 640px: Layout de una columna
 
 
-## 🚦 Páginas Pendientes (Para Implementar)
-
-Las siguientes páginas siguen la misma estructura y pueden crearse fácilmente:
-
-1. **consumibles.html** - Gestión de consumibles con alertas de stock
-2. **asignaciones.html** - Control de asignaciones a usuarios
-3. **reportes.html** - Generación de reportes PDF/Excel
-4. **auditoria.html** - Historial de cambios y auditoría
-5. **usuarios.html** - Gestión de usuarios y roles
-6. **ajustes.html** - Configuración del sistema
-
-## 💡 Características del Código
+##  Características del Código
 
 ### CSS
 - Variables CSS para fácil personalización
@@ -119,20 +183,9 @@ Las siguientes páginas siguen la misma estructura y pueden crearse fácilmente:
 - Funciones utilitarias
 - Observer API para animaciones
 
-## 🔧 Cómo Usar
 
-1. **Abrir login.html** en un navegador
-2. **Iniciar sesión** (cualquier usuario/contraseña redirige al dashboard)
-3. **Navegar** por las diferentes secciones del sistema
-4. **Interactuar** con los elementos (botones, filtros, modales)
 
-## 📋 Requisitos Técnicos
-
-- Navegador moderno (Chrome, Firefox, Safari, Edge)
-- JavaScript habilitado
-- Conexión a internet (para fuentes de Google)
-
-## 🎓 Requerimientos del Sistema (Cumplidos)
+##  Requerimientos del Sistema (Cumplidos)
 
 ### Funcionales
 ✅ RF-01: Registro de activos del inventario  
@@ -150,26 +203,23 @@ Las siguientes páginas siguen la misma estructura y pueden crearse fácilmente:
 ✅ RNF-04: Control de acceso basado en roles  
 ✅ RNF-08: Acceso desde navegadores modernos  
 
-## 🔐 Seguridad
+##  Seguridad
 
 - Validación de formularios
 - Confirmaciones para acciones destructivas
 - Sesiones simuladas
 - Control de acceso por roles (UI preparada)
 
-## 🎯 Próximos Pasos
+##  Próximos Pasos
 
-1. Implementar backend (Node.js/PHP/Python)
-2. Conectar con base de datos
-3. Agregar autenticación real
-4. Implementar las páginas pendientes
-5. Agregar generación de PDFs
-6. Implementar sistema de notificaciones
-7. Agregar gráficos interactivos (Chart.js)
-
+1. Conectar frontend con backend vía API REST
+2. Implementar autenticación real con base de datos
+3. Generar reportes PDF/Excel desde backend
+4. Completar páginas pendientes (consumibles, auditoría, usuarios, ajustes)
+5. Agregar notificaciones y gráficos interactivos (Chart.js)
 
 ---
 
 **Versión**: 1.0.0  
-**Fecha**: Febrero 2026  
+**Fecha**: Mayo 2026  
 **Estado**: Frontend Completo - Listo para Backend

@@ -78,6 +78,220 @@ function initGlobalApp() {
     });
 }
 
+
+// Actualiza el badge de consumibles en el sidebar desde cualquier página
+async function updateConsumiblesBadge() {
+    try {
+        const res = await fetch('http://localhost:5000/consumibles');
+        const data = await res.json();
+        const bajo = data.filter(c => c.stock_actual <= c.stock_minimo * 1.5).length;
+        
+        const badge = document.getElementById('badge-bajo');
+        if (badge) {
+            badge.textContent = bajo;
+            badge.style.display = bajo > 0 ? '' : 'none';
+        }
+    } catch (err) {
+        console.warn('No se pudo actualizar badge consumibles:', err);
+    }
+}
+
+async function fetchJson(path) {
+    const response = await fetch(`${window.API_URL}${path}`);
+    if (!response.ok) {
+        throw new Error(`Error ${response.status} cargando ${path}`);
+    }
+    return response.json();
+}
+
+function formatNumber(value) {
+    return typeof value === 'number' ? value.toLocaleString('es-ES') : value;
+}
+
+function buildLegendItem(color, label, value) {
+    return `
+        <div class="legend-item">
+            <span class="legend-dot" style="background: ${color};"></span>
+            <span class="legend-label">${label}</span>
+            <span class="legend-value">${value}</span>
+        </div>`;
+}
+
+function drawDistributionChart(categories) {
+    const canvas = document.getElementById('distributionChart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const width = canvas.offsetWidth;
+    const height = 200;
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+
+    const total = categories.reduce((sum, item) => sum + item.count, 0);
+    const padded = 24;
+    const barWidth = Math.max(36, (width - padded * 2) / Math.max(categories.length, 1) - 14);
+    const maxCount = Math.max(...categories.map(item => item.count), 1);
+
+    categories.forEach((item, index) => {
+        const x = padded + index * (barWidth + 14);
+        const barHeight = (item.count / maxCount) * (height - 40);
+        const y = height - barHeight - 24;
+        const colors = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#6C5CE7', '#00B894'];
+        const color = colors[index % colors.length];
+
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.roundRect(x, y, barWidth, barHeight, 8);
+        ctx.fill();
+
+        ctx.fillStyle = 'var(--color-text-secondary)';
+        ctx.font = '12px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(item.label, x + barWidth / 2, height - 6);
+
+        ctx.fillStyle = 'var(--color-text)';
+        ctx.fillText(item.count, x + barWidth / 2, y - 10);
+    });
+}
+
+function renderActivities(historial) {
+    const container = document.getElementById('activityList');
+    if (!container) return;
+
+    container.innerHTML = '';
+    if (!Array.isArray(historial) || historial.length === 0) {
+        container.innerHTML = `
+            <div class="activity-item">
+                <div class="activity-content">
+                    <span>No hay actividad reciente disponible.</span>
+                </div>
+            </div>`;
+        return;
+    }
+
+    historial.slice(0, 4).forEach(item => {
+        const title = item.accion || item.entidad || 'Actividad reciente';
+        const description = item.detalle || item.descripcion || item.info || '';
+        const dateText = item.fecha_accion ? new Date(item.fecha_accion).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }) : '';
+        const iconClass = item.accion && item.accion.toLowerCase().includes('asign') ? 'assign' :
+                          item.accion && item.accion.toLowerCase().includes('baja') ? 'warning' :
+                          item.accion && item.accion.toLowerCase().includes('actualiz') ? 'update' : 'add';
+
+        container.insertAdjacentHTML('beforeend', `
+            <div class="activity-item">
+                <div class="activity-icon ${iconClass}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        ${iconClass === 'assign' ? '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke-width="2"/><circle cx="9" cy="7" r="4" stroke-width="2"/>' :
+                          iconClass === 'warning' ? '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/>' :
+                          '<path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>'}
+                    </svg>
+                </div>
+                <div class="activity-content">
+                    <p class="activity-title">${title}</p>
+                    <p class="activity-description">${description || 'Sin descripción adicional.'}</p>
+                    <span class="activity-time">${dateText}</span>
+                </div>
+            </div>`);
+    });
+}
+
+function renderAlerts(reportes, prestamosStats, consumiblesCount) {
+    const list = document.getElementById('alertsList');
+    if (!list) return;
+
+    const alerts = [
+        {
+            type: 'warning',
+            icon: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/>',
+            text: `${reportes.alertas_stock || 0} consumibles con stock bajo`
+        },
+        {
+            type: 'info',
+            icon: '<circle cx="12" cy="12" r="10" stroke-width="2"/><path d="M12 16v-4M12 8h.01" stroke-width="2" stroke-linecap="round"/>',
+            text: `${prestamosStats.pendiente || 0} préstamos pendientes`
+        },
+        {
+            type: 'success',
+            icon: '<polyline points="20 6 9 17 4 12" stroke-width="2"/>',
+            text: `${reportes.reportes_mes || 0} reportes generados este mes`
+        }
+    ];
+
+    list.innerHTML = alerts.map(alert => `
+        <div class="alert-item ${alert.type}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${alert.icon}</svg>
+            <span>${alert.text}</span>
+        </div>`).join('');
+}
+
+async function loadDashboardData() {
+    try {
+        const [reportes, prestamosStats, asignaciones, activos, consumibles, historial] = await Promise.all([
+            fetchJson('/reportes/stats'),
+            fetchJson('/prestamos/stats'),
+            fetchJson('/asignaciones'),
+            fetchJson('/activos'),
+            fetchJson('/consumibles'),
+            fetchJson('/historial'),
+        ]);
+
+        const asignacionesTotal = Array.isArray(asignaciones) ? asignaciones.length : 0;
+        const asignacionesActivas = Array.isArray(asignaciones)
+            ? asignaciones.filter(a => a.estado && a.estado.toLowerCase() !== 'finalizada').length
+            : 0;
+        const activosList = Array.isArray(activos) ? activos : [];
+        const consumiblesList = Array.isArray(consumibles) ? consumibles : [];
+        const historialList = Array.isArray(historial) ? historial : [];
+
+        document.getElementById('stat-activos').textContent = formatNumber(reportes.total_activos ?? activosList.length);
+        const diferenciaActivos = reportes.diferencia_mes || 0;
+        document.getElementById('stat-activos-change').textContent = diferenciaActivos >= 0
+            ? `+${formatNumber(diferenciaActivos)} este mes`
+            : `${formatNumber(diferenciaActivos)} este mes`;
+
+        document.getElementById('stat-consumibles').textContent = formatNumber(consumiblesList.length);
+        document.getElementById('stat-consumibles-change').textContent = `Último inventario actualizado`;
+
+        document.getElementById('stat-stock-bajo').textContent = formatNumber(reportes.alertas_stock ?? 0);
+        document.getElementById('stat-stock-bajo-text').textContent = (reportes.alertas_stock ?? 0) > 0
+            ? 'Requieren reposición urgente'
+            : 'Todo el stock está en rango seguro';
+
+        document.getElementById('stat-asignaciones').textContent = formatNumber(asignacionesTotal);
+        document.getElementById('stat-asignaciones-change').textContent = `${formatNumber(asignacionesActivas)} activas`;
+
+        const categories = activosList.reduce((acc, activo) => {
+            const label = activo.categoria || 'Sin categoría';
+            const existing = acc.find(item => item.label === label);
+            if (existing) existing.count += 1;
+            else acc.push({ label, count: 1 });
+            return acc;
+        }, []).sort((a, b) => b.count - a.count).slice(0, 5);
+
+        const legend = document.getElementById('distributionLegend');
+        if (legend) {
+            legend.innerHTML = categories.map((item, index) => buildLegendItem(
+                ['#FF6B6B', '#4ECDC4', '#FFE66D', '#6C5CE7', '#00B894'][index % 5],
+                item.label,
+                `${Math.round((item.count / activos.length) * 100)}%`
+            )).join('');
+        }
+
+        drawDistributionChart(categories);
+        renderActivities(historialList);
+        renderAlerts(reportes, prestamosStats, consumiblesList.length);
+    } catch (error) {
+        console.error('Error cargando datos del dashboard:', error);
+    }
+}
+
+// Ejecutar al cargar la página
+updateConsumiblesBadge();
+
 function initPageFeatures() {
     const pageRoot = document.querySelector('#tab-content') || document.querySelector('.main-content');
     if (!pageRoot) return;
@@ -138,6 +352,9 @@ function initPageFeatures() {
 function initApp() {
     initGlobalApp();
     initPageFeatures();
+    if (document.querySelector('.dashboard-page') && document.getElementById('stat-activos')) {
+        loadDashboardData();
+    }
 }
 
 if (document.readyState === 'loading') {

@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,759 +7,825 @@
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap" rel="stylesheet">
     <link rel="apple-touch-icon" sizes="180x180" href="../../images/favicon_io/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="../../images/favicon_io/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../../images/favicon_io/favicon-16x16.png">
     <link rel="manifest" href="../../images/favicon_io/site.webmanifest">
     <link rel="shortcut icon" href="../../images/favicon_io/favicon.ico">
     <style>
-        /* ── Report Cards ── */
-        .reports-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: var(--spacing-lg);
-            margin-bottom: var(--spacing-xl);
-        }
+        .reports-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:var(--spacing-lg); margin-bottom:var(--spacing-xl); }
+        .report-card { display:flex; flex-direction:column; gap:var(--spacing-md); }
+        .report-card .card-header { margin-bottom:0; }
+        .report-icon { width:48px; height:48px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; margin-bottom:var(--spacing-sm); }
+        .report-icon svg { width:24px; height:24px; stroke-width:2; }
+        .report-icon.blue  { background:rgba(51,154,240,0.15);  color:var(--color-info); }
+        .report-icon.green { background:rgba(81,207,102,0.15);  color:var(--color-success); }
+        .report-icon.red   { background:rgba(255,107,107,0.15); color:var(--color-danger); }
+        .report-card h3 { font-size:1.05rem; font-weight:600; margin-bottom:var(--spacing-xs); }
+        .report-card p  { font-size:0.9rem; color:var(--color-text-secondary); line-height:1.5; }
+        .report-card .form-group { display:flex; flex-direction:column; gap:6px; }
+        .report-card .form-group label { font-size:0.82rem; color:var(--color-text-secondary); font-weight:500; }
+        .report-card select { padding:8px 12px; background:var(--color-surface-raised); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-family:var(--font-body); font-size:0.9rem; cursor:pointer; transition:border-color var(--transition-fast); }
+        .report-card select:focus { outline:none; border-color:var(--color-primary); }
+        .report-card .btn-primary { width:100%; justify-content:center; margin-top:auto; padding:10px; }
+        .report-card-body { flex:1; display:flex; flex-direction:column; gap:var(--spacing-md); }
+        .badge-pdf  { background:rgba(255,107,107,0.15); color:var(--color-danger); }
+        .badge-xlsx { background:rgba(81,207,102,0.15);  color:var(--color-success); }
+        .badge-csv  { background:rgba(51,154,240,0.15);  color:var(--color-info); }
+        .report-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:var(--spacing-lg); margin-bottom:var(--spacing-xl); }
+        .btn-loading { opacity:0.7; pointer-events:none; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.4); border-top-color:white; border-radius:50%; animation:spin 0.7s linear infinite; margin-right:6px; vertical-align:middle; }
 
-        .report-card {
+        /* ── Toast lateral apilado (esquina inferior derecha) ──────────────── */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
-            gap: var(--spacing-md);
+            gap: 10px;
+            align-items: flex-end;
+            pointer-events: none;
         }
-
-        .report-card .card-header {
-            margin-bottom: 0;
+        .toast-item {
+            background: var(--color-surface, #1e1e2e);
+            border: 1px solid var(--color-border, #2a2a3a);
+            border-left: 4px solid var(--color-info, #339af0);
+            border-radius: 10px;
+            padding: 14px 18px;
+            font-size: 0.92rem;
+            font-weight: 500;
+            color: var(--color-text, #e8e8f0);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+            max-width: 320px;
+            min-width: 220px;
+            line-height: 1.45;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.22s ease, transform 0.22s ease;
         }
+        .toast-item.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .toast-item.toast-success { border-left-color: var(--color-success, #51cf66); }
+        .toast-item.toast-error   { border-left-color: var(--color-danger,  #ff6b6b); }
+        .toast-item.toast-warning { border-left-color: var(--color-warning, #ffd43b); }
+        .toast-item.toast-info    { border-left-color: var(--color-info,    #339af0); }
 
-        .report-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--radius-md);
-            display: flex;
+        /* ── Modal confirmación ─────────────────────────────────────────────── */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+        .modal-overlay.show { opacity: 1; pointer-events: all; }
+        .modal-box {
+            background: var(--color-surface, #1e1e2e);
+            border: 1px solid var(--color-border, #2a2a3a);
+            border-radius: 16px;
+            padding: 32px 28px 24px;
+            width: min(90vw, 400px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            transform: scale(0.92);
+            transition: transform 0.22s ease;
+            text-align: center;
+        }
+        .modal-overlay.show .modal-box { transform: scale(1); }
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--color-text, #e8e8f0);
+            margin-bottom: 8px;
+        }
+        .modal-desc {
+            font-size: 0.88rem;
+            color: var(--color-text-secondary, #888);
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+        .modal-actions {
+            display: flex; gap: 10px; justify-content: center;
+        }
+        .modal-actions .btn-cancel {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--color-border, #2a2a3a);
+            background: transparent;
+            color: var(--color-text-secondary, #888);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .modal-actions .btn-cancel:hover { background: rgba(255,255,255,0.05); }
+        .modal-actions .btn-confirm-danger {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            background: var(--color-danger, #ff6b6b);
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .modal-actions .btn-confirm-danger:hover { opacity: 0.85; }
+
+        /* ── Responsive: hamburguesa y sidebar móvil ────────────────────────── */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            z-index: 1100;
+            background: var(--color-surface, #1e1e2e);
+            border: 1px solid var(--color-border, #2a2a3a);
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
             align-items: center;
             justify-content: center;
-            margin-bottom: var(--spacing-sm);
-        }
-
-        .report-icon svg {
-            width: 24px;
-            height: 24px;
-            stroke-width: 2;
-        }
-
-        .report-icon.blue {
-            background: rgba(51, 154, 240, 0.15);
-            color: var(--color-info);
-        }
-
-        .report-icon.green {
-            background: rgba(81, 207, 102, 0.15);
-            color: var(--color-success);
-        }
-
-        .report-icon.amber {
-            background: rgba(255, 230, 109, 0.15);
-            color: var(--color-warning);
-        }
-
-        .report-icon.red {
-            background: rgba(255, 107, 107, 0.15);
-            color: var(--color-danger);
-        }
-
-        .report-icon.purple {
-            background: rgba(63, 75, 245, 0.15);
-            color: var(--color-primary);
-        }
-
-        .report-card h3 {
-            font-size: 1.05rem;
-            font-weight: 600;
-            margin-bottom: var(--spacing-xs);
-        }
-
-        .report-card p {
-            font-size: 0.9rem;
-            color: var(--color-text-secondary);
-            line-height: 1.5;
-        }
-
-        .report-card .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .report-card .form-group label {
-            font-size: 0.82rem;
-            color: var(--color-text-secondary);
-            font-weight: 500;
-        }
-
-        .report-card select {
-            padding: 8px 12px;
-            background: var(--color-surface-raised);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-sm);
-            color: var(--color-text);
-            font-family: var(--font-body);
-            font-size: 0.9rem;
             cursor: pointer;
-            transition: border-color var(--transition-fast);
+            color: var(--color-text, #e8e8f0);
+        }
+        .mobile-menu-btn svg { width: 20px; height: 20px; stroke: currentColor; }
+
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1050;
         }
 
-        .report-card select:focus {
-            outline: none;
-            border-color: var(--color-primary);
-        }
+        @media (max-width: 768px) {
+            .mobile-menu-btn { display: flex; }
 
-        .report-card .btn-primary {
-            width: 100%;
-            justify-content: center;
-            margin-top: auto;
-            padding: 10px;
-        }
+            .sidebar {
+                position: fixed !important;
+                top: 0; left: 0; bottom: 0;
+                z-index: 1100;
+                transform: translateX(-110%);
+                transition: transform 0.28s ease;
+                width: 260px !important;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            .sidebar-backdrop.show { display: block; }
 
-        .report-card-body {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-md);
-        }
+            /* Ocultar el toggle interno en móvil, usamos el botón externo */
+            .sidebar-toggle { display: none; }
 
-        /* ── History table badges ── */
-        .badge-pdf {
-            background: rgba(255, 107, 107, 0.15);
-            color: var(--color-danger);
-        }
-
-        .badge-xlsx {
-            background: rgba(81, 207, 102, 0.15);
-            color: var(--color-success);
-        }
-
-        .badge-csv {
-            background: rgba(51, 154, 240, 0.15);
-            color: var(--color-info);
-        }
-
-        /* ── Stats row ── */
-        .report-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--spacing-lg);
-            margin-bottom: var(--spacing-xl);
+            .main-content {
+                margin-left: 0 !important;
+                padding-top: 60px;
+            }
+            .dashboard-layout {
+                grid-template-columns: 1fr !important;
+            }
         }
     </style>
 </head>
-
 <body class="dashboard-page">
-    <div class="dashboard-layout">
-        <!-- ═══════════════ SIDEBAR ═══════════════ -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-brand">
-                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="5" y="5" width="30" height="30" rx="6" fill="currentColor" opacity="0.2" />
-                        <path d="M13 16h14M13 20h14M13 24h10" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" />
-                        <circle cx="28" cy="24" r="2" fill="currentColor" />
-                    </svg>
-                    <span class="brand-name">Sistema de Inventario</span>
-                </div>
-                <button class="sidebar-toggle" aria-label="Toggle sidebar">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M3 12h18M3 6h18M3 18h18" stroke-width="2" stroke-linecap="round" />
-                    </svg>
-                </button>
-            </div>
+<!-- Botón hamburguesa móvil -->
+<button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir menú">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 12h18M3 6h18M3 18h18"/>
+    </svg>
+</button>
+<!-- Backdrop móvil -->
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-            <nav class="sidebar-nav">
-                <div class="nav-section">
-                    <span class="nav-section-title">Principal</span>
-                    <a href="dashboard_admin.html" class="nav-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <rect x="3" y="3" width="7" height="7" stroke-width="2" rx="1" />
-                            <rect x="14" y="3" width="7" height="7" stroke-width="2" rx="1" />
-                            <rect x="14" y="14" width="7" height="7" stroke-width="2" rx="1" />
-                            <rect x="3" y="14" width="7" height="7" stroke-width="2" rx="1" />
-                        </svg>
-                        <span>Dashboard</span>
-                    </a>
-                </div>
-
-                <div class="nav-section">
-                    <span class="nav-section-title">Gestión</span>
-                    <a href="ModuloActivo.html" class="nav-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2" />
-                            <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round" />
-                        </svg>
-                        <span>Módulo de Activos</span>
-                        <span class="nav-badge">245</span>
-
-                    </a>
-                    <a href="consumibles.html" class="nav-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path
-                                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
-                                stroke-width="2" />
-                            <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2" />
-                            <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2" />
-                        </svg>
-                        <span>Consumibles</span>
-                        <span class="nav-badge warning">12</span>
-                    </a>
-                </div>
-
-                <div class="nav-section">
-                    <span class="nav-section-title">Reportes</span>
-                    <a href="reportes.html" class="nav-item active">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2" />
-                            <polyline points="14 2 14 8 20 8" stroke-width="2" />
-                            <line x1="16" y1="13" x2="8" y2="13" stroke-width="2" />
-                            <line x1="16" y1="17" x2="8" y2="17" stroke-width="2" />
-                            <polyline points="10 9 9 9 8 9" stroke-width="2" />
-                        </svg>
-                        <span>Reportes</span>
-                    </a>
-                    <a href="auditoria.html" class="nav-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <circle cx="12" cy="12" r="10" stroke-width="2" />
-                            <polyline points="12 6 12 12 16 14" stroke-width="2" />
-                        </svg>
-                        <span>Auditoría</span>
-                    </a>
-                </div>
-
-                <div class="nav-section">
-                    <span class="nav-section-title">Configuración</span>
-                    <a href="usuarios.html" class="nav-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2" />
-                            <circle cx="9" cy="7" r="4" stroke-width="2" />
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2" />
-                        </svg>
-                        <span>Usuarios</span>
-                    </a>
-                    <a href="ajustes.html" class="nav-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <path
-                                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z">
-                            </path>
-                            <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-                        <span>Ajustes</span>
-                    </a>
-                </div>
-            </nav>
-
-            <div class="sidebar-footer">
-                <div class="user-profile">
-                    <div class="user-avatar">AD</div>
-                    <div class="user-info">
-                        <span class="user-name">Admin ISC</span>
-                        <span class="user-role">Administrador</span>
-                    </div>
-                </div>
-                <button class="btn-icon logout-btn" aria-label="Cerrar sesión">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-width="2"
-                            stroke-linecap="round" />
-                    </svg>
-                </button>
-            </div>
-        </aside>
-
-        <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
-        <main class="main-content">
-            <header class="content-header">
-                <div class="header-left">
-                    <h1 class="page-title">Generación de Reportes</h1>
-                    <p class="page-subtitle">Exporta información detallada del inventario en distintos formatos</p>
-                </div>
-                <div class="header-right">
-                    <button class="btn-secondary" onclick="exportData('excel')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <polyline points="6 9 6 2 18 2 18 9" stroke-width="2" />
-                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
-                                stroke-width="2" />
-                            <rect x="6" y="14" width="12" height="8" stroke-width="2" />
-                        </svg>
-                        <span>Exportar Todo</span>
-                    </button>
-                </div>
-            </header>
-
-            <!-- ── Stats ── -->
-            <div class="report-stats">
-                <div class="stat-card primary">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2" />
-                            <polyline points="14 2 14 8 20 8" stroke-width="2" />
-                        </svg>
-                    </div>
-                    <div class="stat-content">
-                        <span class="stat-label">Reportes este mes</span>
-                        <span class="stat-value">24</span>
-                    </div>
-                    <span class="stat-change positive">↑ 8 más que el mes pasado</span>
-                </div>
-                <div class="stat-card success">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                        </svg>
-                    </div>
-                    <div class="stat-content">
-                        <span class="stat-label">Completados</span>
-                        <span class="stat-value">22</span>
-                    </div>
-                    <span class="stat-change positive">91.7% de éxito</span>
-                </div>
-                <div class="stat-card warning">
-                    <div class="stat-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <circle cx="12" cy="12" r="10" stroke-width="2" />
-                            <polyline points="12 6 12 12 16 14" stroke-width="2" />
-                        </svg>
-                    </div>
-                    <div class="stat-content">
-                        <span class="stat-label">En procesamiento</span>
-                        <span class="stat-value">2</span>
-                    </div>
-                    <span class="stat-change">Tiempo promedio: 3 seg</span>
-                </div>
-            </div>
-
-            <!-- ── Report Generator Cards ── -->
-            <div class="reports-grid">
-                <!-- Inventario General -->
-                <div class="card report-card">
-                    <div class="card-header">
-                        <div class="report-icon blue">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path
-                                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
-                                    stroke-width="2" />
-                                <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2" />
-                                <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3>Inventario General</h3>
-                            <p>Reporte completo de todos los activos y consumibles registrados en el sistema.</p>
-                        </div>
-                    </div>
-                    <div class="report-card-body">
-                        <div class="form-group">
-                            <label>Formato de exportación</label>
-                            <select id="fmt-inventario">
-                                <option value="pdf">PDF</option>
-                                <option value="excel">Excel (XLSX)</option>
-                                <option value="csv">CSV</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Rango de fechas</label>
-                            <select>
-                                <option>Últimos 30 días</option>
-                                <option>Últimos 3 meses</option>
-                                <option>Este año</option>
-                                <option>Todo el historial</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button class="btn-primary"
-                        onclick="generarReporte('Inventario General', document.getElementById('fmt-inventario').value)">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
-                            <polyline points="7 10 12 15 17 10" stroke-width="2" />
-                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" />
-                        </svg>
-                        <span>Descargar Reporte</span>
-                    </button>
-                </div>
-
-                <!-- Asignaciones -->
-                <div class="card report-card">
-                    <div class="card-header">
-                        <div class="report-icon green">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke-width="2" />
-                                <circle cx="9" cy="7" r="4" stroke-width="2" />
-                                <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3>Asignaciones Activas</h3>
-                            <p>Listado de activos asignados actualmente a usuarios o áreas específicas.</p>
-                        </div>
-                    </div>
-                    <div class="report-card-body">
-                        <div class="form-group">
-                            <label>Filtrar por área</label>
-                            <select id="fmt-asignaciones">
-                                <option value="all">Todas las áreas</option>
-                                <option value="lab1">Laboratorio 1</option>
-                                <option value="lab2">Laboratorio 2</option>
-                                <option value="admin">Administración</option>
-                                <option value="docentes">Sala de Docentes</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Formato de exportación</label>
-                            <select>
-                                <option value="pdf">PDF</option>
-                                <option value="excel">Excel (XLSX)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button class="btn-primary" onclick="generarReporte('Asignaciones Activas', 'pdf')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
-                            <polyline points="7 10 12 15 17 10" stroke-width="2" />
-                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" />
-                        </svg>
-                        <span>Descargar Reporte</span>
-                    </button>
-                </div>
-
-                <!-- Mantenimiento -->
-                <div class="card report-card">
-                    <div class="card-header">
-                        <div class="report-icon amber">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path
-                                    d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
-                                    stroke-width="2" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3>Mantenimiento</h3>
-                            <p>Activos que requieren mantenimiento o se encuentran actualmente en reparación.</p>
-                        </div>
-                    </div>
-                    <div class="report-card-body">
-                        <div class="form-group">
-                            <label>Tipo de mantenimiento</label>
-                            <select>
-                                <option value="all">Todos</option>
-                                <option value="preventivo">Preventivo</option>
-                                <option value="correctivo">Correctivo</option>
-                                <option value="baja">Dado de baja</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Formato de exportación</label>
-                            <select>
-                                <option value="pdf">PDF</option>
-                                <option value="excel">Excel (XLSX)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button class="btn-primary" onclick="generarReporte('Mantenimiento', 'pdf')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
-                            <polyline points="7 10 12 15 17 10" stroke-width="2" />
-                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" />
-                        </svg>
-                        <span>Descargar Reporte</span>
-                    </button>
-                </div>
-
-                <!-- Consumibles / Stock -->
-                <div class="card report-card">
-                    <div class="card-header">
-                        <div class="report-icon red">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path
-                                    d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
-                                    stroke-width="2" />
-                                <line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round" />
-                                <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3>Alertas de Stock</h3>
-                            <p>Consumibles con nivel de inventario bajo o en estado crítico que requieren reposición.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="report-card-body">
-                        <div class="form-group">
-                            <label>Umbral de alerta</label>
-                            <select>
-                                <option>Stock crítico (≤5 unidades)</option>
-                                <option>Stock bajo (≤10 unidades)</option>
-                                <option>Todos los consumibles</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Formato de exportación</label>
-                            <select>
-                                <option value="pdf">PDF</option>
-                                <option value="excel">Excel (XLSX)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button class="btn-primary" onclick="generarReporte('Alertas de Stock', 'pdf')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
-                            <polyline points="7 10 12 15 17 10" stroke-width="2" />
-                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" />
-                        </svg>
-                        <span>Descargar Reporte</span>
-                    </button>
-                </div>
-
-                <!-- Auditoría -->
-                <div class="card report-card">
-                    <div class="card-header">
-                        <div class="report-icon purple">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <circle cx="12" cy="12" r="10" stroke-width="2" />
-                                <polyline points="12 6 12 12 16 14" stroke-width="2" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3>Historial de Auditoría</h3>
-                            <p>Registro completo de todas las acciones realizadas por los usuarios en el sistema.</p>
-                        </div>
-                    </div>
-                    <div class="report-card-body">
-                        <div class="form-group">
-                            <label>Período</label>
-                            <select>
-                                <option>Última semana</option>
-                                <option>Últimos 30 días</option>
-                                <option>Este año</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Formato de exportación</label>
-                            <select>
-                                <option value="pdf">PDF</option>
-                                <option value="csv">CSV</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button class="btn-primary" onclick="generarReporte('Auditoría', 'pdf')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
-                            <polyline points="7 10 12 15 17 10" stroke-width="2" />
-                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" />
-                        </svg>
-                        <span>Descargar Reporte</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- ── Download History ── -->
-            <div class="card table-card">
-                <div class="card-header">
-                    <h3 class="card-title">Historial de Descargas</h3>
-                    <button class="btn-secondary" onclick="limpiarHistorial()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <polyline points="3 6 5 6 21 6" stroke-width="2" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                                stroke-width="2" />
-                        </svg>
-                        <span>Limpiar historial</span>
-                    </button>
-                </div>
-                <div class="table-wrapper">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Reporte</th>
-                                <th>Usuario</th>
-                                <th>Fecha y hora</th>
-                                <th>Formato</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="historialBody">
-                            <tr>
-                                <td>
-                                    <div class="asset-info">
-                                        <span class="asset-name">Inventario General</span>
-                                        <span class="asset-specs">Todo el historial · 245 activos</span>
-                                    </div>
-                                </td>
-                                <td>Admin ISC</td>
-                                <td>15 Feb 2026, 10:30 AM</td>
-                                <td><span class="badge badge-pdf">PDF</span></td>
-                                <td><span class="status status-available">Completado</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action" title="Descargar de nuevo"
-                                            onclick="showToast('Descargando reporte…', 'info')">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
-                                                <polyline points="7 10 12 15 17 10" stroke-width="2" />
-                                                <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="asset-info">
-                                        <span class="asset-name">Asignaciones Lab 1</span>
-                                        <span class="asset-specs">Laboratorio 1 · 38 activos</span>
-                                    </div>
-                                </td>
-                                <td>Admin ISC</td>
-                                <td>14 Feb 2026, 09:15 AM</td>
-                                <td><span class="badge badge-xlsx">XLSX</span></td>
-                                <td><span class="status status-available">Completado</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action" title="Descargar de nuevo"
-                                            onclick="showToast('Descargando reporte…', 'info')">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
-                                                <polyline points="7 10 12 15 17 10" stroke-width="2" />
-                                                <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="asset-info">
-                                        <span class="asset-name">Alertas de Stock</span>
-                                        <span class="asset-specs">Stock crítico · 7 consumibles</span>
-                                    </div>
-                                </td>
-                                <td>Admin ISC</td>
-                                <td>13 Feb 2026, 04:00 PM</td>
-                                <td><span class="badge badge-csv">CSV</span></td>
-                                <td><span class="status status-available">Completado</span></td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-action" title="Descargar de nuevo"
-                                            onclick="showToast('Descargando reporte…', 'info')">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
-                                                <polyline points="7 10 12 15 17 10" stroke-width="2" />
-                                                <line x1="12" y1="15" x2="12" y2="3" stroke-width="2" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="table-footer">
-                    <div class="table-info">Mostrando <strong>1-3</strong> de <strong>24</strong> reportes</div>
-                    <div class="pagination">
-                        <button class="pagination-btn" disabled>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <polyline points="15 18 9 12 15 6" stroke-width="2" />
-                            </svg>
-                        </button>
-                        <button class="pagination-btn active">1</button>
-                        <button class="pagination-btn">2</button>
-                        <button class="pagination-btn">3</button>
-                        <button class="pagination-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <polyline points="9 18 15 12 9 6" stroke-width="2" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </main>
+<div class="dashboard-layout">
+        <!-- SIDEBAR  -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-brand">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="5" y="5" width="30" height="30" rx="6" fill="currentColor" opacity="0.2"/>
+                <path d="M13 16h14M13 20h14M13 24h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="28" cy="24" r="2" fill="currentColor"/>
+            </svg>
+            <span class="brand-name">Sistema de Inventario</span>
+        </div>
+        <button class="sidebar-toggle" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 12h18M3 6h18M3 18h18" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
     </div>
 
-    <script src="../js/app.js"></script>
-    <script src="../js/theme-toggle.js"></script>
-    <script>
-        // Sidebar toggle
-        document.querySelector('.sidebar-toggle').addEventListener('click', function () {
-            document.querySelector('.sidebar').classList.toggle('collapsed');
+    <nav class="sidebar-nav">
+        <div class="nav-section">
+            <span class="nav-section-title">Principal</span>
+            <a href="dashboard_admin.html" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="3" y="3" width="7" height="7" stroke-width="2" rx="1"/>
+                    <rect x="14" y="3" width="7" height="7" stroke-width="2" rx="1"/>
+                    <rect x="14" y="14" width="7" height="7" stroke-width="2" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" stroke-width="2" rx="1"/>
+                </svg>
+                <span>Dashboard</span>
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <span class="nav-section-title">Gestión</span>
+            <a href="ModuloActivo.html" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
+                    <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Activos</span>
+                <span class="nav-badge">245</span>
+            </a>
+            <a href="consumibles.html" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/>
+                </svg>
+                <span>Consumibles</span>
+                <span class="nav-badge warning" id="badge-bajo">–</span>
+            </a>
+            <a href="prestamos.html" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 3l4 4-4 4"/>
+                    <path d="M21 7H9a4 4 0 0 0-4 4v1"/>
+                    <path d="M7 21l-4-4 4-4"/>
+                    <path d="M3 17h12a4 4 0 0 0 4-4v-1"/>
+                </svg>
+                <span>Préstamos</span>
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <span class="nav-section-title">Reportes</span>
+            <a href="reportes.html" class="nav-item active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/>
+                    <polyline points="14 2 14 8 20 8" stroke-width="2"/>
+                    <line x1="16" y1="13" x2="8" y2="13" stroke-width="2"/>
+                    <line x1="16" y1="17" x2="8" y2="17" stroke-width="2"/>
+                </svg>
+                <span>Reportes</span>
+            </a>
+            <a href="auditoria.html" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                    <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+                </svg>
+                <span>Historial</span>
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <span class="nav-section-title">Configuración</span>
+            <a href="usuarios.html" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/>
+                    <circle cx="9" cy="7" r="4" stroke-width="2"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/>
+                </svg>
+                <span>Usuarios</span>
+            </a>
+            <a href="ajustes.html" class="nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <span>Ajustes</span>
+            </a>
+        </div>
+    </nav>
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">AD</div>
+                <div class="user-info">
+                    <span class="user-name">Admin ISC</span>
+                    <span class="user-role">Administrador</span>
+                </div>
+            </div>
+            <button class="btn-icon logout-btn" aria-label="Cerrar sesión">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <header class="content-header">
+            <div class="header-left">
+                <h1 class="page-title">Generación de Reportes</h1>
+                <p class="page-subtitle">Exporta información detallada del inventario en distintos formatos</p>
+            </div>
+            <div class="header-right">
+                <button class="btn-secondary" onclick="generarReporte('Reporte General', 'pdf')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 6 2 18 2 18 9" stroke-width="2"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke-width="2"/><rect x="6" y="14" width="12" height="8" stroke-width="2"/></svg>
+                    <span>Exportar Todo</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats -->
+        <div class="report-stats" id="statsContainer">
+            <div class="stat-card primary">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/><polyline points="14 2 14 8 20 8" stroke-width="2"/></svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Reportes este mes</span>
+                    <span class="stat-value" id="stat-reportes-mes">—</span>
+                </div>
+                <span class="stat-change positive" id="stat-diferencia">Cargando…</span>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/><path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Total de activos</span>
+                    <span class="stat-value" id="stat-activos">—</span>
+                </div>
+                <span class="stat-change">Registrados en el sistema</span>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/><line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Alertas de stock</span>
+                    <span class="stat-value" id="stat-alertas">—</span>
+                </div>
+                <span class="stat-change negative" id="stat-alertas-label">Consumibles con stock bajo</span>
+            </div>
+        </div>
+
+        <!-- Report Cards -->
+        <div class="reports-grid">
+
+            <!-- Reporte General -->
+            <div class="card report-card">
+                <div class="card-header">
+                    <div class="report-icon blue">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/><polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2"/><line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/></svg>
+                    </div>
+                    <div>
+                        <h3>Reporte General</h3>
+                        <p>Reporte completo de todos los activos y consumibles registrados en el sistema.</p>
+                    </div>
+                </div>
+                <div class="report-card-body">
+                    <div class="form-group">
+                        <label>Formato de exportación</label>
+                        <select id="fmt-general">
+                            <option value="pdf">PDF</option>
+                            <option value="excel">Excel (XLSX)</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Rango de fechas</label>
+                        <select id="rango-general">
+                            <option value="30dias">Últimos 30 días</option>
+                            <option value="3meses">Últimos 3 meses</option>
+                            <option value="anio">Este año</option>
+                            <option value="todo">Todo el historial</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="btn-general" class="btn-primary"
+                    onclick="generarReporte('Reporte General', document.getElementById('fmt-general').value)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/><polyline points="7 10 12 15 17 10" stroke-width="2"/><line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/></svg>
+                    <span>Descargar Reporte</span>
+                </button>
+            </div>
+
+            <!-- Reporte por Laboratorio -->
+            <div class="card report-card">
+                <div class="card-header">
+                    <div class="report-icon green">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <div>
+                        <h3>Reporte por Laboratorio</h3>
+                        <p>Listado de activos y consumibles filtrado por laboratorio o área específica.</p>
+                    </div>
+                </div>
+                <div class="report-card-body">
+                    <div class="form-group">
+                        <label>Seleccionar laboratorio</label>
+                        <!-- ✅ NOMBRES DE LABORATORIOS ACTUALIZADOS -->
+                        <select id="lab-select">
+                            <option value="all">Todos los laboratorios</option>
+                            <option value="lab1">Laboratorio de Cómputo Edificio A</option>
+                            <option value="lab2">Laboratorio de Cómputo Edificio B</option>
+                            <option value="lab3">Laboratorio de Sistemas</option>
+                            <option value="lab4">Laboratorio de Alimentos</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Formato de exportación</label>
+                        <select id="fmt-laboratorio">
+                            <option value="pdf">PDF</option>
+                            <option value="excel">Excel (XLSX)</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="btn-laboratorio" class="btn-primary"
+                    onclick="generarReporte('Reporte por Laboratorio (' + document.getElementById('lab-select').options[document.getElementById('lab-select').selectedIndex].text + ')', document.getElementById('fmt-laboratorio').value)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/><polyline points="7 10 12 15 17 10" stroke-width="2"/><line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/></svg>
+                    <span>Descargar Reporte</span>
+                </button>
+            </div>
+
+            <!-- Reporte de Alertas -->
+            <div class="card report-card">
+                <div class="card-header">
+                    <div class="report-icon red">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/><line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round"/></svg>
+                    </div>
+                    <div>
+                        <h3>Reporte de Alertas</h3>
+                        <p>Consumibles con nivel de inventario bajo o en estado crítico que requieren atención.</p>
+                    </div>
+                </div>
+                <div class="report-card-body">
+                    <div class="form-group">
+                        <label>Umbral de alerta</label>
+                        <select id="umbral-alertas">
+                            <option value="critico">Stock crítico (≤5 unidades)</option>
+                            <option value="bajo">Stock bajo (≤10 unidades)</option>
+                            <option value="todos">Todos los consumibles</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Formato de exportación</label>
+                        <select id="fmt-alertas">
+                            <option value="pdf">PDF</option>
+                            <option value="excel">Excel (XLSX)</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="btn-alertas" class="btn-primary"
+                    onclick="generarReporte('Reporte de Alertas', document.getElementById('fmt-alertas').value)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/><polyline points="7 10 12 15 17 10" stroke-width="2"/><line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/></svg>
+                    <span>Descargar Reporte</span>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Historial de Descargas -->
+        <div class="card table-card">
+            <div class="card-header">
+                <h3 class="card-title">Historial de Descargas</h3>
+                <button class="btn-secondary" onclick="limpiarHistorial()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6" stroke-width="2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/></svg>
+                    <span>Limpiar historial</span>
+                </button>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Reporte</th><th>Usuario</th><th>Fecha y hora</th>
+                            <th>Formato</th><th>Estado</th><th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historialBody"></tbody>
+                </table>
+            </div>
+            <div class="table-footer">
+                <div class="table-info">Mostrando <strong>1-3</strong> de <strong id="total-reportes">3</strong> reportes</div>
+                <div class="pagination">
+                    <button class="pagination-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15 18 9 12 15 6" stroke-width="2"/></svg></button>
+                    <button class="pagination-btn active">1</button>
+                    <button class="pagination-btn">2</button>
+                    <button class="pagination-btn">3</button>
+                    <button class="pagination-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="9 18 15 12 9 6" stroke-width="2"/></svg></button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+    <!-- Modal confirmación limpiar historial -->
+    <div class="modal-overlay" id="modalLimpiar">
+        <div class="modal-box">
+            <div class="modal-title">Limpiar historial de descargas</div>
+            <div class="modal-desc">Se eliminarán permanentemente todos los registros del historial. Esta acción no se puede deshacer.</div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-confirm-danger" onclick="confirmarLimpiar()">Sí, limpiar</button>
+            </div>
+        </div>
+    </div>
+
+<script src="../js/app.js"></script>
+<script src="../js/theme-toggle.js"></script>
+<script>
+const API = 'http://localhost:5000';
+
+// ── Sidebar / logout ──────────────────────────────────────────────────────────
+document.querySelector('.sidebar-toggle').addEventListener('click', function () {
+    document.querySelector('.sidebar').classList.toggle('collapsed');
+});
+document.querySelector('.logout-btn').addEventListener('click', function () {
+    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+        window.location.href = '../login.html';
+    }
+});
+
+// ── Cargar stats reales ───────────────────────────────────────────────────────
+function aplicarStats(data) {
+    document.getElementById('stat-reportes-mes').textContent = data.reportes_mes;
+    document.getElementById('stat-activos').textContent      = data.total_activos;
+    document.getElementById('stat-alertas').textContent      = data.alertas_stock;
+
+    const diff   = data.diferencia_mes;
+    const diffEl = document.getElementById('stat-diferencia');
+    if (diff > 0)      { diffEl.textContent = `↑ ${diff} más que el mes pasado`;             diffEl.className = 'stat-change positive'; }
+    else if (diff < 0) { diffEl.textContent = `↓ ${Math.abs(diff)} menos que el mes pasado`; diffEl.className = 'stat-change negative'; }
+    else               { diffEl.textContent = 'Sin cambios respecto al mes pasado';           diffEl.className = 'stat-change'; }
+
+    const alertasEl = document.getElementById('stat-alertas-label');
+    if (data.alertas_stock > 5)      { alertasEl.textContent = `${data.alertas_stock} consumibles requieren atención`; alertasEl.className = 'stat-change negative'; }
+    else if (data.alertas_stock > 0) { alertasEl.textContent = `${data.alertas_stock} consumibles con stock bajo`;     alertasEl.className = 'stat-change'; }
+    else                             { alertasEl.textContent = 'Todo el stock en nivel normal';                        alertasEl.className = 'stat-change positive'; }
+}
+
+async function cargarStats() {
+    try {
+        const res = await fetch(`${API}/reportes/stats`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        aplicarStats(data);
+    } catch (err) {
+        console.warn('[cargarStats] Sin conexión al servidor, usando datos del historial local.', err.message);
+
+        // Calcular stats desde el historial guardado en localStorage
+        const items = cargarHistorialLS ? cargarHistorialLS() : [];
+        const ahora = new Date();
+        const mesActual = ahora.getMonth();
+        const anioActual = ahora.getFullYear();
+
+        const reportesMes = items.filter(item => {
+            const d = new Date(item.fecha);
+            return d.getMonth() === mesActual && d.getFullYear() === anioActual;
+        }).length;
+
+        aplicarStats({
+            reportes_mes:   reportesMes,
+            total_activos:  245,
+            alertas_stock:  0,
+            diferencia_mes: 0
         });
 
-        // Logout
-        document.querySelector('.logout-btn').addEventListener('click', function () {
-            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-                window.location.href = '../login.html';
-            }
+        document.getElementById('stat-diferencia').textContent  = 'Servidor no disponible';
+        document.getElementById('stat-diferencia').className    = 'stat-change';
+        document.getElementById('stat-alertas-label').textContent = 'Sin conexión al servidor';
+        document.getElementById('stat-alertas-label').className   = 'stat-change';
+    }
+}
+
+// ── generarReporte ────────────────────────────────────────────────────────────
+async function generarReporte(nombre, formato) {
+
+    let tipo   = 'general';
+    let extras = {};
+
+    if (nombre.toLowerCase().includes('laboratorio')) {
+        tipo = 'laboratorio';
+        const labSel = document.getElementById('lab-select');
+        extras.lab = labSel ? labSel.value : 'all';
+    } else if (nombre.toLowerCase().includes('alerta')) {
+        tipo = 'alertas';
+        const umbralEl = document.getElementById('umbral-alertas');
+        extras.umbral = umbralEl ? umbralEl.value : 'critico';
+    } else {
+        const rangoEl = document.getElementById('rango-general');
+        extras.rango = rangoEl ? rangoEl.value : 'todo';
+    }
+
+    const payload = {
+        titulo:       nombre,
+        tipo:         tipo,
+        formato:      formato,
+        generado_por: 'Admin ISC',
+        fecha:        new Date().toISOString().slice(0, 10),
+        ...extras
+    };
+
+    const btnId    = tipo === 'general' ? 'btn-general'
+                   : tipo === 'laboratorio' ? 'btn-laboratorio'
+                   : 'btn-alertas';
+    const btn      = document.getElementById(btnId);
+    const origHTML = btn ? btn.innerHTML : '';
+    if (btn) { btn.classList.add('btn-loading'); btn.innerHTML = `<span class="spinner"></span><span>Generando...</span>`; }
+
+    showToast(`Generando reporte "${nombre}" en formato ${formato.toUpperCase().replace('EXCEL','EXCEL')}…`, 'info');
+
+    try {
+        const res = await fetch(`${API}/reportes`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(payload)
         });
 
-        // Simulate report generation
-        function generarReporte(nombre, formato) {
-            showToast(`Generando reporte "${nombre}" en formato ${formato.toUpperCase()}…`, 'info');
-            setTimeout(() => {
-                showToast(`Reporte "${nombre}" listo para descargar.`, 'success');
-                agregarHistorial(nombre, formato);
-            }, 1800);
+        if (!res.ok) {
+            const texto = await res.text();
+            console.error('Error servidor:', texto);
+            throw new Error(`HTTP ${res.status}`);
         }
 
-        function agregarHistorial(nombre, formato) {
-            const tbody = document.getElementById('historialBody');
-            const fmtClass = formato === 'pdf' ? 'badge-pdf' : formato === 'excel' || formato === 'xlsx' ? 'badge-xlsx' : 'badge-csv';
-            const fmtLabel = formato.toUpperCase().replace('EXCEL', 'XLSX');
-            const ahora = new Date().toLocaleString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const blob     = await res.blob();
+        const ext      = formato === 'excel' ? 'xlsx' : formato === 'csv' ? 'csv' : 'pdf';
+        const url      = URL.createObjectURL(blob);
+        const filename = `reporte_${tipo}_${new Date().toISOString().slice(0,10)}.${ext}`;
+        const a        = document.createElement('a');
+        a.href         = url;
+        a.download     = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        // Mantener la URL viva 10 min para re-descarga desde el historial
+        setTimeout(() => URL.revokeObjectURL(url), 600000);
 
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><div class="asset-info"><span class="asset-name">${nombre}</span><span class="asset-specs">Generado ahora</span></div></td>
-                <td>Admin ISC</td>
-                <td>${ahora}</td>
-                <td><span class="badge ${fmtClass}">${fmtLabel}</span></td>
-                <td><span class="status status-available">Completado</span></td>
-                <td><div class="action-buttons">
-                    <button class="btn-action" title="Descargar de nuevo" onclick="showToast('Descargando…','info')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/>
-                            <polyline points="7 10 12 15 17 10" stroke-width="2"/>
-                            <line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/>
-                        </svg>
-                    </button>
-                </div></td>
-            `;
-            tbody.insertBefore(row, tbody.firstChild);
-        }
+        showToast(`Reporte "${nombre}" listo para descargar.`, 'success');
+        agregarHistorial(nombre, formato, url, filename);
+        cargarStats();
 
-        function limpiarHistorial() {
-            if (confirm('¿Deseas limpiar todo el historial de descargas?')) {
-                document.getElementById('historialBody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--color-text-secondary);">No hay reportes en el historial.</td></tr>';
-                showToast('Historial limpiado.', 'info');
-            }
-        }
+    } catch (err) {
+        console.error('[generarReporte]', err);
+        showToast(`Error al generar el reporte: ${err.message}`, 'error');
+    } finally {
+        if (btn) { btn.innerHTML = origHTML; btn.classList.remove('btn-loading'); }
+    }
+}
 
-        // Toast (fallback if app.js not loaded yet)
-        function showToast(message, type = 'info') {
-            let existing = document.querySelector('.toast-container');
-            if (!existing) {
-                existing = document.createElement('div');
-                existing.className = 'toast-container';
-                existing.style.cssText = 'position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:9999;';
-                document.body.appendChild(existing);
-            }
-            const colors = { info: 'var(--color-info)', success: 'var(--color-success)', warning: 'var(--color-warning)', error: 'var(--color-danger)' };
-            const toast = document.createElement('div');
-            toast.style.cssText = `background:var(--color-surface);border:1px solid var(--color-border);border-left:4px solid ${colors[type] || colors.info};padding:12px 18px;border-radius:8px;font-size:.9rem;box-shadow:var(--shadow-md);max-width:320px;opacity:0;transform:translateX(20px);transition:all .25s ease;`;
-            toast.textContent = message;
-            existing.appendChild(toast);
-            requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(20px)'; setTimeout(() => toast.remove(), 300); }, 3500);
+// ── agregarHistorial ──────────────────────────────────────────────────────────
+// ── localStorage helpers ─────────────────────────────────────────────────────
+const LS_KEY = 'historial_reportes';
+
+function cargarHistorialLS() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
+    catch { return []; }
+}
+function guardarHistorialLS(items) {
+    localStorage.setItem(LS_KEY, JSON.stringify(items));
+}
+
+function renderHistorial(items) {
+    const tbody = document.getElementById('historialBody');
+    if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--color-text-secondary);">No hay reportes en el historial.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = '';
+    items.forEach(item => {
+        const fmtClass = item.formato === 'pdf' ? 'badge-pdf'
+                       : (item.formato === 'excel' || item.formato === 'xlsx') ? 'badge-xlsx'
+                       : 'badge-csv';
+        const fmtLabel = item.formato.toUpperCase().replace('EXCEL','XLSX');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><div class="asset-info"><span class="asset-name">${item.nombre}</span><span class="asset-specs">${item.specs}</span></div></td>
+            <td>Admin ISC</td>
+            <td>${item.fecha}</td>
+            <td><span class="badge ${fmtClass}">${fmtLabel}</span></td>
+            <td><span class="status status-available">Completado</span></td>
+            <td><div class="action-buttons">
+                <button class="btn-action btn-redownload" title="Volver a descargar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2"/>
+                        <polyline points="7 10 12 15 17 10" stroke-width="2"/>
+                        <line x1="12" y1="15" x2="12" y2="3" stroke-width="2"/>
+                    </svg>
+                </button>
+            </div></td>`;
+        row.querySelector('.btn-redownload').addEventListener('click', () => {
+            showToast('Este reporte ya no está disponible. Genéralo de nuevo.', 'warning');
+        });
+        tbody.appendChild(row);
+    });
+}
+
+function agregarHistorial(nombre, formato, blobUrl, filename) {
+    // 1. Guardar en localStorage
+    const ahora = new Date().toLocaleString('es-MX', {
+        day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
+    });
+    const items = cargarHistorialLS();
+    items.unshift({ nombre, formato, specs: 'Generado ahora', fecha: ahora });
+    guardarHistorialLS(items);
+
+    // 2. Renderizar tabla completa desde LS
+    renderHistorial(items);
+
+    // 3. El blob vive solo en memoria: asignar descarga real a la primera fila
+    if (blobUrl && filename) {
+        const firstBtn = document.querySelector('#historialBody tr:first-child .btn-redownload');
+        if (firstBtn) {
+            // Reemplazar el listener genérico por el de descarga real
+            firstBtn.replaceWith(firstBtn.cloneNode(true));
+            const freshBtn = document.querySelector('#historialBody tr:first-child .btn-redownload');
+            freshBtn.addEventListener('click', () => {
+                const a = document.createElement('a');
+                a.href = blobUrl; a.download = filename;
+                document.body.appendChild(a); a.click(); a.remove();
+                showToast('Descargando reporte…', 'info');
+            });
         }
-    </script>
+    }
+}
+
+// ── Modal helpers ────────────────────────────────────────────────────────────
+function limpiarHistorial() {
+    document.getElementById('modalLimpiar').classList.add('show');
+}
+function cerrarModal() {
+    document.getElementById('modalLimpiar').classList.remove('show');
+}
+function confirmarLimpiar() {
+    cerrarModal();
+    localStorage.removeItem('historial_reportes');
+    renderHistorial([]);
+    showToast('Historial limpiado correctamente.', 'success');
+}
+// Cerrar modal al hacer clic fuera del box
+document.addEventListener('click', function(e) {
+    const overlay = document.getElementById('modalLimpiar');
+    if (e.target === overlay) cerrarModal();
+});
+
+// ── showToast (lateral apilado, esquina inferior derecha) ────────────────────
+function showToast(message, type = 'info') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast-item toast-${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    // Animar entrada
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => toast.classList.add('show'));
+    });
+
+    // Auto-cerrar
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 250);
+    }, 2800);
+}
+
+// ── Inicializar ───────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    cargarStats();
+    renderHistorial(cargarHistorialLS());
+});
+
+// ── Menú hamburguesa móvil ────────────────────────────────────────────────────
+(function() {
+    const menuBtn  = document.getElementById('mobileMenuBtn');
+    const sidebar  = document.querySelector('.sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+
+    function openSidebar() {
+        sidebar.classList.add('mobile-open');
+        backdrop.classList.add('show');
+    }
+    function closeSidebar() {
+        sidebar.classList.remove('mobile-open');
+        backdrop.classList.remove('show');
+    }
+
+    menuBtn.addEventListener('click', openSidebar);
+    backdrop.addEventListener('click', closeSidebar);
+
+    // Cerrar al hacer clic en un nav-item (navegación)
+    sidebar.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', closeSidebar);
+    });
+})();
+</script>
 </body>
-
 </html>
