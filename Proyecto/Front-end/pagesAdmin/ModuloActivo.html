@@ -571,12 +571,17 @@
                 button.addEventListener('click', () => {
                     const tabName = button.dataset.tab;
                     setActiveTab(button);
+                    if (tabName) {
+                        history.replaceState(null, '', `#${tabName}`);
+                    }
                     loadTab(tabName);
                 });
             });
 
-            const defaultButton = document.querySelector('.tab-button.active');
+            const requestedTab = window.location.hash.replace('#', '');
+            const defaultButton = document.querySelector(`.tab-button[data-tab="${requestedTab}"]`) || document.querySelector('.tab-button.active');
             if (defaultButton) {
+                setActiveTab(defaultButton);
                 loadTab(defaultButton.dataset.tab);
             }
         });
