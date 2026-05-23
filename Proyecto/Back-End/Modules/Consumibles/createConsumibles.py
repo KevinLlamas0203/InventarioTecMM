@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 import psycopg2
 import os
+from Historial.historial_helper import registrar_historial
 
 create_consumible_bp = Blueprint("create_consumible_bp", __name__)
 
@@ -35,6 +36,14 @@ def create_consumible():
               stock_actual, stock_minimo, ubicacion, fecha_registro))
         nuevo_id = cur.fetchone()[0]
         conn.commit()
+        detalle = f"Registró nuevo consumible: {nombre} (ID: {nuevo_id})"
+        registrar_historial(
+            accion     = "CREAR",
+            entidad    = "consumible",
+            entidad_id = nuevo_id,
+            usuario    = "Sistema",
+            detalle    = detalle,
+        )
         cur.close(); conn.close()
         return jsonify({"mensaje": "Consumible creado", "consumible_id": nuevo_id}), 201
     except Exception as e:

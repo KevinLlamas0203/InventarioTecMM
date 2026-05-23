@@ -401,12 +401,14 @@
             color: var(--color-text-secondary, #888); font-size: 0.9rem;
         }
         .empty-state svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.3; }
+
     </style>
 </head>
 <body class="dashboard-page">
 <div class="dashboard-layout">
 
 <!-- SIDEBAR  -->
+
 <aside class="sidebar">
     <div class="sidebar-header">
         <div class="sidebar-brand">
@@ -518,7 +520,7 @@
                 <span class="nav-section-title">Gestión</span>
                 <a href="ModuloActivo.html" class="nav-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/><path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/></svg>
-                    <span>Módulo de Activos</span><span class="nav-badge"><span id="badge-activos">–</span></span>
+                    <span>Módulo de Activos</span><span class="nav-badge">245</span>
                 </a>
                 <a href="consumibles.html" class="nav-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/><polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2"/><line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/></svg>
@@ -821,6 +823,8 @@
 
 <script src="../js/app.js"></script>
 <script src="../js/theme-toggle.js"></script>
+<script src="../js/control-nivel.js"></script>
+
 <script>
 // ═══════════════════════════════════════════════════════════════════════════════
 // DATOS INICIALES
@@ -1324,19 +1328,24 @@ function showToast(message, type = 'info') {
 // ═══════════════════════════════════════════════════════════════════════════════
 // SIDEBAR / LOGOUT / HAMBURGUESA
 // ═══════════════════════════════════════════════════════════════════════════════
-document.querySelector('.sidebar-toggle').addEventListener('click', () => {
+const sidebarToggle = document.querySelector('.sidebar-toggle');
+if (sidebarToggle) sidebarToggle.addEventListener('click', () => {
     document.querySelector('.sidebar').classList.toggle('collapsed');
 });
-document.querySelector('.logout-btn').addEventListener('click', () => {
-    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) window.location.href = '../login.html';
+const logoutBtn = document.querySelector('.logout-btn');
+if (logoutBtn) logoutBtn.addEventListener('click', () => {
+    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+        localStorage.removeItem('usuario');
+        window.location.href = '../login.html';
+    }
 });
 (function() {
     const menuBtn  = document.getElementById('mobileMenuBtn');
     const sidebar  = document.querySelector('.sidebar');
     const backdrop = document.getElementById('sidebarBackdrop');
-    menuBtn.addEventListener('click', () => { sidebar.classList.add('mobile-open'); backdrop.classList.add('show'); });
-    backdrop.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); backdrop.classList.remove('show'); });
-    sidebar.querySelectorAll('.nav-item').forEach(i => i.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); backdrop.classList.remove('show'); }));
+    if (menuBtn)  menuBtn.addEventListener('click', () => { sidebar.classList.add('mobile-open'); if(backdrop) backdrop.classList.add('show'); });
+    if (backdrop) backdrop.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); backdrop.classList.remove('show'); });
+    if (sidebar)  sidebar.querySelectorAll('.nav-item').forEach(i => i.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); if(backdrop) backdrop.classList.remove('show'); }));
 })();
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1421,5 +1430,12 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarCatalogos();   // Carga activos y consumibles desde la API
 });
 </script>
+    <!-- Elementos para menú móvil -->
+    <button id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Abrir menú" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/>
+        </svg>
+    </button>
+    <div id="sidebarBackdrop" class="sidebar-backdrop" style="display:none"></div>
 </body>
 </html>
