@@ -286,6 +286,46 @@
         </main>
     </div>
 
+    <!-- Modal para Finalizar Asignacion -->
+    <div class="modal" id="finishAssignmentModal" aria-hidden="true">
+        <div class="modal-overlay" onclick="closeFinishAssignmentModal()"></div>
+        <div class="modal-content modal-small institutional-confirm">
+            <div class="modal-header">
+                <div class="confirm-heading">
+                    <span class="confirm-icon confirm-icon-danger" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="20 6 9 17 4 12" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <h2>Finalizar asignacion</h2>
+                        <p>Confirma el cierre formal del resguardo seleccionado.</p>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeFinishAssignmentModal()" aria-label="Cerrar confirmacion">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="confirm-summary">
+                    <div class="confirm-summary-row"><span>Asignacion</span><strong id="finishAssignmentCode">-</strong></div>
+                    <div class="confirm-summary-row"><span>Usuario</span><strong id="finishAssignmentUser">-</strong></div>
+                    <div class="confirm-summary-row"><span>Activo</span><strong id="finishAssignmentAsset">-</strong></div>
+                    <div class="confirm-summary-row"><span>Ubicacion</span><strong id="finishAssignmentLocation">-</strong></div>
+                    <div class="confirm-summary-row"><span>Estado actual</span><strong id="finishAssignmentStatus">-</strong></div>
+                    <div class="confirm-summary-row"><span>Fecha de cierre</span><strong id="finishAssignmentDate">-</strong></div>
+                </div>
+                <p class="confirm-note warning">Esta accion marcara la asignacion como finalizada y actualizara la disponibilidad relacionada del activo.</p>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeFinishAssignmentModal()">Conservar activa</button>
+                    <button type="button" class="btn-danger" id="btnConfirmFinishAssignment" onclick="confirmFinishAssignment()">Finalizar asignacion</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal for New Assignment -->
     <div class="modal" id="assignmentModal">
         <div class="modal-overlay" onclick="closeAssignmentModal()"></div>

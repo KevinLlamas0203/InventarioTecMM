@@ -20,6 +20,7 @@ let paginaActual = 1;
 let activosCache = [];
 let filteredActivos = [];
 let assetKeydownBound = false;
+let pendingAssetPayload = null;
 let assetCatalogs = {
     categorias: [],
     estados: ALLOWED_STATES,
@@ -82,6 +83,10 @@ function bindAssetForm() {
         }
 
         const id = document.getElementById('activoId').value;
+        if (!id) {
+            openAssetConfirmModal(payload);
+            return;
+        }
         await submitAsset(id, payload);
     });
 }
@@ -100,6 +105,11 @@ function bindModalCloseShortcuts() {
         if (event.key !== 'Escape') return;
         const detailModal = document.getElementById('detailModal');
         const assetModal = document.getElementById('assetModal');
+        const confirmModal = document.getElementById('confirmAssetModal');
+        if (confirmModal?.classList.contains('active')) {
+            closeAssetConfirmModal();
+            return;
+        }
         if (detailModal?.classList.contains('active')) closeDetailModal();
         if (assetModal?.classList.contains('active')) closeModal();
     });
@@ -366,13 +376,16 @@ function irPagina(page) {
 
 async function submitAsset(id, payload) {
     const button = document.getElementById('btnGuardar');
+    const confirmButton = document.getElementById('btnConfirmAsset');
     setButtonLoading(button, true);
+    setButtonLoading(confirmButton, true);
     try {
         const data = await fetchJson(id ? `/activos/${id}` : '/activos', {
             method: id ? 'PUT' : 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
+        closeAssetConfirmModal();
         closeModal();
         await Promise.all([
             cargarActivos(),
@@ -382,9 +395,11 @@ async function submitAsset(id, payload) {
         notify(id ? data.mensaje : `Activo creado con ID: ${data.activo_id}`, 'success');
     } catch (err) {
         console.error(err);
+        closeAssetConfirmModal();
         showFormError(err.message || 'Error de conexion con el servidor');
     } finally {
         setButtonLoading(button, false);
+        setButtonLoading(confirmButton, false);
     }
 }
 
@@ -517,9 +532,31 @@ function openModal(mode = 'crear') {
     setTimeout(() => document.getElementById('inputNombre')?.focus(), 80);
 }
 
+function openAssetConfirmModal(payload) {
+    pendingAssetPayload = payload;
+    setText('confirmAssetName', payload.nombre || '-');
+    setText('confirmAssetCategory', payload.categoria || '-');
+    setText('confirmAssetStatus', payload.estado || '-');
+    setText('confirmAssetLocation', payload.ubicacion || '-');
+    setText('confirmAssetAssigned', payload.asignado_a || 'Sin asignar');
+    setText('confirmAssetDate', formatDate(payload.fecha_alta));
+    document.getElementById('confirmAssetModal')?.classList.add('active');
+}
+
+function closeAssetConfirmModal() {
+    document.getElementById('confirmAssetModal')?.classList.remove('active');
+    pendingAssetPayload = null;
+}
+
+async function confirmAssetCreation() {
+    if (!pendingAssetPayload) return;
+    await submitAsset('', pendingAssetPayload);
+}
+
 function closeModal() {
     const modal = document.getElementById('assetModal');
     if (!modal) return;
+    closeAssetConfirmModal();
     modal.classList.remove('active');
     limpiarFormulario();
 }
@@ -709,6 +746,8 @@ function iconTrash() {
 
 window.openModal = openModal;
 window.closeModal = closeModal;
+window.closeAssetConfirmModal = closeAssetConfirmModal;
+window.confirmAssetCreation = confirmAssetCreation;
 window.closeDetailModal = closeDetailModal;
 window.verActivo = verActivo;
 window.abrirEditar = abrirEditar;

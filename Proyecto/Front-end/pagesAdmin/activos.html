@@ -249,6 +249,46 @@
         </main>
     </div>
 
+    <!-- Modal de Confirmacion de Nuevo Activo -->
+    <div class="modal" id="confirmAssetModal" aria-hidden="true">
+        <div class="modal-overlay" onclick="closeAssetConfirmModal()"></div>
+        <div class="modal-content modal-small institutional-confirm">
+            <div class="modal-header">
+                <div class="confirm-heading">
+                    <span class="confirm-icon confirm-icon-primary" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <h2>Confirmar nuevo activo</h2>
+                        <p>Valida la informacion antes de registrar el bien institucional.</p>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeAssetConfirmModal()" aria-label="Cerrar confirmacion">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="confirm-summary">
+                    <div class="confirm-summary-row"><span>Activo</span><strong id="confirmAssetName">-</strong></div>
+                    <div class="confirm-summary-row"><span>Categoria</span><strong id="confirmAssetCategory">-</strong></div>
+                    <div class="confirm-summary-row"><span>Estado inicial</span><strong id="confirmAssetStatus">-</strong></div>
+                    <div class="confirm-summary-row"><span>Ubicacion</span><strong id="confirmAssetLocation">-</strong></div>
+                    <div class="confirm-summary-row"><span>Responsable</span><strong id="confirmAssetAssigned">Sin asignar</strong></div>
+                    <div class="confirm-summary-row"><span>Fecha de alta</span><strong id="confirmAssetDate">-</strong></div>
+                </div>
+                <p class="confirm-note">El registro quedara disponible para movimientos, reportes y asignaciones del sistema.</p>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeAssetConfirmModal()">Revisar datos</button>
+                    <button type="button" class="btn-primary" id="btnConfirmAsset" onclick="confirmAssetCreation()">Registrar activo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal for New Asset -->
     <div class="modal" id="assetModal">
         <div class="modal-overlay" onclick="closeModal()"></div>
