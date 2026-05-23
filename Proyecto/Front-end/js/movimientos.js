@@ -12,8 +12,11 @@ async function fetchJson(path, options = {}) {
 }
 
 let movimientosCache = [];
+let movimientosFiltrados = [];
 let movementKeydownBound = false;
 let isMovementSubmitting = false;
+let movementPage = 1;
+let movementPageSize = 25;
 
 async function initMovimientosPage() {
     const pageRoot = document.querySelector('.movimientos-page');
@@ -23,7 +26,8 @@ async function initMovimientosPage() {
     bindMovementForm();
     bindMovementFilters();
     bindMovementKeyboardClose();
-    await Promise.all([refreshMovementFormOptions(), fetchMovimientos()]);
+    await Promise.all([refreshMovementFormOptions(), populateMovementFilters()]);
+    await fetchMovimientos();
 }
 
 function notify(message, type = 'success') {
@@ -143,10 +147,11 @@ async function fetchMovimientos() {
     if (!pageRoot) return;
 
     try {
-        const data = await fetchJson('/movimientos');
+        const data = await fetchJson(buildMovementQuery());
         movimientosCache = Array.isArray(data) ? data : [];
-        populateMovementFilters(movimientosCache);
-        applyMovementFilters();
+        movimientosFiltrados = movimientosCache;
+        movementPage = 1;
+        applyMovementFilters(false);
         updateStats(movimientosCache);
     } catch (error) {
         console.error('Error cargando movimientos:', error);
@@ -201,6 +206,29 @@ function renderMovimientos(movimientos) {
     }).join('');
 }
 
+function renderMovementPage() {
+    const total = movimientosFiltrados.length;
+    const totalPages = Math.max(1, Math.ceil(total / movementPageSize));
+    movementPage = Math.min(Math.max(1, movementPage), totalPages);
+    const start = (movementPage - 1) * movementPageSize;
+    const visible = movimientosFiltrados.slice(start, start + movementPageSize);
+    renderMovimientos(visible);
+
+    const results = document.querySelector('.movimientos-page .results-count');
+    if (results) {
+        const from = total === 0 ? 0 : start + 1;
+        const to = Math.min(start + movementPageSize, total);
+        results.textContent = `Mostrando ${from}-${to} de ${total} movimientos filtrados (${movimientosCache.length} cargados)`;
+    }
+
+    const pageInfo = document.getElementById('movementPageInfo');
+    const prev = document.getElementById('movementPrevPage');
+    const next = document.getElementById('movementNextPage');
+    if (pageInfo) pageInfo.textContent = `Pagina ${movementPage} de ${totalPages}`;
+    if (prev) prev.disabled = movementPage <= 1;
+    if (next) next.disabled = movementPage >= totalPages;
+}
+
 function getMovementBadgeClass(tipo) {
     const normalized = normalize(tipo);
     if (normalized.includes('mantenimiento')) return 'badge-mantenimiento';
@@ -237,22 +265,83 @@ function bindMovementFilters() {
     if (!pageRoot || pageRoot.dataset.movementFiltersBound === 'true') return;
     pageRoot.dataset.movementFiltersBound = 'true';
 
-    pageRoot.querySelector('#movementAssetFilter')?.addEventListener('change', applyMovementFilters);
-    pageRoot.querySelector('#movementTypeFilter')?.addEventListener('change', applyMovementFilters);
-    pageRoot.querySelector('#movementEmployeeFilter')?.addEventListener('change', applyMovementFilters);
+    pageRoot.querySelector('#movementAssetFilter')?.addEventListener('change', () => fetchMovimientos());
+    pageRoot.querySelector('#movementTypeFilter')?.addEventListener('change', () => fetchMovimientos());
+    pageRoot.querySelector('#movementEmployeeFilter')?.addEventListener('change', () => fetchMovimientos());
+    pageRoot.querySelector('#movementDateFrom')?.addEventListener('change', () => fetchMovimientos());
+    pageRoot.querySelector('#movementDateTo')?.addEventListener('change', () => fetchMovimientos());
+    pageRoot.querySelector('#movementPageSize')?.addEventListener('change', event => {
+        movementPageSize = parseInt(event.target.value, 10) || 25;
+        movementPage = 1;
+        renderMovementPage();
+    });
+    pageRoot.querySelector('#movementPrevPage')?.addEventListener('click', () => {
+        movementPage -= 1;
+        renderMovementPage();
+    });
+    pageRoot.querySelector('#movementNextPage')?.addEventListener('click', () => {
+        movementPage += 1;
+        renderMovementPage();
+    });
+    pageRoot.querySelector('#exportMovements')?.addEventListener('click', exportFilteredMovements);
+    pageRoot.querySelector('#importMovements')?.addEventListener('click', () => document.getElementById('movementImportFile')?.click());
+    pageRoot.querySelector('#movementImportFile')?.addEventListener('change', importMovementsFromFile);
     pageRoot.querySelector('#clearMovementFilters')?.addEventListener('click', () => {
-        ['movementAssetFilter', 'movementTypeFilter', 'movementEmployeeFilter'].forEach(id => {
-            const select = document.getElementById(id);
-            if (select) select.value = '';
+        ['movementAssetFilter', 'movementTypeFilter', 'movementEmployeeFilter', 'movementDateFrom', 'movementDateTo'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) input.value = '';
         });
-        applyMovementFilters();
+        fetchMovimientos();
     });
 }
 
-function populateMovementFilters(movimientos) {
-    setFilterOptions('movementAssetFilter', movimientos.map(m => m.activo_nombre).filter(Boolean), 'Todos los activos');
-    setFilterOptions('movementTypeFilter', movimientos.map(m => m.tipo_movimiento).filter(Boolean), 'Todos los tipos');
-    setFilterOptions('movementEmployeeFilter', movimientos.map(m => m.empleado).filter(Boolean), 'Todos los empleados');
+async function populateMovementFilters() {
+    await Promise.all([populateMovementAssetFilter(), populateMovementTypeFilter(), populateMovementEmployeeFilter()]);
+}
+
+async function populateMovementAssetFilter() {
+    const select = document.getElementById('movementAssetFilter');
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = '<option value="">Todos los activos</option>';
+    try {
+        const activos = await fetchJson('/activos');
+        activos.forEach(activo => select.appendChild(new Option(`${activo.nombre} (#${activo.activo_id})`, activo.activo_id)));
+        select.value = current;
+    } catch (error) {
+        console.error('Error cargando filtro de activos:', error);
+    }
+}
+
+async function populateMovementTypeFilter() {
+    const select = document.getElementById('movementTypeFilter');
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = '<option value="">Todos los tipos</option>';
+    try {
+        const tipos = await fetchJson('/movimientos/tipo_movimientos');
+        tipos.forEach(tipo => select.appendChild(new Option(tipo.nombre, tipo.id)));
+        select.value = current;
+    } catch (error) {
+        console.error('Error cargando filtro de tipos:', error);
+    }
+}
+
+async function populateMovementEmployeeFilter() {
+    const select = document.getElementById('movementEmployeeFilter');
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = '<option value="">Todos los empleados</option>';
+    try {
+        const users = await fetchJson('/movimientos/usuarios');
+        users.forEach(user => {
+            const value = user.nombre_completo || user.correo_electronico;
+            if (value) select.appendChild(new Option(value, value));
+        });
+        select.value = current;
+    } catch (error) {
+        console.error('Error cargando filtro de empleados:', error);
+    }
 }
 
 function setFilterOptions(id, values, placeholder) {
@@ -265,18 +354,153 @@ function setFilterOptions(id, values, placeholder) {
     if (unique.includes(current)) select.value = current;
 }
 
-function applyMovementFilters() {
+function buildMovementQuery() {
+    const params = new URLSearchParams();
     const asset = document.getElementById('movementAssetFilter')?.value || '';
     const type = document.getElementById('movementTypeFilter')?.value || '';
     const employee = document.getElementById('movementEmployeeFilter')?.value || '';
+    const dateFrom = document.getElementById('movementDateFrom')?.value || '';
+    const dateTo = document.getElementById('movementDateTo')?.value || '';
+    if (asset) params.set('activo_id', asset);
+    if (type) params.set('tipo_movimiento', type);
+    if (employee) params.set('empleado', employee);
+    if (dateFrom) params.set('fecha_desde', dateFrom);
+    if (dateTo) params.set('fecha_hasta', dateTo);
+    const query = params.toString();
+    return query ? `/movimientos?${query}` : '/movimientos';
+}
+
+function applyMovementFilters(resetPage = true) {
+    const assetFilter = document.getElementById('movementAssetFilter');
+    const assetText = assetFilter?.selectedOptions?.[0]?.textContent?.replace(/\s+\(#\d+\)$/, '') || '';
+    const typeFilter = document.getElementById('movementTypeFilter');
+    const typeText = typeFilter?.selectedOptions?.[0]?.textContent || '';
+    const employee = document.getElementById('movementEmployeeFilter')?.value || '';
+    const dateFrom = document.getElementById('movementDateFrom')?.value || '';
+    const dateTo = document.getElementById('movementDateTo')?.value || '';
     const filtered = movimientosCache.filter(m => {
-        return (!asset || m.activo_nombre === asset)
-            && (!type || m.tipo_movimiento === type)
-            && (!employee || m.empleado === employee);
+        const date = m.fecha_movimiento ? new Date(m.fecha_movimiento) : null;
+        const dateOk = !date || Number.isNaN(date.getTime()) ? (!dateFrom && !dateTo) : (
+            (!dateFrom || date >= new Date(`${dateFrom}T00:00:00`))
+            && (!dateTo || date <= new Date(`${dateTo}T23:59:59`))
+        );
+        return (!assetText || assetText === 'Todos los activos' || m.activo_nombre === assetText)
+            && (!typeText || typeText === 'Todos los tipos' || m.tipo_movimiento === typeText)
+            && (!employee || m.empleado === employee)
+            && dateOk;
     });
-    renderMovimientos(filtered);
-    const results = document.querySelector('.movimientos-page .results-count');
-    if (results) results.textContent = `Mostrando ${filtered.length} de ${movimientosCache.length} movimientos`;
+    movimientosFiltrados = filtered;
+    if (resetPage) movementPage = 1;
+    renderMovementPage();
+}
+
+function exportFilteredMovements() {
+    const rows = [
+        ['id_movimiento', 'fecha_movimiento', 'activo_id', 'activo_nombre', 'tipo_movimiento', 'estado_final', 'empleado', 'ubicacion', 'observaciones'],
+        ...movimientosFiltrados.map(m => [
+            m.id_movimiento || '',
+            m.fecha_movimiento || '',
+            m.activo_id || '',
+            m.activo_nombre || '',
+            m.tipo_movimiento || '',
+            m.estado_final || '',
+            m.empleado || '',
+            m.ubicacion || '',
+            m.observaciones || ''
+        ])
+    ];
+    const csv = rows.map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `movimientos-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    notify('Movimientos exportados correctamente', 'success');
+}
+
+async function importMovementsFromFile(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+        const text = await file.text();
+        const rows = parseCsv(text);
+        if (rows.length < 2) {
+            notify('El archivo no contiene movimientos para importar.', 'warning');
+            return;
+        }
+        const headers = rows[0].map(h => normalizeHeader(h));
+        const required = ['activo_id', 'tipo_movimiento', 'estado', 'ubicacion'];
+        const missing = required.filter(name => !headers.includes(name));
+        if (missing.length) {
+            notify(`Faltan columnas obligatorias: ${missing.join(', ')}`, 'warning');
+            return;
+        }
+
+        let imported = 0;
+        for (const row of rows.slice(1)) {
+            if (!row.some(Boolean)) continue;
+            const record = Object.fromEntries(headers.map((header, index) => [header, row[index] || '']));
+            await fetchJson('/movimientos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    activo_id: parseInt(record.activo_id, 10),
+                    tipo_movimiento: record.tipo_movimiento,
+                    estado: record.estado || record.estado_final,
+                    empleado: record.empleado || null,
+                    ubicacion: record.ubicacion,
+                    observaciones: record.observaciones || null,
+                    fecha_movimiento: record.fecha_movimiento || null
+                })
+            });
+            imported += 1;
+        }
+        event.target.value = '';
+        await fetchMovimientos();
+        notify(`${imported} movimiento(s) importado(s) correctamente`, 'success');
+    } catch (error) {
+        console.error('Error importando movimientos:', error);
+        notify(error.message || 'No se pudieron importar los movimientos', 'warning');
+    }
+}
+
+function parseCsv(text) {
+    const rows = [];
+    let row = [];
+    let current = '';
+    let quoted = false;
+    for (let i = 0; i < text.length; i += 1) {
+        const char = text[i];
+        const next = text[i + 1];
+        if (char === '"' && quoted && next === '"') {
+            current += '"';
+            i += 1;
+        } else if (char === '"') {
+            quoted = !quoted;
+        } else if (char === ',' && !quoted) {
+            row.push(current.trim());
+            current = '';
+        } else if ((char === '\n' || char === '\r') && !quoted) {
+            if (char === '\r' && next === '\n') i += 1;
+            row.push(current.trim());
+            rows.push(row);
+            row = [];
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    row.push(current.trim());
+    if (row.some(Boolean)) rows.push(row);
+    return rows;
+}
+
+function normalizeHeader(header) {
+    const normalized = normalize(header).replace(/\s+/g, '_');
+    if (normalized === 'estado_final') return 'estado';
+    return normalized;
 }
 
 function bindMovementForm() {

@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from flask import Blueprint, jsonify, request
 
 from Activos.db_helpers import get_connection
@@ -208,9 +210,7 @@ def get_all_movimientos():
                     query_params.append(ubicacion)
 
                 if empleado:
-                    where_clauses.append(
-                        "(u.nombre || ' ' || u.apellido_paterno || COALESCE(' ' || u.apellido_materno, '')) = %s"
-                    )
+                    where_clauses.append("TRIM(CONCAT_WS(' ', u.nombre, u.apellido_paterno, u.apellido_materno)) = %s")
                     query_params.append(empleado)
 
                 if fecha_desde:
@@ -218,7 +218,12 @@ def get_all_movimientos():
                     query_params.append(fecha_desde)
 
                 if fecha_hasta:
-                    where_clauses.append("m.fecha_movimiento <= %s")
+                    try:
+                        fecha_hasta_dt = datetime.fromisoformat(fecha_hasta)
+                        fecha_hasta = (fecha_hasta_dt + timedelta(days=1)).date().isoformat()
+                        where_clauses.append("m.fecha_movimiento < %s")
+                    except ValueError:
+                        where_clauses.append("m.fecha_movimiento <= %s")
                     query_params.append(fecha_hasta)
 
                 where_sql = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
@@ -232,7 +237,7 @@ def get_all_movimientos():
                         m.fecha_movimiento,
                         a.id_activo,
                         a.nombre AS activo_nombre,
-                        (u.nombre || ' ' || u.apellido_paterno || COALESCE(' ' || u.apellido_materno, '')) AS empleado,
+                        TRIM(CONCAT_WS(' ', u.nombre, u.apellido_paterno, u.apellido_materno)) AS empleado,
                         ub.nombre AS ubicacion,
                         m.observaciones
                     FROM movimientos m

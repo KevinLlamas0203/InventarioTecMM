@@ -909,6 +909,16 @@
   min-width: 150px;
 }
 
+.movimientos-page .filter-group.compact {
+  flex: 0 0 112px;
+  min-width: 112px;
+}
+
+.movimientos-page .filter-group.actions {
+  flex: 0 0 auto;
+  min-width: auto;
+}
+
 .movimientos-page .filter-group label {
   display: block;
   font-size: 0.78rem;
@@ -930,6 +940,10 @@
   font-family: var(--font-body);
   cursor: pointer;
   appearance: none;
+}
+
+.movimientos-page input.filter-select {
+  appearance: auto;
 }
 
 .movimientos-page .filter-select option {
@@ -959,6 +973,39 @@
   cursor: pointer;
   transition: background 0.22s ease, transform 0.22s ease;
   height: 42px;
+}
+
+.movimientos-page .btn-export svg {
+  width: 16px;
+  height: 16px;
+}
+
+.movement-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.movement-pagination .pagination-btn {
+  min-width: 96px;
+  height: 36px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+}
+
+.movement-pagination .pagination-btn:hover:not(:disabled) {
+  background: var(--surface-strong);
+}
+
+.movement-pagination .pagination-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .movimientos-page .btn-export:hover {
