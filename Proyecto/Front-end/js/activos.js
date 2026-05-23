@@ -418,6 +418,9 @@ async function cambiarEstadoRapido(id, nuevoEstado, selectElement) {
     try {
         const currentAsset = await fetchJson(`/activos/${id}`);
         currentAsset.estado = nuevoEstado;
+        if (['Disponible', 'Dado de baja'].includes(nuevoEstado)) {
+            currentAsset.asignado_a = null;
+        }
         currentAsset.tipo_movimiento = 'Cambio de Estado';
         currentAsset.observaciones = `Cambio rapido de estado a ${nuevoEstado}`;
 
@@ -428,7 +431,7 @@ async function cambiarEstadoRapido(id, nuevoEstado, selectElement) {
         });
 
         selectElement.className = `status-select ${STATUS_CLASSES[nuevoEstado] || 'status-available'}`;
-        await Promise.all([cargarActivos(false), refreshRelatedMovimientos()]);
+        await Promise.all([cargarActivos(false), refreshRelatedMovimientos(), refreshRelatedAsignaciones()]);
         notify(`Estado actualizado: ${previousValue} → ${nuevoEstado}`, 'success');
     } catch (err) {
         console.error(err);
