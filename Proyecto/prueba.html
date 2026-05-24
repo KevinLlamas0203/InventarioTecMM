@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+        <style>
+        :root {
+            --bg-header-left: #0f172a;
+            --bg-header-right: #1e293b;
+            --text-main: #eff6ff;
+            --text-muted: rgba(255, 255, 255, 0.72);
+            --panel-bg: rgba(255, 255, 255, 0.05);
+            --panel-border: rgba(255, 255, 255, 0.1);
+            --tab-bg: rgba(255, 255, 255, 0.04);
+            --tab-hover: rgba(255, 255, 255, 0.08);
+            --active-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 55%, #ec4899 100%);
+            --active-shadow: 0 10px 30px rgba(100, 100, 255, 0.35);
+        }
+
+        .tabs-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 1.5rem;
+            padding: 1rem;
+            display: flex;
+            gap: 0.9rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 30px 80px rgba(4, 9, 30, 0.25);
+            backdrop-filter: blur(12px);
+        }
+
+        .tabs-panel button {
+            flex: 1 1 14rem;
+            min-width: 14rem;
+            border: 1px solid transparent;
+            background: var(--tab-bg);
+            color: var(--text-main);
+            padding: 1.05rem 1.2rem;
+            border-radius: 1.5rem;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            transition: transform 220ms ease, background 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            gap: 0.95rem;
+            text-align: left;
+            outline: none;
+        }
+
+        .tabs-panel button svg {
+            width: 1.8rem;
+            height: 1.8rem;
+            color: rgba(226, 232, 255, 0.8);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .tabs-panel .tab-label {
+            display: grid;
+            gap: 0.28rem;
+        }
+
+        .tabs-panel .tab-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #f8fbff;
+        }
+
+        .tabs-panel .tab-subtitle {
+            font-size: 0.88rem;
+            color: rgba(226, 232, 255, 0.72);
+            line-height: 1.4;
+        }
+
+        .tabs-panel button:hover {
+            transform: translateY(-1px);
+            background: var(--tab-hover);
+            border-color: rgba(255, 255, 255, 0.16);
+        }
+
+        .tabs-panel button.active {
+            background: var(--active-gradient);
+            color: #fff;
+            box-shadow: var(--active-shadow);
+            transform: translateY(-2px);
+            border-color: transparent;
+        }
+
+        .tabs-panel button.active svg {
+            color: #fff;
+        }
+
+        .tabs-panel button.active .tab-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .tab-content {
+            min-height: 520px;
+            border-radius: 1.5rem;
+            background: rgba(15, 20, 38, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 1.75rem;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+            animation: fadeContent 260ms ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-content.loading::after {
+            content: 'Cargando...';
+            display: block;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 0.95rem;
+            padding: 2rem 0;
+        }
+
+        @keyframes fadeContent {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .sidebar .nav-section .nav-item.active {
+            background: linear-gradient(135deg, #3f57f2 0%, #8b4ff1 100%);
+            color: #fff;
+        }
+
+        .sidebar .nav-section .nav-item.active svg,
+        .sidebar .nav-section .nav-item.active .nav-badge {
+            color: #fff;
+        }
+
+        .sidebar .nav-section .nav-item.active .nav-badge {
+            background: #6b53f7;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs-panel {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+     <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <span class="nav-section-title">Principal</span>
+                    <a href="dashboard_admin.html" class="nav-item" >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="3" y="3" width="7" height="7" stroke-width="2" rx="1" />
+                            <rect x="14" y="3" width="7" height="7" stroke-width="2" rx="1" />
+                            <rect x="14" y="14" width="7" height="7" stroke-width="2" rx="1" />
+                            <rect x="3" y="14" width="7" height="7" stroke-width="2" rx="1" />
+                        </svg>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <span class="nav-section-title">Gestión</span>
+                    <a href="moduloActivo.html" class="nav-item active">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2" />
+                            <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                        <span>Módulo de Activos</span>
+                        <span class="nav-badge">245</span>
+                    </a>
+                    <a href="consumibles.html" class="nav-item" data-nivel="1">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path
+                                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+                                stroke-width="2" />
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2" />
+                            <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2" />
+                        </svg>
+                        <span>Consumibles</span>
+                        <span class="nav-badge warning">12</span>
+                    </a>
+
+                </div>
+                <div class="nav-section">
+                    <span class="nav-section-title">Reportes</span>
+                    <a href="reportes.html" class="nav-item" data-nivel="3">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2" />
+                            <polyline points="14 2 14 8 20 8" stroke-width="2" />
+                            <line x1="16" y1="13" x2="8" y2="13" stroke-width="2" />
+                            <line x1="16" y1="17" x2="8" y2="17" stroke-width="2" />
+                        </svg>
+                        <span>Reportes</span>
+                    </a>
+                     <a href="auditoria.html" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                            <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+                        </svg>
+                        <span>Auditoría</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <span class="nav-section-title">Configuración</span>
+                    <a href="usuarios.html" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2" />
+                            <circle cx="9" cy="7" r="4" stroke-width="2" />
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2" />
+                        </svg>
+                        <span>Usuarios</span>
+                    </a>
+                    <a href="ajustes.html" class="nav-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                        <span>Ajustes</span>
+                    </a>
+                </div>
+</body>
+</html>
