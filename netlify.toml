@@ -1,3 +1,6 @@
+[build]
+  publish = "Proyecto/Front-end"
+
 [[redirects]]
   from = "/*"
   to = "/pagesAdmin/dashboard_admin.html"
