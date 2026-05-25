@@ -1,6 +1,6 @@
 // ISC Inventory System - Main JavaScript
 
-window.API_URL = window.API_URL || "http://127.0.0.1:5000";
+window.API_URL = window.API_URL || "https://inventariotsj.onrender.com";
 
 function initGlobalApp() {
     if (window.__iscAppInitialized) return;
