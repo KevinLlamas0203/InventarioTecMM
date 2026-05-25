@@ -88,10 +88,10 @@ def create_activo():
     try:
         nombre      = clean_text(data.get("nombre"),      "nombre",      required=True)
         descripcion = clean_text(data.get("descripcion"), "descripcion")
-        categoria   = clean_text(data.get("categoria"),   "categoria",   required=True)
-        estado      = clean_text(data.get("estado"),      "estado",      required=True)
-        ubicacion   = clean_text(data.get("ubicacion"),   "ubicacion")
-        asignado_a  = clean_text(data.get("asignado_a"),  "asignado_a")
+        categoria = clean_text(data.get("categoria"), "categoria", required=True)
+        estado = clean_text(data.get("estado"), "estado", required=True)
+        ubicacion = clean_text(data.get("ubicacion"), "ubicacion")
+        asignado_a = clean_text(data.get("asignado_a"), "asignado_a")
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
@@ -118,6 +118,9 @@ def create_activo():
 
                 if asignado_a and estado != "En uso":
                     estado = "En uso"
+
+                if not fk_ubicacion:
+                    return jsonify({"error": "No se pudo registrar la ubicación. Intenta de nuevo."}), 400
 
                 fk_estado = get_or_create_fk_id(cur, "estados", "id_estado", "nombre", estado)
 
@@ -203,8 +206,11 @@ def create_activo():
         return jsonify({"mensaje": "Activo creado exitosamente", "activo_id": nuevo_id}), 201
 
     except psycopg2.errors.ForeignKeyViolation as e:
+        conn.rollback() if 'conn' in locals() else None
         return jsonify({"error": "No se puede guardar el activo debido a un valor inválido en una relación de clave externa.", "detalle": str(e)}), 409
     except psycopg2.errors.NotNullViolation as e:
+        conn.rollback() if 'conn' in locals() else None
         return jsonify({"error": "No se pudo guardar el activo porque falta un valor obligatorio.", "detalle": str(e)}), 400
     except Exception as e:
+        conn.rollback() if 'conn' in locals() else None
         return jsonify({"error": "Error interno al registrar el activo.", "detalle": str(e)}), 500

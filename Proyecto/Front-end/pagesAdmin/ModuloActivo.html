@@ -138,6 +138,69 @@
             }
         }
 
+        /* MODO CLARO - Pestañas formales */
+        html[data-theme="light"] .tabs-panel {
+            background: rgba(31, 58, 95, 0.05);
+            border: 1px solid #D3D9E2;
+            box-shadow: 0 4px 16px rgba(16, 24, 40, 0.08);
+            backdrop-filter: blur(4px);
+        }
+
+        html[data-theme="light"] .tabs-panel button {
+            background: #FFFFFF;
+            color: #4B5563;
+            border: 1px solid #D3D9E2;
+        }
+
+        html[data-theme="light"] .tabs-panel button svg {
+            color: #8999A6;
+        }
+
+        html[data-theme="light"] .tabs-panel .tab-title {
+            color: #1F3A5F;
+            font-weight: 600;
+        }
+
+        html[data-theme="light"] .tabs-panel .tab-subtitle {
+            color: #7C8CA0;
+        }
+
+        html[data-theme="light"] .tabs-panel button:hover {
+            background: #EEF4FB;
+            border-color: #1F3A5F;
+            transform: translateY(-1px);
+        }
+
+        html[data-theme="light"] .tabs-panel button.active {
+            background: linear-gradient(135deg, #1F3A5F 0%, #2B4B71 100%);
+            color: #FFFFFF;
+            box-shadow: 0 10px 24px rgba(31, 58, 95, 0.12);
+            border-color: transparent;
+        }
+
+        html[data-theme="light"] .tabs-panel button.active svg {
+            color: #FFFFFF;
+        }
+
+        html[data-theme="light"] .tabs-panel button.active .tab-title {
+            color: #FFFFFF;
+        }
+
+        html[data-theme="light"] .tabs-panel button.active .tab-subtitle {
+            color: rgba(255, 255, 255, 0.88);
+        }
+
+        html[data-theme="light"] .tab-content {
+            background: #F8FAFC;
+            border: 1px solid #E1E8ED;
+            box-shadow: inset 0 0 0 1px rgba(16, 24, 40, 0.04);
+            color: #111827;
+        }
+
+        html[data-theme="light"] .tab-content.loading::after {
+            color: #4B5563;
+        }
+
         .sidebar .nav-section .nav-item.active {
             background: linear-gradient(135deg, #3f57f2 0%, #8b4ff1 100%);
             color: #fff;
@@ -208,7 +271,7 @@
                     <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 <span>Activos</span>
-                <span class="nav-badge">245</span>
+                <span class="nav-badge"><span id="badge-activos">–</span></span>
             </a>
             <a href="consumibles.html" class="nav-item" data-nivel="2,3">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -508,12 +571,17 @@
                 button.addEventListener('click', () => {
                     const tabName = button.dataset.tab;
                     setActiveTab(button);
+                    if (tabName) {
+                        history.replaceState(null, '', `#${tabName}`);
+                    }
                     loadTab(tabName);
                 });
             });
 
-            const defaultButton = document.querySelector('.tab-button.active');
+            const requestedTab = window.location.hash.replace('#', '');
+            const defaultButton = document.querySelector(`.tab-button[data-tab="${requestedTab}"]`) || document.querySelector('.tab-button.active');
             if (defaultButton) {
+                setActiveTab(defaultButton);
                 loadTab(defaultButton.dataset.tab);
             }
         });

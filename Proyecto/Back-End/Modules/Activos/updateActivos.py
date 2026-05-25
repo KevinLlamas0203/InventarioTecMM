@@ -67,7 +67,7 @@ def update_activo(activo_id):
         descripcion = clean_text(data.get("descripcion"), "descripcion")
         categoria = clean_text(data.get("categoria"), "categoria", required=True)
         estado = clean_text(data.get("estado"), "estado", required=True)
-        ubicacion = clean_text(data.get("ubicacion"), "ubicacion")
+        ubicacion = clean_text(data.get("ubicacion"), "ubicacion", required=True)
         asignado_a = clean_text(data.get("asignado_a"), "asignado_a")
         observaciones = clean_text(data.get("observaciones"), "observaciones")
     except ValueError as e:
@@ -98,6 +98,9 @@ def update_activo(activo_id):
 
                 if asignado_a and fk_usuario is None:
                     return jsonify({"error": f"Usuario asignado no encontrado: {asignado_a}"}), 400
+
+                if not fk_ubicacion:
+                    return jsonify({"error": "No se pudo registrar la ubicación. Intenta de nuevo."}), 400
 
                 cur.execute(
                     """
