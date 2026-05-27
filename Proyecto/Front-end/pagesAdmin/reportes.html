@@ -8,11 +8,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap" rel="stylesheet">
-    <link rel="apple-touch-icon" sizes="180x180" href="../../images/favicon_io/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="../../images/favicon_io/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../../images/favicon_io/favicon-16x16.png">
-    <link rel="manifest" href="../../images/favicon_io/site.webmanifest">
-    <link rel="shortcut icon" href="../../images/favicon_io/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="../images/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../images/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../images/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="../images/favicon_io/site.webmanifest">
+    <link rel="shortcut icon" href="../images/favicon_io/favicon.ico">
     <style>
         .reports-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:var(--spacing-lg); margin-bottom:var(--spacing-xl); }
         .report-card { display:flex; flex-direction:column; gap:var(--spacing-md); }
@@ -538,21 +538,28 @@
         </div>
     </div>
 
+
+    
+</div>
+
 <script src="../js/app.js"></script>
 <script src="../js/theme-toggle.js"></script>
 <script src="../js/control-nivel.js"></script>
 
 <script>
 const API = 'https://inventariotsj.onrender.com';
-
+function cerrarModalLogout() {
+    document.getElementById('modalLogout').classList.remove('show');
+}
+function confirmarLogout() {
+    window.location.href = '../login.html';
+}
 // ── Sidebar / logout ──────────────────────────────────────────────────────────
 document.querySelector('.sidebar-toggle').addEventListener('click', function () {
     document.querySelector('.sidebar').classList.toggle('collapsed');
 });
 document.querySelector('.logout-btn').addEventListener('click', function () {
-    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-        window.location.href = '../login.html';
-    }
+        document.getElementById('modalLogout').classList.add('show');
 });
 
 // ── Cargar stats reales ───────────────────────────────────────────────────────
@@ -785,6 +792,8 @@ function confirmarLimpiar() {
 document.addEventListener('click', function(e) {
     const overlay = document.getElementById('modalLimpiar');
     if (e.target === overlay) cerrarModal();
+     const overlayLogout = document.getElementById('modalLogout');
+    if (e.target === overlayLogout) cerrarModalLogout();
 });
 
 // ── showToast (lateral apilado, esquina inferior derecha) ────────────────────
