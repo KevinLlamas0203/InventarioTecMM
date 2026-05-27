@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historial de Movimientos</title>
+<link rel="stylesheet" href="../css/styles.css">
+<link rel="stylesheet" href="../css/movimientos.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<main class="main-content movimientos-page">
+<div class="page-header">
+  <div>
+    <h1>Historial de Movimientos</h1>
+    <p>Registro de cambios reales sobre activos, asignaciones y ubicaciones</p>
+  </div>
+  <button class="btn-register" type="button" onclick="openMovementModal()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+    Registrar Movimiento
+  </button>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card blue">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="stat-value">0</div>
+      <div class="stat-label">Movimientos Totales</div>
+    </div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    </div>
+    <div>
+      <div class="stat-value">0</div>
+      <div class="stat-label">Este Mes</div>
+    </div>
+  </div>
+  <div class="stat-card purple">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    </div>
+    <div>
+      <div class="stat-value">0</div>
+      <div class="stat-label">Asignaciones</div>
+    </div>
+  </div>
+  <div class="stat-card orange">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+    </div>
+    <div>
+      <div class="stat-value">0</div>
+      <div class="stat-label">Mantenimientos</div>
+    </div>
+  </div>
+</div>
+
+<div class="filters-panel">
+  <div class="filters-row">
+    <div class="filter-group">
+      <label>Activo</label>
+      <select class="filter-select" id="movementAssetFilter">
+        <option value="">Todos los activos</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Tipo de Movimiento</label>
+      <select class="filter-select" id="movementTypeFilter">
+        <option value="">Todos los tipos</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Empleado</label>
+      <select class="filter-select" id="movementEmployeeFilter">
+        <option value="">Todos los empleados</option>
+      </select>
+    </div>
+    <div class="filter-group" style="flex:0; min-width:auto;">
+      <label>&nbsp;</label>
+      <button class="btn-export" type="button" id="clearMovementFilters">Limpiar</button>
+    </div>
+  </div>
+  <p class="results-count">Mostrando 0 de 0 movimientos</p>
+</div>
+
+<div class="table-wrapper">
+  <div class="table-header"><h3>Movimientos Recientes</h3></div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Activo</th>
+          <th>Tipo</th>
+          <th>Estado</th>
+          <th>Movimiento</th>
+          <th>Observaciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="6" style="text-align:center;padding:2rem;opacity:.6;">Cargando movimientos...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal" id="movementModal">
+  <div class="modal-overlay" onclick="closeMovementModal()"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Registrar Movimiento</h2>
+      <button class="modal-close" onclick="closeMovementModal()" aria-label="Cerrar modal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form id="movementForm" class="asset-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="movementAsset">Activo</label>
+            <select id="movementAsset" required>
+              <option value="">Seleccione un activo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="movementType">Tipo de Movimiento</label>
+            <select id="movementType" required>
+              <option value="">Seleccione tipo de movimiento</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="movementEmployee">Empleado</label>
+            <select id="movementEmployee">
+              <option value="">Sin empleado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="movementState">Estado final</label>
+            <select id="movementState" required>
+              <option value="">Seleccione estado final</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="movementOrigin">Origen</label>
+            <select id="movementOrigin">
+              <option value="">Sin origen</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="movementDestination">Destino</label>
+            <select id="movementDestination" required>
+              <option value="">Seleccione destino</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row form-row-full">
+          <div class="form-group">
+            <label for="movementNotes">Observaciones / Notas</label>
+            <textarea id="movementNotes" rows="4" maxlength="500" placeholder="Motivo o detalles del movimiento"></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeMovementModal()">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar movimiento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</main>
+<script src="../js/movimientos.js"></script>
+
+</body>
+</html>

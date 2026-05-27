@@ -4,6 +4,7 @@ function getApiUrl() {
 
 let assignmentsCache = [];
 let currentExtendAssignmentId = null;
+let currentFinishAssignmentId = null;
 let assignmentKeydownBound = false;
 
 function escapeHtml(text) {
@@ -412,7 +413,7 @@ function bindModalCloseShortcuts() {
 
     document.addEventListener('keydown', event => {
         if (event.key !== 'Escape') return;
-        const modalIds = ['extendModal', 'viewModal', 'assignmentModal'];
+        const modalIds = ['finishAssignmentModal', 'extendModal', 'viewModal', 'assignmentModal'];
         for (const id of modalIds) {
             const modal = document.getElementById(id);
             if (modal && modal.classList.contains('active')) {
@@ -537,7 +538,38 @@ async function handleExtendForm(event) {
 }
 
 async function finishAssignment(id) {
-    if (!confirm(`¿Finalizar la asignación #${id}?`)) return;
+    const assignment = assignmentsCache.find(item => String(item.id_asignacion) === String(id));
+    if (!assignment) {
+        notify('No se encontro la asignacion seleccionada.', 'warning');
+        return;
+    }
+    if ((assignment.estado || '').toLowerCase() === 'finalizada') {
+        notify('La asignacion ya se encuentra finalizada.', 'info');
+        return;
+    }
+
+    currentFinishAssignmentId = id;
+    const today = new Date();
+    setText('finishAssignmentCode', `ASG-${String(id).padStart(6, '0')}`);
+    setText('finishAssignmentUser', assignment.usuario_nombre || 'Usuario desconocido');
+    setText('finishAssignmentAsset', assignment.activo_nombre || 'Activo desconocido');
+    setText('finishAssignmentLocation', assignment.ubicacion || '-');
+    setText('finishAssignmentStatus', assignment.estado || 'Activa');
+    setText('finishAssignmentDate', today.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }));
+    document.getElementById('finishAssignmentModal')?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeFinishAssignmentModal() {
+    closeModalById('finishAssignmentModal');
+    currentFinishAssignmentId = null;
+}
+
+async function confirmFinishAssignment() {
+    if (!currentFinishAssignmentId) return;
+    const id = currentFinishAssignmentId;
+    const button = document.getElementById('btnConfirmFinishAssignment');
+    if (button) button.disabled = true;
 
     try {
         const today = new Date();
@@ -552,11 +584,19 @@ async function finishAssignment(id) {
         });
 
         await Promise.all([fetchAssignments(), populateAssetSelect(), refreshRelatedActivos(), refreshRelatedMovimientos()]);
-        notify('Asignación finalizada correctamente', 'success');
+        closeFinishAssignmentModal();
+        notify('Asignacion finalizada correctamente', 'success');
     } catch (error) {
-        console.error('Error finalizando asignación:', error);
-        notify(error.message || 'Error al finalizar asignación', 'warning');
+        console.error('Error finalizando asignacion:', error);
+        notify(error.message || 'Error al finalizar asignacion', 'warning');
+    } finally {
+        if (button) button.disabled = false;
     }
+}
+
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value ?? '-';
 }
 
 async function refreshRelatedActivos() {
@@ -588,6 +628,8 @@ window.printAssignment = printAssignment;
 window.extendAssignment = extendAssignment;
 window.closeExtendModal = closeExtendModal;
 window.finishAssignment = finishAssignment;
+window.closeFinishAssignmentModal = closeFinishAssignmentModal;
+window.confirmFinishAssignment = confirmFinishAssignment;
 window.initAsignacionesPage = initAsignacionesPage;
 
 if (document.readyState === 'loading') {

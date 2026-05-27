@@ -79,6 +79,18 @@ def validate_date_format(date_str):
         return None
 
 
+def parse_manual_activo_id(value):
+    if value in (None, ""):
+        return None
+    try:
+        activo_id = int(value)
+    except (TypeError, ValueError):
+        raise ValueError("El ID manual del activo debe ser un numero entero positivo")
+    if activo_id <= 0:
+        raise ValueError("El ID manual del activo debe ser un numero entero positivo")
+    return activo_id
+
+
 @create_bp.route("/activos", methods=["POST"])
 def create_activo():
     data = request.get_json(silent=True)
@@ -88,10 +100,11 @@ def create_activo():
     try:
         nombre      = clean_text(data.get("nombre"),      "nombre",      required=True)
         descripcion = clean_text(data.get("descripcion"), "descripcion")
-        categoria   = clean_text(data.get("categoria"),   "categoria",   required=True)
-        estado      = clean_text(data.get("estado"),      "estado",      required=True)
-        ubicacion   = clean_text(data.get("ubicacion"),   "ubicacion")
-        asignado_a  = clean_text(data.get("asignado_a"),  "asignado_a")
+        categoria = clean_text(data.get("categoria"), "categoria", required=True)
+        estado = clean_text(data.get("estado"), "estado", required=True)
+        ubicacion = clean_text(data.get("ubicacion"), "ubicacion")
+        asignado_a = clean_text(data.get("asignado_a"), "asignado_a")
+        manual_activo_id = parse_manual_activo_id(data.get("activo_id", data.get("id_activo")))
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
@@ -119,6 +132,9 @@ def create_activo():
                 if asignado_a and estado != "En uso":
                     estado = "En uso"
 
+                if not fk_ubicacion:
+                    return jsonify({"error": "No se pudo registrar la ubicación. Intenta de nuevo."}), 400
+
                 fk_estado = get_or_create_fk_id(cur, "estados", "id_estado", "nombre", estado)
 
                 cur.execute(
@@ -134,16 +150,39 @@ def create_activo():
                 if existing:
                     return jsonify({"error": f"No se puede registrar el activo porque ya existe otro con el mismo nombre: #{existing[0]}"}), 409
 
+                if manual_activo_id is not None:
+                    cur.execute("SELECT id_activo FROM activos WHERE id_activo = %s", (manual_activo_id,))
+                    if cur.fetchone():
+                        return jsonify({"error": f"Ya existe un activo con el ID manual #{manual_activo_id}"}), 409
+                    cur.execute(
+                        """
+                        INSERT INTO activos
+                            (id_activo, nombre, descripcion, fk_id_categoria, fecha_alta, fk_id_estado, fk_id_ubicacion, fk_id_usuario)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                        RETURNING id_activo
+                        """,
+                        (manual_activo_id, nombre, descripcion, fk_categoria, fecha_alta, fk_estado, fk_ubicacion, fk_usuario),
+                    )
+                else:
+                    cur.execute(
+                        """
+                        INSERT INTO activos
+                            (nombre, descripcion, fk_id_categoria, fecha_alta, fk_id_estado, fk_id_ubicacion, fk_id_usuario)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        RETURNING id_activo
+                        """,
+                        (nombre, descripcion, fk_categoria, fecha_alta, fk_estado, fk_ubicacion, fk_usuario),
+                    )
+                nuevo_id = cur.fetchone()[0]
                 cur.execute(
                     """
-                    INSERT INTO activos
-                        (nombre, descripcion, fk_id_categoria, fecha_alta, fk_id_estado, fk_id_ubicacion, fk_id_usuario)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    RETURNING id_activo
-                    """,
-                    (nombre, descripcion, fk_categoria, fecha_alta, fk_estado, fk_ubicacion, fk_usuario),
+                    SELECT setval(
+                        pg_get_serial_sequence('activos', 'id_activo'),
+                        COALESCE((SELECT MAX(id_activo) FROM activos), 1),
+                        true
+                    )
+                    """
                 )
-                nuevo_id = cur.fetchone()[0]
 
                 create_movement_record(
                     cur,
@@ -203,8 +242,11 @@ def create_activo():
         return jsonify({"mensaje": "Activo creado exitosamente", "activo_id": nuevo_id}), 201
 
     except psycopg2.errors.ForeignKeyViolation as e:
+        conn.rollback() if 'conn' in locals() else None
         return jsonify({"error": "No se puede guardar el activo debido a un valor inválido en una relación de clave externa.", "detalle": str(e)}), 409
     except psycopg2.errors.NotNullViolation as e:
+        conn.rollback() if 'conn' in locals() else None
         return jsonify({"error": "No se pudo guardar el activo porque falta un valor obligatorio.", "detalle": str(e)}), 400
     except Exception as e:
+        conn.rollback() if 'conn' in locals() else None
         return jsonify({"error": "Error interno al registrar el activo.", "detalle": str(e)}), 500
