@@ -1,4 +1,4 @@
-const API = 'http://localhost:5000';
+const API = 'https://inventariotsj.onrender.com';
 
 /* ─── Utils ─────────────────────────────────────────────── */
 const BC = { Pendiente:'badge-pendiente', Activo:'badge-activo', Devuelto:'badge-devuelto', Cancelado:'badge-cancelado', Vencido:'badge-vencido' };

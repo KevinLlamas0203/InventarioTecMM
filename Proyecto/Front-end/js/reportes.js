@@ -43,7 +43,7 @@ async function generarReporte(nombre, formato) {
     showToast(`Generando "${nombre}" en ${formato.toUpperCase()}…`, 'info');
 
     try {
-        const res = await fetch('http://localhost:5000/reportes', {
+        const res = await fetch('https://inventariotsj.onrender.com/reportes', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify(payload)
