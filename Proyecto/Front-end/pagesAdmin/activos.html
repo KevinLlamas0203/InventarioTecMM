@@ -191,7 +191,8 @@
                         <circle cx="11" cy="11" r="8" stroke-width="2"/>
                         <path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
                     </svg>
-                    <input type="text" placeholder="Buscar por ID, nombre, categoría..." class="search-input">
+                    <input type="text" placeholder="Buscar por ID, nombre, categoría..." class="search-input" aria-label="Buscar activos" aria-describedby="searchHelp">
+                    <span id="searchHelp" style="display:none">Busca por ID, nombre o categoría del activo</span>
                 </div>
                 
                 <div class="filters">
@@ -248,6 +249,47 @@
         </main>
     </div>
 
+    <!-- Modal de Confirmacion de Nuevo Activo -->
+    <div class="modal" id="confirmAssetModal" aria-hidden="true">
+        <div class="modal-overlay" onclick="closeAssetConfirmModal()"></div>
+        <div class="modal-content modal-small institutional-confirm">
+            <div class="modal-header">
+                <div class="confirm-heading">
+                    <span class="confirm-icon confirm-icon-primary" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <div>
+                        <h2>Confirmar nuevo activo</h2>
+                        <p>Valida la informacion antes de registrar el bien institucional.</p>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeAssetConfirmModal()" aria-label="Cerrar confirmacion">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="confirm-summary">
+                    <div class="confirm-summary-row"><span>ID</span><strong id="confirmAssetId">Automatico</strong></div>
+                    <div class="confirm-summary-row"><span>Activo</span><strong id="confirmAssetName">-</strong></div>
+                    <div class="confirm-summary-row"><span>Categoria</span><strong id="confirmAssetCategory">-</strong></div>
+                    <div class="confirm-summary-row"><span>Estado inicial</span><strong id="confirmAssetStatus">-</strong></div>
+                    <div class="confirm-summary-row"><span>Ubicacion</span><strong id="confirmAssetLocation">-</strong></div>
+                    <div class="confirm-summary-row"><span>Responsable</span><strong id="confirmAssetAssigned">Sin asignar</strong></div>
+                    <div class="confirm-summary-row"><span>Fecha de alta</span><strong id="confirmAssetDate">-</strong></div>
+                </div>
+                <p class="confirm-note">El registro quedara disponible para movimientos, reportes y asignaciones del sistema.</p>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeAssetConfirmModal()">Revisar datos</button>
+                    <button type="button" class="btn-primary" id="btnConfirmAsset" onclick="confirmAssetCreation()">Registrar activo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal for New Asset -->
     <div class="modal" id="assetModal">
         <div class="modal-overlay" onclick="closeModal()"></div>
@@ -266,23 +308,31 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Nombre del activo</label>
-                            <input type="text" id="inputNombre" placeholder="Ej: MacBook Pro 16 pulgadas" required minlength="3" maxlength="120" autocomplete="off">
+                            <input type="text" id="inputNombre" placeholder="Ej: MacBook Pro 16 pulgadas" required minlength="3" maxlength="120" autocomplete="off" aria-required="true" aria-describedby="nombreHelp">
+                            <small id="nombreHelp" style="font-size:0.75rem;color:var(--color-text-secondary);display:block;margin-top:0.25rem">Mínimo 3 caracteres</small>
                         </div>
                         <div class="form-group">
                             <label>ID del activo</label>
-                            <input type="text" placeholder="Generado automáticamente" disabled>
+                            <div class="asset-id-mode">
+                                <select id="inputIdMode" aria-label="Modo de asignacion de ID">
+                                    <option value="auto">Automatico</option>
+                                    <option value="manual">Manual</option>
+                                </select>
+                                <input type="text" id="activoIdDisplay" inputmode="numeric" pattern="[0-9]*" placeholder="Se genera automaticamente" disabled aria-describedby="idHelp">
+                            </div>
+                            <small id="idHelp" style="font-size:0.75rem;color:var(--color-text-secondary);display:block;margin-top:0.25rem">En modo manual escribe un numero entero positivo disponible</small>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Categoría</label>
-                            <select id="inputCategoria" required>
+                            <label>Categoría <span style="color:var(--color-danger)">*</span></label>
+                            <select id="inputCategoria" required aria-required="true">
                                 <option value="">Seleccionar categoría</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Estado</label>
-                            <select id="inputEstado" required>
+                            <label>Estado <span style="color:var(--color-danger)">*</span></label>
+                            <select id="inputEstado" required aria-required="true">
                                 <option value="">Seleccionar estado</option>
                             </select>
                         </div>
@@ -293,22 +343,25 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Ubicación</label>
-                            <select id="inputUbicacion" required>
+                            <label>Ubicación <span style="color:var(--color-danger)">*</span></label>
+                            <select id="inputUbicacion" required aria-required="true" aria-describedby="ubicacionHelp">
                                 <option value="">Seleccionar ubicación</option>
                             </select>
+                            <small id="ubicacionHelp" style="font-size:0.75rem;color:var(--color-text-secondary);display:block;margin-top:0.25rem">Campo obligatorio</small>
                         </div>
                         <div class="form-group">
                             <label>Asignado a</label>
-                            <select id="inputAsignadoA">
+                            <select id="inputAsignadoA" aria-describedby="asignadoHelp">
                                 <option value="">No asignado</option>
                             </select>
+                            <small id="asignadoHelp" style="font-size:0.75rem;color:var(--color-text-secondary);display:block;margin-top:0.25rem">Opcional. Si se asigna, el estado será "En uso"</small>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Fecha de alta</label>
-                            <input type="date" id="inputFechaAlta" required>
+                            <label>Fecha de alta <span style="color:var(--color-danger)">*</span></label>
+                            <input type="date" id="inputFechaAlta" required aria-required="true" aria-describedby="fechaHelp">
+                            <small id="fechaHelp" style="font-size:0.75rem;color:var(--color-text-secondary);display:block;margin-top:0.25rem">Fecha pasada o actual. Hoy por defecto</small>
                         </div>
                     </div>
                     <div class="modal-actions">

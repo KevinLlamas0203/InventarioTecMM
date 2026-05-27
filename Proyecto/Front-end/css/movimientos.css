@@ -570,6 +570,17 @@
   min-height: 44px;
 }
 
+#assetModal .asset-id-mode {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.42fr) minmax(0, 1fr);
+  gap: 0.65rem;
+}
+
+#assetModal .asset-id-mode input:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
 #assetModal input:focus,
 #assetModal select:focus,
 #assetModal textarea:focus,
@@ -909,6 +920,16 @@
   min-width: 150px;
 }
 
+.movimientos-page .filter-group.compact {
+  flex: 0 0 112px;
+  min-width: 112px;
+}
+
+.movimientos-page .filter-group.actions {
+  flex: 0 0 auto;
+  min-width: auto;
+}
+
 .movimientos-page .filter-group label {
   display: block;
   font-size: 0.78rem;
@@ -930,6 +951,10 @@
   font-family: var(--font-body);
   cursor: pointer;
   appearance: none;
+}
+
+.movimientos-page input.filter-select {
+  appearance: auto;
 }
 
 .movimientos-page .filter-select option {
@@ -959,6 +984,39 @@
   cursor: pointer;
   transition: background 0.22s ease, transform 0.22s ease;
   height: 42px;
+}
+
+.movimientos-page .btn-export svg {
+  width: 16px;
+  height: 16px;
+}
+
+.movement-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.movement-pagination .pagination-btn {
+  min-width: 96px;
+  height: 36px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+}
+
+.movement-pagination .pagination-btn:hover:not(:disabled) {
+  background: var(--surface-strong);
+}
+
+.movement-pagination .pagination-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .movimientos-page .btn-export:hover {
@@ -1319,5 +1377,211 @@
   #extendModal .modal-actions .btn-primary,
   #extendModal .modal-actions .btn-secondary {
     width: 100%;
+  }
+}
+
+#confirmAssetModal,
+#finishAssignmentModal {
+  z-index: 1010;
+  --bg: var(--color-bg);
+  --surface: var(--color-surface);
+  --surface-strong: var(--color-surface-raised);
+  --border: var(--color-border);
+  --text: var(--color-text);
+  --text-muted: var(--color-text-secondary);
+  --text-soft: var(--color-text-muted);
+  --radius: var(--radius-lg);
+  --radius-sm: var(--radius-md);
+}
+
+#confirmAssetModal .modal-content,
+#finishAssignmentModal .modal-content {
+  max-width: 540px;
+  width: min(540px, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#confirmAssetModal .modal-header,
+#finishAssignmentModal .modal-header {
+  flex-shrink: 0;
+  padding: 1.1rem 1.25rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+}
+
+#confirmAssetModal .modal-body,
+#finishAssignmentModal .modal-body {
+  padding: 1.25rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+#confirmAssetModal .modal-actions,
+#finishAssignmentModal .modal-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+#confirmAssetModal .modal-actions .btn-primary,
+#confirmAssetModal .modal-actions .btn-secondary,
+#finishAssignmentModal .modal-actions .btn-secondary,
+#finishAssignmentModal .modal-actions .btn-danger {
+  width: auto;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.confirm-heading {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+}
+
+.confirm-heading h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--text);
+}
+
+.confirm-heading p {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.confirm-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+}
+
+.confirm-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.confirm-icon-primary {
+  color: var(--color-primary);
+  background: rgba(63, 75, 245, 0.14);
+  border-color: rgba(63, 75, 245, 0.28);
+}
+
+.confirm-icon-danger {
+  color: var(--color-danger);
+  background: rgba(255, 107, 107, 0.12);
+  border-color: rgba(255, 107, 107, 0.28);
+}
+
+.confirm-summary {
+  display: grid;
+  gap: 0.65rem;
+  padding: 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.confirm-summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.confirm-summary-row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.confirm-summary-row span {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.confirm-summary-row strong {
+  color: var(--text);
+  font-size: 0.92rem;
+  text-align: right;
+  max-width: 58%;
+  overflow-wrap: anywhere;
+}
+
+.confirm-note {
+  margin: 1rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.confirm-note.warning {
+  color: var(--color-warning);
+}
+
+.btn-danger {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-danger);
+  color: #fff;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  transition: all var(--transition-base);
+}
+
+.btn-danger:hover {
+  filter: brightness(0.9);
+  transform: translateY(-1px);
+}
+
+.btn-danger:disabled,
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 700px) {
+  #confirmAssetModal .modal-actions,
+  #finishAssignmentModal .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  #confirmAssetModal .modal-actions .btn-primary,
+  #confirmAssetModal .modal-actions .btn-secondary,
+  #finishAssignmentModal .modal-actions .btn-secondary,
+  #finishAssignmentModal .modal-actions .btn-danger {
+    width: 100%;
+  }
+
+  .confirm-summary-row {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .confirm-summary-row strong {
+    max-width: none;
+    text-align: left;
   }
 }

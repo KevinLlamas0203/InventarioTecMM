@@ -99,6 +99,44 @@
         <option value="">Todos los empleados</option>
       </select>
     </div>
+    <div class="filter-group">
+      <label>Desde</label>
+      <input class="filter-select" type="date" id="movementDateFrom">
+    </div>
+    <div class="filter-group">
+      <label>Hasta</label>
+      <input class="filter-select" type="date" id="movementDateTo">
+    </div>
+    <div class="filter-group compact">
+      <label>Mostrar</label>
+      <select class="filter-select" id="movementPageSize">
+        <option value="10">10</option>
+        <option value="25" selected>25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+    </div>
+    <div class="filter-group actions">
+      <label>&nbsp;</label>
+      <button class="btn-export" type="button" id="exportMovements">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" stroke-linecap="round"/>
+          <path d="M7 10l5 5 5-5M12 15V3" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Exportar
+      </button>
+    </div>
+    <div class="filter-group actions">
+      <label>&nbsp;</label>
+      <button class="btn-export" type="button" id="importMovements">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" stroke-linecap="round"/>
+          <path d="M17 8l-5-5-5 5M12 3v12" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Importar
+      </button>
+      <input type="file" id="movementImportFile" accept=".csv,text/csv" hidden>
+    </div>
     <div class="filter-group" style="flex:0; min-width:auto;">
       <label>&nbsp;</label>
       <button class="btn-export" type="button" id="clearMovementFilters">Limpiar</button>
@@ -126,6 +164,11 @@
       </tbody>
     </table>
   </div>
+</div>
+<div class="movement-pagination" aria-label="Paginacion de movimientos">
+  <button class="pagination-btn" type="button" id="movementPrevPage">Anterior</button>
+  <span id="movementPageInfo">Pagina 1 de 1</span>
+  <button class="pagination-btn" type="button" id="movementNextPage">Siguiente</button>
 </div>
 
 <div class="modal" id="movementModal">

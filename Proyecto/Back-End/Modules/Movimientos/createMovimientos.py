@@ -115,6 +115,36 @@ def resolve_tipo_movimiento(cur, tipo_movimiento):
     return fk_tipo, tipo_nombre
 
 
+def get_active_assignment(cur, activo_id):
+    cur.execute(
+        """
+        SELECT
+            a.id_asignacion,
+            a.fk_id_usuario,
+            a.fk_id_ubicacion,
+            ub.nombre AS ubicacion
+        FROM asignaciones a
+        LEFT JOIN ubicaciones ub ON a.fk_id_ubicacion = ub.id_ubicacion
+        LEFT JOIN estados est ON a.fk_id_estado = est.id_estado
+        WHERE a.fk_id_activo = %s
+          AND COALESCE(est.nombre, '') <> 'Finalizada'
+          AND (a.fecha_fin IS NULL OR a.fecha_fin::date >= CURRENT_DATE)
+        ORDER BY a.fecha_inicio DESC, a.id_asignacion DESC
+        LIMIT 1
+        """,
+        (activo_id,),
+    )
+    row = cur.fetchone()
+    if not row:
+        return None
+    return {
+        "id_asignacion": row[0],
+        "fk_id_usuario": row[1],
+        "fk_id_ubicacion": row[2],
+        "ubicacion": row[3],
+    }
+
+
 @create_bp.route("/movimientos", methods=["POST"])
 def create_movimiento():
     data = request.get_json(silent=True)
@@ -157,6 +187,24 @@ def create_movimiento():
                 if tipo_nombre is None:
                     return jsonify({"error": "No se puede registrar el movimiento porque el tipo de movimiento no es válido."}), 400
 
+                active_assignment = get_active_assignment(cur, activo_id)
+                if active_assignment:
+                    if estado_nombre in {"Disponible", "Dado de baja"}:
+                        return jsonify({
+                            "error": (
+                                f"No se puede cambiar el activo a '{estado_nombre}' porque tiene la asignacion "
+                                f"activa #{active_assignment['id_asignacion']}. Finaliza la asignacion primero."
+                            )
+                        }), 409
+                    if fk_usuario is None:
+                        fk_usuario = active_assignment["fk_id_usuario"]
+                    if not ubicacion:
+                        ubicacion = active_assignment["ubicacion"]
+                elif estado_nombre == "En uso" and fk_usuario is None:
+                    return jsonify({
+                        "error": "No se puede marcar un activo como 'En uso' sin empleado o asignacion activa."
+                    }), 400
+
                 fk_ubicacion = get_or_create_fk_id(cur, "ubicaciones", "id_ubicacion", "nombre", ubicacion)
                 has_tipo_text_col = has_column(cur, "movimientos", "tipo_movimiento")
                 has_tipo_fk_col = has_column(cur, "movimientos", "fk_id_tipo_movimiento")
@@ -196,6 +244,16 @@ def create_movimiento():
                 nuevo_id = cur.fetchone()[0]
 
                 update_activo_from_assignment(cur, activo_id, fk_usuario, ubicacion, estado_nombre)
+                if active_assignment:
+                    cur.execute(
+                        """
+                        UPDATE asignaciones
+                        SET fk_id_ubicacion = %s,
+                            fk_id_estado = %s
+                        WHERE id_asignacion = %s
+                        """,
+                        (fk_ubicacion, fk_estado, active_assignment["id_asignacion"]),
+                    )
 
             conn.commit()
 

@@ -56,6 +56,69 @@ def validate_date_format(date_str):
         return None
 
 
+def ensure_assignment_columns(cur):
+    cur.execute(
+        """
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name = 'asignaciones'
+              AND column_name = 'tipo_asignacion'
+        )
+        """
+    )
+    if not cur.fetchone()[0]:
+        cur.execute("ALTER TABLE asignaciones ADD COLUMN tipo_asignacion VARCHAR")
+
+    cur.execute(
+        """
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name = 'asignaciones'
+              AND column_name = 'notas'
+        )
+        """
+    )
+    if not cur.fetchone()[0]:
+        cur.execute("ALTER TABLE asignaciones ADD COLUMN notas TEXT")
+
+
+def get_active_assignment(cur, activo_id):
+    cur.execute(
+        """
+        SELECT
+            a.id_asignacion,
+            a.fk_id_usuario,
+            a.fk_id_ubicacion,
+            ub.nombre AS ubicacion,
+            TRIM(CONCAT_WS(' ', u.nombre, u.apellido_paterno, u.apellido_materno)) AS usuario_nombre,
+            est.nombre AS estado_nombre
+        FROM asignaciones a
+        LEFT JOIN usuarios u ON a.fk_id_usuario = u.id_usuario
+        LEFT JOIN ubicaciones ub ON a.fk_id_ubicacion = ub.id_ubicacion
+        LEFT JOIN estados est ON a.fk_id_estado = est.id_estado
+        WHERE a.fk_id_activo = %s
+          AND COALESCE(est.nombre, '') <> 'Finalizada'
+          AND (a.fecha_fin IS NULL OR a.fecha_fin::date >= CURRENT_DATE)
+        ORDER BY a.fecha_inicio DESC, a.id_asignacion DESC
+        LIMIT 1
+        """,
+        (activo_id,),
+    )
+    row = cur.fetchone()
+    if not row:
+        return None
+    return {
+        "id_asignacion": row[0],
+        "fk_id_usuario": row[1],
+        "fk_id_ubicacion": row[2],
+        "ubicacion": row[3],
+        "usuario_nombre": row[4],
+        "estado_nombre": row[5],
+    }
+
+
 @update_bp.route("/activos/<int:activo_id>", methods=["PUT"])
 def update_activo(activo_id):
     data = request.get_json(silent=True)
@@ -67,7 +130,7 @@ def update_activo(activo_id):
         descripcion = clean_text(data.get("descripcion"), "descripcion")
         categoria = clean_text(data.get("categoria"), "categoria", required=True)
         estado = clean_text(data.get("estado"), "estado", required=True)
-        ubicacion = clean_text(data.get("ubicacion"), "ubicacion")
+        ubicacion = clean_text(data.get("ubicacion"), "ubicacion", required=True)
         asignado_a = clean_text(data.get("asignado_a"), "asignado_a")
         observaciones = clean_text(data.get("observaciones"), "observaciones")
     except ValueError as e:
@@ -92,12 +155,40 @@ def update_activo(activo_id):
         with get_connection() as conn:
             with conn.cursor() as cur:
                 fk_categoria = get_or_create_fk_id(cur, "categorias", "id_categoria", "nombre", categoria)
-                fk_estado = get_or_create_fk_id(cur, "estados", "id_estado", "nombre", estado)
                 fk_ubicacion = get_or_create_fk_id(cur, "ubicaciones", "id_ubicacion", "nombre", ubicacion)
                 fk_usuario = get_user_id(cur, asignado_a)
 
                 if asignado_a and fk_usuario is None:
                     return jsonify({"error": f"Usuario asignado no encontrado: {asignado_a}"}), 400
+
+                if not fk_ubicacion:
+                    return jsonify({"error": "No se pudo registrar la ubicación. Intenta de nuevo."}), 400
+
+                active_assignment = get_active_assignment(cur, activo_id)
+                if active_assignment:
+                    if estado in {"Disponible", "Dado de baja"}:
+                        return jsonify({
+                            "error": (
+                                f"No se puede cambiar el activo a '{estado}' porque tiene la asignacion "
+                                f"activa #{active_assignment['id_asignacion']}. Finaliza la asignacion primero."
+                            )
+                        }), 409
+                    if fk_usuario != active_assignment["fk_id_usuario"]:
+                        return jsonify({
+                            "error": (
+                                "No se puede cambiar el responsable desde activos mientras exista una asignacion activa. "
+                                f"Actualiza o finaliza la asignacion #{active_assignment['id_asignacion']}."
+                            )
+                        }), 409
+                elif asignado_a:
+                    if estado != "En uso":
+                        estado = "En uso"
+                elif estado == "En uso":
+                    return jsonify({
+                        "error": "No se puede marcar un activo como 'En uso' sin una asignacion o responsable."
+                    }), 400
+
+                fk_estado = get_or_create_fk_id(cur, "estados", "id_estado", "nombre", estado)
 
                 cur.execute(
                     """
@@ -159,6 +250,43 @@ def update_activo(activo_id):
 
                 if cur.rowcount == 0:
                     return jsonify({"error": f"Activo con ID {activo_id} no encontrado"}), 404
+
+                if active_assignment:
+                    cur.execute(
+                        """
+                        UPDATE asignaciones
+                        SET fk_id_ubicacion = %s,
+                            fk_id_estado = %s
+                        WHERE id_asignacion = %s
+                        """,
+                        (fk_ubicacion, fk_estado, active_assignment["id_asignacion"]),
+                    )
+                elif fk_usuario is not None:
+                    ensure_assignment_columns(cur)
+                    cur.execute(
+                        """
+                        INSERT INTO asignaciones
+                            (fk_id_activo, fk_id_usuario, fk_id_ubicacion, fk_id_estado, fecha_inicio, tipo_asignacion, notas)
+                        VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP, %s, %s)
+                        """,
+                        (
+                            activo_id,
+                            fk_usuario,
+                            fk_ubicacion,
+                            fk_estado,
+                            "permanente",
+                            "Asignacion creada automaticamente al actualizar el responsable del activo.",
+                        ),
+                    )
+                    create_movement_record(
+                        cur,
+                        activo_id,
+                        "Asignacion",
+                        "En uso",
+                        ubicacion,
+                        fk_usuario,
+                        "Asignacion creada desde la edicion del activo.",
+                    )
 
                 if fk_tipo_movimiento is not None:
                     create_movement_record(
