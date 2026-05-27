@@ -1,7 +1,7 @@
 import json
 import requests
 
-API = 'http://localhost:5000'
+API = 'https://inventariotsj.onrender.com'
 
 # Payload similar a lo que envía el frontend
 payload = {

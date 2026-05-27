@@ -27,7 +27,7 @@
             document.getElementById('resultado').textContent = "Enviando...";
 
             try {
-                const res = await fetch('http://localhost:5000/prestamos', {
+                const res = await fetch('https://inventariotsj.onrender.com/prestamos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)

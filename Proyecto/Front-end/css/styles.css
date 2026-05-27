@@ -689,7 +689,7 @@ input, textarea, select {
     color: var(--color-text);
 }
 
-.nav-item.active {
+.sidebar .nav-item.active {
     background: var(--color-primary);
     color: white;
 }
@@ -1934,19 +1934,19 @@ html {
 }
 
 /* Pestaña activa */
-.tab.active {
+.tabs-container .tab.active {
     background: linear-gradient(135deg, #3f4bf5 0%, #9333ea 100%);
     border-color: transparent;
     color: white;
 }
 
-.tab.active .tab-icon {
+.tabs-container .tab.active .tab-icon {
     background: rgba(255, 255, 255, 0.2);
     color: white;
 }
 
-.tab.active .tab-content h3,
-.tab.active .tab-content span {
+.tabs-container .tab.active .tab-content h3,
+.tabs-container .tab.active .tab-content span {
     color: white;
 }
 
