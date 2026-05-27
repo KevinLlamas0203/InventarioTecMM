@@ -50,7 +50,7 @@ from Prestamos.deletePrestamos import delete_prestamo_bp
 
 # ── App ───────────────────────────────────────────────────────────────────────
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["https://inventariotsj.netlify.app"])
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
