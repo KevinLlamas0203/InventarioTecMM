@@ -72,6 +72,7 @@ function bindAssetForm() {
     if (!form || form.dataset.assetFormBound === 'true') return;
     form.dataset.assetFormBound = 'true';
 
+    document.getElementById('inputIdMode')?.addEventListener('change', updateAssetIdMode);
     form.addEventListener('input', () => clearFormError());
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
@@ -447,7 +448,9 @@ async function abrirEditar(activoId) {
         await loadAssetCatalogs();
         populateSelects();
         setFormValue('activoId', asset.activo_id);
+        setFormValue('inputIdMode', 'manual');
         setFormValue('activoIdDisplay', `#${asset.activo_id}`);
+        updateAssetIdMode('editar');
         setFormValue('inputNombre', asset.nombre);
         setFormValue('inputCategoria', asset.categoria);
         setFormValue('inputEstado', asset.estado);
@@ -526,9 +529,11 @@ function openModal(mode = 'crear') {
         button.textContent = 'Guardar Activo';
         limpiarFormulario();
         setTodayIfEmpty();
+        updateAssetIdMode('crear');
     } else {
         title.textContent = 'Editar Activo';
         button.textContent = 'Actualizar Activo';
+        updateAssetIdMode('editar');
     }
 
     modal.classList.add('active');
@@ -537,6 +542,7 @@ function openModal(mode = 'crear') {
 
 function openAssetConfirmModal(payload) {
     pendingAssetPayload = payload;
+    setText('confirmAssetId', payload.activo_id ? `#${payload.activo_id}` : 'Automatico');
     setText('confirmAssetName', payload.nombre || '-');
     setText('confirmAssetCategory', payload.categoria || '-');
     setText('confirmAssetStatus', payload.estado || '-');
@@ -571,11 +577,13 @@ function closeDetailModal() {
 function limpiarFormulario() {
     document.getElementById('assetForm')?.reset();
     setFormValue('activoId', '');
+    setFormValue('inputIdMode', 'auto');
+    updateAssetIdMode('crear');
     clearFormError();
 }
 
 function obtenerDatosFormulario() {
-    return {
+    const payload = {
         nombre: getValue('inputNombre'),
         descripcion: getValue('inputDescripcion') || null,
         categoria: getValue('inputCategoria'),
@@ -584,9 +592,24 @@ function obtenerDatosFormulario() {
         asignado_a: getValue('inputAsignadoA') || null,
         fecha_alta: getValue('inputFechaAlta') || null
     };
+    const isCreating = !getValue('activoId');
+    if (isCreating && getValue('inputIdMode') === 'manual') {
+        payload.activo_id = getValue('activoIdDisplay');
+    }
+    return payload;
 }
 
 function validateAssetPayload(payload) {
+    if (Object.prototype.hasOwnProperty.call(payload, 'activo_id')) {
+        const manualId = Number(payload.activo_id);
+        if (!Number.isInteger(manualId) || manualId <= 0) {
+            return { ok: false, field: 'activoIdDisplay', message: 'El ID manual debe ser un numero entero positivo.' };
+        }
+        if (activosCache.some(asset => Number(asset.activo_id) === manualId)) {
+            return { ok: false, field: 'activoIdDisplay', message: `Ya existe un activo con el ID #${manualId}.` };
+        }
+        payload.activo_id = manualId;
+    }
     if (!payload.nombre || payload.nombre.length < 3) {
         return { ok: false, field: 'inputNombre', message: 'El nombre debe tener al menos 3 caracteres.' };
     }
@@ -678,6 +701,36 @@ function setButtonLoading(button, isLoading) {
 function setTodayIfEmpty() {
     const date = document.getElementById('inputFechaAlta');
     if (date && !date.value) date.valueAsDate = new Date();
+}
+
+function updateAssetIdMode(mode) {
+    const idHidden = getValue('activoId');
+    const isEditMode = mode === 'editar' || Boolean(idHidden);
+    const select = document.getElementById('inputIdMode');
+    const idInput = document.getElementById('activoIdDisplay');
+    const help = document.getElementById('idHelp');
+    if (!select || !idInput) return;
+
+    if (isEditMode) {
+        select.value = 'manual';
+        select.disabled = true;
+        idInput.disabled = true;
+        idInput.placeholder = 'ID actual';
+        if (help) help.textContent = 'El ID no se puede cambiar al editar un activo.';
+        return;
+    }
+
+    select.disabled = false;
+    const manual = select.value === 'manual';
+    idInput.disabled = !manual;
+    idInput.required = manual;
+    idInput.placeholder = manual ? 'Ej: 1050' : 'Se genera automaticamente';
+    if (!manual) idInput.value = '';
+    if (help) {
+        help.textContent = manual
+            ? 'Escribe un numero entero positivo disponible'
+            : 'Se asigna automaticamente al guardar';
+    }
 }
 
 function refreshRelatedMovimientos() {

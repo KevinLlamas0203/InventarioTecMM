@@ -273,6 +273,7 @@
             </div>
             <div class="modal-body">
                 <div class="confirm-summary">
+                    <div class="confirm-summary-row"><span>ID</span><strong id="confirmAssetId">Automatico</strong></div>
                     <div class="confirm-summary-row"><span>Activo</span><strong id="confirmAssetName">-</strong></div>
                     <div class="confirm-summary-row"><span>Categoria</span><strong id="confirmAssetCategory">-</strong></div>
                     <div class="confirm-summary-row"><span>Estado inicial</span><strong id="confirmAssetStatus">-</strong></div>
@@ -312,8 +313,14 @@
                         </div>
                         <div class="form-group">
                             <label>ID del activo</label>
-                            <input type="text" id="activoIdDisplay" placeholder="Se genera automáticamente" disabled aria-describedby="idHelp">
-                            <small id="idHelp" style="font-size:0.75rem;color:var(--color-text-secondary);display:block;margin-top:0.25rem">Se asigna al guardar</small>
+                            <div class="asset-id-mode">
+                                <select id="inputIdMode" aria-label="Modo de asignacion de ID">
+                                    <option value="auto">Automatico</option>
+                                    <option value="manual">Manual</option>
+                                </select>
+                                <input type="text" id="activoIdDisplay" inputmode="numeric" pattern="[0-9]*" placeholder="Se genera automaticamente" disabled aria-describedby="idHelp">
+                            </div>
+                            <small id="idHelp" style="font-size:0.75rem;color:var(--color-text-secondary);display:block;margin-top:0.25rem">En modo manual escribe un numero entero positivo disponible</small>
                         </div>
                     </div>
                     <div class="form-row">

@@ -570,6 +570,17 @@
   min-height: 44px;
 }
 
+#assetModal .asset-id-mode {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.42fr) minmax(0, 1fr);
+  gap: 0.65rem;
+}
+
+#assetModal .asset-id-mode input:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
 #assetModal input:focus,
 #assetModal select:focus,
 #assetModal textarea:focus,

@@ -23,8 +23,18 @@
     --color-surface-raised: #242424;
     --color-border: #2A2A2A;
     --color-text: #FFFFFF;
-    --color-text-secondary: #A0A0A0;
-    --color-text-muted: #666666;
+    --color-text-secondary: #E5E7EB;
+    --color-text-muted: #CBD5E1;
+    --dashboard-bg: #08111f;
+    --dashboard-surface: #111827;
+    --dashboard-surface-raised: #1f2937;
+    --dashboard-border: #374151;
+    --dashboard-chart-1: #60A5FA;
+    --dashboard-chart-2: #34D399;
+    --dashboard-chart-3: #FBBF24;
+    --dashboard-chart-4: #A78BFA;
+    --dashboard-chart-5: #F472B6;
+    --dashboard-chart-6: #22D3EE;
     
     /* Spacing */
     --spacing-xs: 0.25rem;
@@ -66,6 +76,16 @@
     --color-text: #111827;
     --color-text-secondary: #4B5563;
     --color-text-muted: #6B7280;
+    --dashboard-bg: #E8EEF6;
+    --dashboard-surface: #FFFFFF;
+    --dashboard-surface-raised: #F8FAFC;
+    --dashboard-border: #B8C4D2;
+    --dashboard-chart-1: #1E40AF;
+    --dashboard-chart-2: #047857;
+    --dashboard-chart-3: #B45309;
+    --dashboard-chart-4: #7C3AED;
+    --dashboard-chart-5: #BE185D;
+    --dashboard-chart-6: #0E7490;
     
     /* Formal institutional accents */
     --color-primary: #1E3A5F;
@@ -1739,6 +1759,12 @@ input, textarea, select {
     cursor: not-allowed;
 }
 
+.asset-form .asset-id-mode {
+    display: grid;
+    grid-template-columns: minmax(120px, 0.42fr) minmax(0, 1fr);
+    gap: var(--spacing-sm);
+}
+
 .asset-form textarea {
     resize: vertical;
     font-family: inherit;
@@ -2061,7 +2087,7 @@ iframe {
 
 .section-kicker {
     display: block;
-    color: var(--color-text-muted);
+    color: var(--color-text);
     font-size: 0.74rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -2073,6 +2099,20 @@ iframe {
     font-size: 1.9rem;
     letter-spacing: 0;
     margin-bottom: 0.35rem;
+}
+
+.dashboard-hero .page-subtitle,
+.hero-meta span,
+.dashboard-status span,
+.dashboard-kpis .stat-label,
+.dashboard-kpis .stat-change,
+.dashboard-card .card-title,
+.dashboard-card .activity-title,
+.dashboard-card .activity-description,
+.dashboard-card .activity-time,
+.dashboard-card .legend-label,
+.dashboard-card .action-btn span {
+    color: var(--color-text);
 }
 
 .hero-copy {
