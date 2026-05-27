@@ -50,7 +50,7 @@ from Prestamos.deletePrestamos import delete_prestamo_bp
 
 # ── App ───────────────────────────────────────────────────────────────────────
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=["https://inventariotsj.netlify.app"])
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -138,4 +138,5 @@ def login():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)

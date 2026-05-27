@@ -1,6 +1,6 @@
 // ISC Inventory System - Main JavaScript
 
-window.API_URL = window.API_URL || "http://127.0.0.1:5000";
+window.API_URL = window.API_URL || "https://inventariotsj.onrender.com";
 
 function initGlobalApp() {
     if (window.__iscAppInitialized) return;
@@ -82,7 +82,7 @@ function initGlobalApp() {
 // Actualiza el badge de consumibles en el sidebar desde cualquier página
 async function updateConsumiblesBadge() {
     try {
-        const res = await fetch('http://localhost:5000/consumibles');
+        const res = await fetch('https://inventariotsj.onrender.com/consumibles');
         const data = await res.json();
         const bajo = data.filter(c => c.stock_actual <= c.stock_minimo * 1.5).length;
         
