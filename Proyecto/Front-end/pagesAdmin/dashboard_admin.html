@@ -48,14 +48,14 @@
         </div>
 
         <div class="nav-section">
-            <span class="nav-section-title">GestiÃ³n</span>
+            <span class="nav-section-title">Gestión</span>
             <a href="ModuloActivo.html" class="nav-item" data-nivel="3">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
                     <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 <span>Activos</span>
-                <span class="nav-badge"><span id="badge-activos">â€“</span></span>
+                <span class="nav-badge"><span id="badge-activos">–</span></span>
             </a>
             <a href="consumibles.html" class="nav-item" data-nivel="2,3">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -64,7 +64,7 @@
                     <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/>
                 </svg>
                 <span>Consumibles</span>
-                <span class="nav-badge warning" id="badge-bajo">â€“</span>
+                <span class="nav-badge warning" id="badge-bajo">–</span>
             </a>
             <a href="prestamos.html" class="nav-item" data-nivel="1,2,3">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -73,7 +73,7 @@
                     <path d="M7 21l-4-4 4-4"/>
                     <path d="M3 17h12a4 4 0 0 0 4-4v-1"/>
                 </svg>
-                <span>PrÃ©stamos</span>
+                <span>Préstamos</span>
             </a>
         </div>
 
@@ -98,7 +98,7 @@
         </div>
 
         <div class="nav-section">
-            <span class="nav-section-title">ConfiguraciÃ³n</span>
+            <span class="nav-section-title">Configuración</span>
             <a href="usuarios.html" class="nav-item" data-nivel="3">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/>
@@ -121,11 +121,11 @@
                 <div class="user-profile">
                     <div class="user-avatar" id="sidebar-avatar">--</div>
                     <div class="user-info">
-                        <span class="user-name" id="sidebar-nombre">Cargandoâ€¦</span>
+                        <span class="user-name" id="sidebar-nombre">Cargando…</span>
                         <span class="user-role" id="sidebar-rol">--</span>
                     </div>
                 </div>
-                <button class="btn-icon logout-btn" aria-label="Cerrar sesiÃ³n">
+                <button class="btn-icon logout-btn" aria-label="Cerrar sesión">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-width="2" stroke-linecap="round"/>
                     </svg>
@@ -337,6 +337,194 @@
                     </article>
                 </div>
             </section>
+            <header class="content-header">
+                <div class="header-left">
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Resumen general del inventario ISC</p>
+                </div>
+                <div class="header-right">
+                    <button class="btn-icon" aria-label="Notificaciones">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span class="notification-dot"></span>
+                    </button>
+                    <button class="btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span>Exportar</span>
+                    </button>
+                    <button class="btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span>Nuevo Activo</span>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card primary">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
+                            <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Total Activos</span>
+                        <span class="stat-value" id="stat-activos">0</span>
+                        <span class="stat-change positive" id="stat-activos-change">Cargando...</span>
+                    </div>
+                    <div class="stat-chart">
+                        <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+                            <path d="M0,35 L20,28 L40,32 L60,20 L80,25 L100,15" fill="none" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="stat-card success">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Consumibles</span>
+                        <span class="stat-value" id="stat-consumibles">0</span>
+                        <span class="stat-change positive" id="stat-consumibles-change">Usa el módulo para ver detalles</span>
+                    </div>
+                    <div class="stat-chart">
+                        <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+                            <path d="M0,30 L20,22 L40,25 L60,18 L80,20 L100,12" fill="none" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="stat-card warning">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/>
+                            <line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Stock Bajo</span>
+                        <span class="stat-value" id="stat-stock-bajo">0</span>
+                        <span class="stat-change negative" id="stat-stock-bajo-text">Requieren reposición</span>
+                    </div>
+                    <div class="stat-chart">
+                        <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+                            <path d="M0,25 L20,20 L40,22 L60,15 L80,18 L100,10" fill="none" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="stat-card info">
+                    <div class="stat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke-width="2"/>
+                            <circle cx="9" cy="7" r="4" stroke-width="2"/>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-label">Asignaciones</span>
+                        <span class="stat-value" id="stat-asignaciones">0</span>
+                        <span class="stat-change" id="stat-asignaciones-change">Cargando...</span>
+                    </div>
+                    <div class="stat-chart">
+                        <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+                            <path d="M0,20 L20,25 L40,18 L60,22 L80,15 L100,20" fill="none" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Grid -->
+            <div class="content-grid">
+                <!-- Recent Activity -->
+                <div class="card recent-activity">
+                    <div class="card-header">
+                        <h3 class="card-title">Actividad Reciente</h3>
+                        <button class="btn-text">Ver todas</button>
+                    </div>
+                    <div class="activity-list" id="activityList">
+                        <div class="activity-item activity-loading">
+                            <div class="activity-content">
+                                <span>Cargando actividad reciente...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Inventory Chart -->
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3 class="card-title">Distribución de Activos</h3>
+                        <select class="select-field">
+                            <option>Último mes</option>
+                            <option>Último trimestre</option>
+                            <option>Último año</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                    <div class="chart-legend" id="distributionLegend"></div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions & Alerts -->
+            <div class="bottom-grid">
+                <div class="card quick-actions">
+                    <h3 class="card-title">Acciones Rápidas</h3>
+                    <div class="actions-grid">
+                        <button class="action-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M12 5v14M5 12h14" stroke-width="2"/>
+                            </svg>
+                            <span>Registrar Activo</span>
+                        </button>
+                        <button class="action-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
+                            </svg>
+                            <span>Añadir Consumible</span>
+                        </button>
+                        <button class="action-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="9" cy="7" r="4" stroke-width="2"/>
+                                <path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2" stroke-width="2"/>
+                            </svg>
+                            <span>Nueva Asignación</span>
+                        </button>
+                        <button class="action-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/>
+                                <polyline points="14 2 14 8 20 8" stroke-width="2"/>
+                            </svg>
+                            <span>Generar Reporte</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card alerts-card">
+                    <h3 class="card-title">Alertas Importantes</h3>
+                    <div class="alerts-list" id="alertsList">
+                        <div class="alert-item info">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                                <path d="M12 16v-4M12 8h.01" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <span>Cargando alertas importantes...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
