@@ -1,5 +1,5 @@
 function getApiUrl() {
-    return window.API_URL || "http://127.0.0.1:5000";
+    return window.API_URL || "https://inventariotsj.onrender.com";
 }
 
 const PER_PAGE = 8;
