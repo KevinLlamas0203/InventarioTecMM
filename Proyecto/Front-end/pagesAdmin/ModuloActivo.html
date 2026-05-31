@@ -31,6 +31,212 @@
             --active-shadow: 0 10px 30px rgba(100, 100, 255, 0.35);
         }
 
+        /* ── Nombre + specs compacto ── */
+.asset-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.asset-name {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.92);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.asset-specs {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.35);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+}
+
+/* ── Estado como pill, no select ── */
+.status-select {
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: none;   /* ← quita uppercase */
+    cursor: pointer;
+    white-space: nowrap;
+    width: fit-content;
+    max-width: 138px;
+}
+.status-select.status-available {
+    background: rgba(81,207,102,0.15);
+    color: #51CF66;
+    border: 1px solid rgba(81,207,102,0.3);
+}
+.status-select.status-inuse {
+    background: rgba(51,154,240,0.15);
+    color: #339AF0;
+    border: 1px solid rgba(51,154,240,0.3);
+}
+.status-select.status-maintenance {
+    background: rgba(255,230,109,0.12);
+    color: #d4b800;
+    border: 1px solid rgba(255,230,109,0.3);
+}
+.status-select.status-retired {
+    background: rgba(255,107,107,0.12);
+    color: #FF6B6B;
+    border: 1px solid rgba(255,107,107,0.3);
+}
+.status-select option {
+    background: #1a1a1a;
+    color: #f0f0f0;
+    font-size: 0.85rem;
+}
+
+/* ── Filas más compactas ── */
+.data-table td {
+    padding: 0.65rem 1rem;
+    max-height: 56px;
+}
+
+/* ── Botón eliminar visible ── */
+.btn-action.danger {
+    color: rgba(255,107,107,0.6);
+}
+.btn-action.danger:hover {
+    background: rgba(255,107,107,0.15);
+    border-color: rgba(255,107,107,0.4);
+    color: #FF6B6B;
+}
+
+        /* ── Tabla activos: mismo estilo que consumibles ── */
+.table-card {
+    background: #1a1a1a;
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;   /* evita que las filas se ensanchen */
+}
+
+/* Anchos fijos por columna */
+.data-table th:nth-child(1) { width: 44px; }    /* checkbox */
+.data-table th:nth-child(2) { width: 60px; }    /* ID */
+.data-table th:nth-child(3) { width: 16%; }     /* Nombre */
+.data-table th:nth-child(4) { width: 110px; }   /* Categoría */
+.data-table th:nth-child(5) { width: 150px; }   /* Estado — más ancho */
+.data-table th:nth-child(6) { width: 14%; }     /* Ubicación */
+.data-table th:nth-child(7) { width: 12%; }     /* Asignado a */
+.data-table th:nth-child(8) { width: 100px; }   /* Fecha alta */
+.data-table th:nth-child(9) { width: 100px; }   /* Acciones */
+
+.data-table thead th {
+    padding: 0.85rem 1rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.data-table tbody tr {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    transition: background 0.15s ease;
+}
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.data-table tbody tr:hover {
+    background: rgba(255,255,255,0.04);
+}
+.data-table td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.65);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ID badge igual a consumibles */
+.data-table td:nth-child(2) {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #7c8bff;
+}
+
+/* Nombre en blanco */
+.data-table td:nth-child(3) {
+    color: rgba(255,255,255,0.9);
+    font-weight: 500;
+}
+
+/* Botones de acción */
+.action-buttons {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+.btn-action {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: transparent;
+    color: rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+.btn-action svg {
+    width: 14px;
+    height: 14px;
+}
+.btn-action:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.18);
+    color: #fff;
+}
+.btn-action.danger:hover {
+    background: rgba(255,107,107,0.15);
+    border-color: rgba(255,107,107,0.4);
+    color: #FF6B6B;
+}
+
+/* Table footer */
+.table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.02);
+}
+.table-info {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.35);
+}
+.table-info strong {
+    color: rgba(255,255,255,0.75);
+    font-weight: 600;
+}
         .tabs-panel {
             background: var(--panel-bg);
             border: 1px solid var(--panel-border);
@@ -520,7 +726,36 @@
     <script src="../js/app.js"></script>
     <script src="../js/theme-toggle.js"></script>
     <script src="../js/control-nivel.js"></script>
-
+<!-- Modal: Confirmar eliminación de activo -->
+<div class="modal" id="confirmModal">
+    <div class="modal-overlay" id="confirmModalOverlay"></div>
+    <div class="modal-content modal-small">
+        <div class="modal-header">
+            <h2>Confirmar eliminación</h2>
+            <button class="modal-close" onclick="document.getElementById('confirmModal').classList.remove('active')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="confirm-modal-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    <path d="M10 11v6M14 11v6"/>
+                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                </svg>
+            </div>
+            <p class="confirm-modal-title">¿Eliminar activo?</p>
+            <p class="confirm-modal-desc">Vas a eliminar <strong id="confirm-nombre"></strong>. Esta acción no se puede deshacer.</p>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="document.getElementById('confirmModal').classList.remove('active')">Cancelar</button>
+                <button class="btn-danger" onclick="confirmarEliminarActivo()">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 
 </html>
