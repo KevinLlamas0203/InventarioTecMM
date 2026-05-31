@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Sistema de Inventario</title>    <link rel="stylesheet" href="../css/styles.css">
+    <title>Dashboard - Sistema de Inventario</title>
+    <link rel="stylesheet" href="../css/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Archivo:wght@300;600;900&display=swap" rel="stylesheet">
@@ -12,423 +13,562 @@
     <link rel="icon" type="image/png" sizes="16x16" href="../images/favicon_io/favicon-16x16.png">
     <link rel="manifest" href="../images/favicon_io/site.webmanifest">
     <link rel="shortcut icon" href="../images/favicon_io/favicon.ico">
+
+    <style>
+/* ── Hero header ── */
+.dashboard-hero {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+}
+.hero-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.section-kicker {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.4);
+}
+.hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.4);
+    margin-top: 0.25rem;
+}
+.hero-meta span:last-child {
+    color: rgba(81,207,102,0.8);
+}
+.hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-shrink: 0;
+    padding-top: 0.25rem;
+}
+
+/* ── Status bar ── */
+.dashboard-status {
+    display: flex;
+    gap: 0;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+.dashboard-status article {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.85rem 1.25rem;
+    border-right: 1px solid rgba(255,255,255,0.06);
+}
+.dashboard-status article:last-child {
+    border-right: none;
+}
+.dashboard-status article span {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.35);
+    font-weight: 500;
+}
+.dashboard-status article strong {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+}
+
+/* ── KPI stat cards ── */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.stat-card {
+    background: #1a1a1a;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 14px 14px 0 0;
+}
+.stat-card.primary::before { background: #3f4bf5; }
+.stat-card.success::before { background: #51CF66; }
+.stat-card.warning::before { background: #FFE66D; }
+.stat-card.info::before    { background: #339AF0; }
+
+.stat-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.stat-icon svg {
+    width: 22px;
+    height: 22px;
+}
+.stat-card.primary .stat-icon { background: rgba(63,75,245,0.15);  color: #7c8bff; }
+.stat-card.success .stat-icon { background: rgba(81,207,102,0.15); color: #51CF66; }
+.stat-card.warning .stat-icon { background: rgba(255,230,109,0.15);color: #FFE66D; }
+.stat-card.info    .stat-icon { background: rgba(51,154,240,0.15); color: #339AF0; }
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+.stat-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: rgba(255,255,255,0.4);
+}
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+}
+.stat-change {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.45);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.stat-card.primary .stat-change { color: #7c8bff; }
+.stat-card.success .stat-change { color: #51CF66; }
+.stat-card.warning .stat-change { color: #d4b800; }
+.stat-card.info    .stat-change { color: #339AF0; }
+
+/* ── Dashboard grid ── */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+.dashboard-card {
+    background: #1a1a1a;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+}
+.card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    gap: 1rem;
+}
+.card-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+    line-height: 1.3;
+}
+.card-header .section-kicker {
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+/* ── Chart ── */
+.chart-container {
+    height: 200px;
+    position: relative;
+    margin-bottom: 1rem;
+}
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.6);
+}
+.legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.legend-value {
+    color: rgba(255,255,255,0.85);
+    font-weight: 600;
+}
+
+/* ── Alertas ── */
+.alerts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+.alert-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.9rem;
+    border-radius: 10px;
+    font-size: 0.83rem;
+}
+.alert-item svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+.alert-item.warning { background: rgba(255,230,109,0.08); color: #d4b800; border: 1px solid rgba(255,230,109,0.2); }
+.alert-item.info    { background: rgba(51,154,240,0.08);  color: #339AF0; border: 1px solid rgba(51,154,240,0.2); }
+.alert-item.success { background: rgba(81,207,102,0.08);  color: #51CF66; border: 1px solid rgba(81,207,102,0.2); }
+
+/* ── Actividad reciente ── */
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.5);
+}
+.activity-icon svg { width: 14px; height: 14px; }
+.activity-icon.assign  { background: rgba(51,154,240,0.15);  color: #339AF0; }
+.activity-icon.warning { background: rgba(255,107,107,0.15); color: #FF6B6B; }
+.activity-icon.update  { background: rgba(78,205,196,0.15);  color: #4ECDC4; }
+.activity-icon.add     { background: rgba(81,207,102,0.15);  color: #51CF66; }
+.activity-content { display: flex; flex-direction: column; gap: 0.15rem; }
+.activity-title { font-size: 0.85rem; font-weight: 500; color: rgba(255,255,255,0.85); margin: 0; }
+.activity-description { font-size: 0.78rem; color: rgba(255,255,255,0.4); margin: 0; }
+.activity-time { font-size: 0.72rem; color: rgba(255,255,255,0.3); }
+
+/* ── Acciones rápidas ── */
+.actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+}
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-align: center;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.action-btn svg { width: 20px; height: 20px; }
+.action-btn:hover {
+    background: rgba(63,75,245,0.12);
+    border-color: rgba(63,75,245,0.35);
+    color: #fff;
+}
+
+/* ── btn-text ── */
+.btn-text {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.35);
+    font-size: 0.78rem;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s;
+    white-space: nowrap;
+}
+.btn-text:hover { color: rgba(255,255,255,0.8); }
+
+/* ── select-field ── */
+.select-field {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.78rem;
+    padding: 0.35rem 0.65rem;
+    cursor: pointer;
+}
+</style>
 </head>
 <body class="dashboard-page">
-    <div class="dashboard-layout">
-                <!-- SIDEBAR  -->
-<aside class="sidebar">
-    <div class="sidebar-header">
-        <div class="sidebar-brand">
-            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="5" y="5" width="30" height="30" rx="6" fill="currentColor" opacity="0.2"/>
-                <path d="M13 16h14M13 20h14M13 24h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                <circle cx="28" cy="24" r="2" fill="currentColor"/>
-            </svg>
-            <span class="brand-name">Sistema de Inventario</span>
-        </div>
-        <button class="sidebar-toggle" aria-label="Toggle sidebar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M3 12h18M3 6h18M3 18h18" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-        </button>
-    </div>
+<div class="dashboard-layout">
 
-    <nav class="sidebar-nav">
-        <div class="nav-section">
-            <span class="nav-section-title">Principal</span>
-            <a href="dashboard_admin.html" class="nav-item active" data-nivel="1,2,3">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <rect x="3" y="3" width="7" height="7" stroke-width="2" rx="1"/>
-                    <rect x="14" y="3" width="7" height="7" stroke-width="2" rx="1"/>
-                    <rect x="14" y="14" width="7" height="7" stroke-width="2" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" stroke-width="2" rx="1"/>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="5" y="5" width="30" height="30" rx="6" fill="currentColor" opacity="0.2"/>
+                    <path d="M13 16h14M13 20h14M13 24h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="28" cy="24" r="2" fill="currentColor"/>
                 </svg>
-                <span>Dashboard</span>
-            </a>
-        </div>
-
-        <div class="nav-section">
-            <span class="nav-section-title">Gestión</span>
-            <a href="ModuloActivo.html" class="nav-item" data-nivel="3">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
-                    <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <span>Activos</span>
-                <span class="nav-badge"><span id="badge-activos">–</span></span>
-            </a>
-            <a href="consumibles.html" class="nav-item" data-nivel="2,3">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2"/>
-                    <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/>
-                </svg>
-                <span>Consumibles</span>
-                <span class="nav-badge warning" id="badge-bajo">–</span>
-            </a>
-            <a href="prestamos.html" class="nav-item" data-nivel="1,2,3">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 3l4 4-4 4"/>
-                    <path d="M21 7H9a4 4 0 0 0-4 4v1"/>
-                    <path d="M7 21l-4-4 4-4"/>
-                    <path d="M3 17h12a4 4 0 0 0 4-4v-1"/>
-                </svg>
-                <span>Préstamos</span>
-            </a>
-        </div>
-
-        <div class="nav-section">
-            <span class="nav-section-title">Reportes</span>
-            <a href="reportes.html" class="nav-item" data-nivel="2,3">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/>
-                    <polyline points="14 2 14 8 20 8" stroke-width="2"/>
-                    <line x1="16" y1="13" x2="8" y2="13" stroke-width="2"/>
-                    <line x1="16" y1="17" x2="8" y2="17" stroke-width="2"/>
-                </svg>
-                <span>Reportes</span>
-            </a>
-            <a href="auditoria.html" class="nav-item" data-nivel="3">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
-                    <polyline points="12 6 12 12 16 14" stroke-width="2"/>
-                </svg>
-                <span>Historial</span>
-            </a>
-        </div>
-
-        <div class="nav-section">
-            <span class="nav-section-title">Configuración</span>
-            <a href="usuarios.html" class="nav-item" data-nivel="3">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/>
-                    <circle cx="9" cy="7" r="4" stroke-width="2"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/>
-                </svg>
-                <span>Usuarios</span>
-            </a>
-            <a href="ajustes.html" class="nav-item" data-nivel="1,2,3">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                </svg>
-                <span>Ajustes</span>
-            </a>
-        </div>
-    </nav>
-            
-            <div class="sidebar-footer">
-                <div class="user-profile">
-                    <div class="user-avatar" id="sidebar-avatar">--</div>
-                    <div class="user-info">
-                        <span class="user-name" id="sidebar-nombre">Cargando…</span>
-                        <span class="user-role" id="sidebar-rol">--</span>
-                    </div>
-                </div>
-                <button class="btn-icon logout-btn" aria-label="Cerrar sesión">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </button>
+                <span class="brand-name">Sistema de Inventario</span>
             </div>
-        </aside>
-        
-        <!-- Main Content -->
-        <main class="main-content dashboard-main">
-            <section class="dashboard-redesign" aria-label="Panel principal de inventario">
-                <header class="dashboard-hero">
-                    <div class="hero-copy">
-                        <span class="section-kicker">Panel institucional</span>
-                        <h1 class="page-title">Control general de inventario</h1>
-                        <p class="page-subtitle">Seguimiento ejecutivo de activos, resguardos, consumibles y prestamos operativos.</p>
-                        <div class="hero-meta">
-                            <span id="dashboard-date">--</span>
-                            <span id="dashboard-health">Sincronizando informacion</span>
-                        </div>
+            <button class="sidebar-toggle" aria-label="Toggle sidebar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M3 12h18M3 6h18M3 18h18" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <span class="nav-section-title">Principal</span>
+                <a href="dashboard_admin.html" class="nav-item active" data-nivel="1,2,3">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="3" width="7" height="7" stroke-width="2" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" stroke-width="2" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" stroke-width="2" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" stroke-width="2" rx="1"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <span class="nav-section-title">Gestión</span>
+                <a href="ModuloActivo.html" class="nav-item" data-nivel="3">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
+                        <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>Activos</span>
+                    <span class="nav-badge"><span id="badge-activos">–</span></span>
+                </a>
+                <a href="consumibles.html" class="nav-item" data-nivel="2,3">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="2"/>
+                        <line x1="12" y1="22.08" x2="12" y2="12" stroke-width="2"/>
+                    </svg>
+                    <span>Consumibles</span>
+                    <span class="nav-badge warning" id="badge-bajo">–</span>
+                </a>
+                <a href="prestamos.html" class="nav-item" data-nivel="1,2,3">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 3l4 4-4 4"/>
+                        <path d="M21 7H9a4 4 0 0 0-4 4v1"/>
+                        <path d="M7 21l-4-4 4-4"/>
+                        <path d="M3 17h12a4 4 0 0 0 4-4v-1"/>
+                    </svg>
+                    <span>Préstamos</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <span class="nav-section-title">Reportes</span>
+                <a href="reportes.html" class="nav-item" data-nivel="2,3">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/>
+                        <polyline points="14 2 14 8 20 8" stroke-width="2"/>
+                        <line x1="16" y1="13" x2="8" y2="13" stroke-width="2"/>
+                        <line x1="16" y1="17" x2="8" y2="17" stroke-width="2"/>
+                    </svg>
+                    <span>Reportes</span>
+                </a>
+                <a href="auditoria.html" class="nav-item" data-nivel="3">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                        <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+                    </svg>
+                    <span>Historial</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <span class="nav-section-title">Configuración</span>
+                <a href="usuarios.html" class="nav-item" data-nivel="3">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/>
+                        <circle cx="9" cy="7" r="4" stroke-width="2"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/>
+                    </svg>
+                    <span>Usuarios</span>
+                </a>
+                <a href="ajustes.html" class="nav-item" data-nivel="1,2,3">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <span>Ajustes</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar" id="sidebar-avatar">--</div>
+                <div class="user-info">
+                    <span class="user-name" id="sidebar-nombre">Cargando…</span>
+                    <span class="user-role" id="sidebar-rol">--</span>
+                </div>
+            </div>
+            <button class="btn-icon logout-btn" aria-label="Cerrar sesión">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content dashboard-main">
+        <section class="dashboard-redesign" aria-label="Panel principal de inventario">
+
+            <!-- Header -->
+            <header class="dashboard-hero">
+                <div class="hero-copy">
+                    <span class="section-kicker">Panel institucional</span>
+                    <h1 class="page-title">Control general de inventario</h1>
+                    <p class="page-subtitle">Seguimiento ejecutivo de activos, resguardos, consumibles y préstamos operativos.</p>
+                    <div class="hero-meta">
+                        <span id="dashboard-date">--</span>
+                        <span id="dashboard-health">Sincronizando información</span>
                     </div>
-                    <div class="hero-actions">
-                        <button class="btn-secondary" id="btnRefreshDashboard" type="button">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M21 12a9 9 0 1 1-2.64-6.36" stroke-width="2" stroke-linecap="round"/>
-                                <path d="M21 3v6h-6" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                            <span>Actualizar</span>
-                        </button>
-                        <button class="btn-secondary" id="btnExportDashboard" type="button">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                            <span>Exportar</span>
-                        </button>
-                        <button class="btn-primary" id="btnDashboardNewAsset" type="button">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                            <span>Nuevo activo</span>
-                        </button>
-                    </div>
-                </header>
-
-                <div class="dashboard-status" aria-label="Estado operativo">
-                    <article>
-                        <span>Activos disponibles</span>
-                        <strong id="stat-disponibles">0</strong>
-                    </article>
-                    <article>
-                        <span>En uso</span>
-                        <strong id="stat-en-uso">0</strong>
-                    </article>
-                    <article>
-                        <span>Mantenimiento</span>
-                        <strong id="stat-mantenimiento">0</strong>
-                    </article>
-                    <article>
-                        <span>Prestamos pendientes</span>
-                        <strong id="stat-prestamos-pendientes">0</strong>
-                    </article>
                 </div>
-
-                <div class="stats-grid dashboard-kpis">
-                    <article class="stat-card primary">
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
-                                <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-label">Total activos</span>
-                            <span class="stat-value" id="stat-activos">0</span>
-                            <span class="stat-change" id="stat-activos-change">Cargando...</span>
-                        </div>
-                    </article>
-                    <article class="stat-card success">
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
-                            </svg>
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-label">Consumibles</span>
-                            <span class="stat-value" id="stat-consumibles">0</span>
-                            <span class="stat-change" id="stat-consumibles-change">Inventario cargando</span>
-                        </div>
-                    </article>
-                    <article class="stat-card warning">
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/>
-                                <line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round"/>
-                                <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-label">Stock bajo</span>
-                            <span class="stat-value" id="stat-stock-bajo">0</span>
-                            <span class="stat-change" id="stat-stock-bajo-text">Requieren revision</span>
-                        </div>
-                    </article>
-                    <article class="stat-card info">
-                        <div class="stat-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke-width="2"/>
-                                <circle cx="9" cy="7" r="4" stroke-width="2"/>
-                                <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/>
-                            </svg>
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-label">Asignaciones</span>
-                            <span class="stat-value" id="stat-asignaciones">0</span>
-                            <span class="stat-change" id="stat-asignaciones-change">Cargando...</span>
-                        </div>
-                    </article>
-                </div>
-
-                <div class="dashboard-grid">
-                    <article class="card chart-card dashboard-card">
-                        <div class="card-header">
-                            <div>
-                                <span class="section-kicker">Inventario</span>
-                                <h3 class="card-title">Distribucion de activos</h3>
-                            </div>
-                            <select class="select-field" id="distributionMode">
-                                <option value="categoria">Por categoria</option>
-                                <option value="estado">Por estado</option>
-                                <option value="ubicacion">Por ubicacion</option>
-                            </select>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="distributionChart"></canvas>
-                        </div>
-                        <div class="chart-legend" id="distributionLegend"></div>
-                    </article>
-
-                    <article class="card dashboard-card alerts-card">
-                        <div class="card-header">
-                            <div>
-                                <span class="section-kicker">Riesgos</span>
-                                <h3 class="card-title">Alertas importantes</h3>
-                            </div>
-                            <button class="btn-text" id="btnViewAlerts" type="button">Revisar</button>
-                        </div>
-                        <div class="alerts-list" id="alertsList">
-                            <div class="alert-item info">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
-                                    <path d="M12 16v-4M12 8h.01" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                                <span>Cargando alertas importantes...</span>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="card dashboard-card recent-activity">
-                        <div class="card-header">
-                            <div>
-                                <span class="section-kicker">Bitacora</span>
-                                <h3 class="card-title">Actividad reciente</h3>
-                            </div>
-                            <button class="btn-text" id="btnViewAllActivity" type="button">Ver historial</button>
-                        </div>
-                        <div class="activity-list" id="activityList">
-                            <div class="activity-item activity-loading">
-                                <div class="activity-content">
-                                    <span>Cargando actividad reciente...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="card dashboard-card quick-actions">
-                        <div class="card-header">
-                            <div>
-                                <span class="section-kicker">Operacion</span>
-                                <h3 class="card-title">Acciones rapidas</h3>
-                            </div>
-                        </div>
-                        <div class="actions-grid">
-                            <button class="action-btn" data-href="ModuloActivo.html">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M12 5v14M5 12h14" stroke-width="2"/>
-                                </svg>
-                                <span>Registrar activo</span>
-                            </button>
-                            <button class="action-btn" data-href="consumibles.html">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
-                                </svg>
-                                <span>Consumibles</span>
-                            </button>
-                            <button class="action-btn" data-href="ModuloActivo.html#resguardos">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <circle cx="9" cy="7" r="4" stroke-width="2"/>
-                                    <path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2" stroke-width="2"/>
-                                </svg>
-                                <span>Asignaciones</span>
-                            </button>
-                            <button class="action-btn" data-href="reportes.html">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/>
-                                    <polyline points="14 2 14 8 20 8" stroke-width="2"/>
-                                </svg>
-                                <span>Reportes</span>
-                            </button>
-                        </div>
-                    </article>
-                </div>
-            </section>
-            <header class="content-header">
-                <div class="header-left">
-                    <h1 class="page-title">Dashboard</h1>
-                    <p class="page-subtitle">Resumen general del inventario ISC</p>
-                </div>
-                <div class="header-right">
-                    <button class="btn-icon" aria-label="Notificaciones">
+                <div class="hero-actions">
+                    <button class="btn-secondary" id="btnRefreshDashboard" type="button">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M21 12a9 9 0 1 1-2.64-6.36" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M21 3v6h-6" stroke-width="2" stroke-linecap="round"/>
                         </svg>
-                        <span class="notification-dot"></span>
+                        <span>Actualizar</span>
                     </button>
-                    <button class="btn-secondary">
+                    <button class="btn-secondary" id="btnExportDashboard" type="button">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke-width="2" stroke-linecap="round"/>
                         </svg>
                         <span>Exportar</span>
                     </button>
-                    <button class="btn-primary">
+                    <button class="btn-primary" id="btnDashboardNewAsset" type="button">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"/>
                         </svg>
-                        <span>Nuevo Activo</span>
+                        <span>Nuevo activo</span>
                     </button>
                 </div>
             </header>
-            
-            <!-- Stats Cards -->
-            <div class="stats-grid">
-                <div class="stat-card primary">
+
+            <!-- Status bar -->
+            <div class="dashboard-status" aria-label="Estado operativo">
+                <article>
+                    <span>Activos disponibles</span>
+                    <strong id="stat-disponibles">0</strong>
+                </article>
+                <article>
+                    <span>En uso</span>
+                    <strong id="stat-en-uso">0</strong>
+                </article>
+                <article>
+                    <span>Mantenimiento</span>
+                    <strong id="stat-mantenimiento">0</strong>
+                </article>
+                <article>
+                    <span>Préstamos pendientes</span>
+                    <strong id="stat-prestamos-pendientes">0</strong>
+                </article>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="stats-grid dashboard-kpis">
+                <article class="stat-card primary">
                     <div class="stat-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
-                            <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
+                            <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="1.8"/>
+                            <path d="M8 21h8M12 17v4" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                     </div>
                     <div class="stat-content">
-                        <span class="stat-label">Total Activos</span>
+                        <span class="stat-label">Total activos</span>
                         <span class="stat-value" id="stat-activos">0</span>
-                        <span class="stat-change positive" id="stat-activos-change">Cargando...</span>
+                        <span class="stat-change" id="stat-activos-change">Cargando...</span>
                     </div>
-                    <div class="stat-chart">
-                        <svg viewBox="0 0 100 40" preserveAspectRatio="none">
-                            <path d="M0,35 L20,28 L40,32 L60,20 L80,25 L100,15" fill="none" stroke="currentColor" stroke-width="2"/>
-                        </svg>
-                    </div>
-                </div>
-                
-                <div class="stat-card success">
+                </article>
+                <article class="stat-card success">
                     <div class="stat-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="1.8"/>
                         </svg>
                     </div>
                     <div class="stat-content">
                         <span class="stat-label">Consumibles</span>
                         <span class="stat-value" id="stat-consumibles">0</span>
-                        <span class="stat-change positive" id="stat-consumibles-change">Usa el módulo para ver detalles</span>
+                        <span class="stat-change" id="stat-consumibles-change">Inventario cargando</span>
                     </div>
-                    <div class="stat-chart">
-                        <svg viewBox="0 0 100 40" preserveAspectRatio="none">
-                            <path d="M0,30 L20,22 L40,25 L60,18 L80,20 L100,12" fill="none" stroke="currentColor" stroke-width="2"/>
-                        </svg>
-                    </div>
-                </div>
-                
-                <div class="stat-card warning">
+                </article>
+                <article class="stat-card warning">
                     <div class="stat-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="2"/>
-                            <line x1="12" y1="9" x2="12" y2="13" stroke-width="2" stroke-linecap="round"/>
-                            <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke-width="1.8"/>
+                            <line x1="12" y1="9" x2="12" y2="13" stroke-width="1.8" stroke-linecap="round"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="2.5" stroke-linecap="round"/>
                         </svg>
                     </div>
                     <div class="stat-content">
-                        <span class="stat-label">Stock Bajo</span>
+                        <span class="stat-label">Stock bajo</span>
                         <span class="stat-value" id="stat-stock-bajo">0</span>
-                        <span class="stat-change negative" id="stat-stock-bajo-text">Requieren reposición</span>
+                        <span class="stat-change" id="stat-stock-bajo-text">Requieren revisión</span>
                     </div>
-                    <div class="stat-chart">
-                        <svg viewBox="0 0 100 40" preserveAspectRatio="none">
-                            <path d="M0,25 L20,20 L40,22 L60,15 L80,18 L100,10" fill="none" stroke="currentColor" stroke-width="2"/>
-                        </svg>
-                    </div>
-                </div>
-                
-                <div class="stat-card info">
+                </article>
+                <article class="stat-card info">
                     <div class="stat-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke-width="2"/>
-                            <circle cx="9" cy="7" r="4" stroke-width="2"/>
-                            <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/>
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke-width="1.8"/>
+                            <circle cx="9" cy="7" r="4" stroke-width="1.8"/>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke-width="1.8"/>
                         </svg>
                     </div>
                     <div class="stat-content">
@@ -436,84 +576,40 @@
                         <span class="stat-value" id="stat-asignaciones">0</span>
                         <span class="stat-change" id="stat-asignaciones-change">Cargando...</span>
                     </div>
-                    <div class="stat-chart">
-                        <svg viewBox="0 0 100 40" preserveAspectRatio="none">
-                            <path d="M0,20 L20,25 L40,18 L60,22 L80,15 L100,20" fill="none" stroke="currentColor" stroke-width="2"/>
-                        </svg>
-                    </div>
-                </div>
+                </article>
             </div>
-            
-            <!-- Main Grid -->
-            <div class="content-grid">
-                <!-- Recent Activity -->
-                <div class="card recent-activity">
+
+            <!-- Main grid -->
+            <div class="dashboard-grid">
+
+                <!-- Gráfica -->
+                <article class="card chart-card dashboard-card">
                     <div class="card-header">
-                        <h3 class="card-title">Actividad Reciente</h3>
-                        <button class="btn-text">Ver todas</button>
-                    </div>
-                    <div class="activity-list" id="activityList">
-                        <div class="activity-item activity-loading">
-                            <div class="activity-content">
-                                <span>Cargando actividad reciente...</span>
-                            </div>
+                        <div>
+                            <span class="section-kicker">Inventario</span>
+                            <h3 class="card-title">Distribución de activos</h3>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Inventory Chart -->
-                <div class="card chart-card">
-                    <div class="card-header">
-                        <h3 class="card-title">Distribución de Activos</h3>
-                        <select class="select-field">
-                            <option>Último mes</option>
-                            <option>Último trimestre</option>
-                            <option>Último año</option>
+                        <select class="select-field" id="distributionMode">
+                            <option value="categoria">Por categoría</option>
+                            <option value="estado">Por estado</option>
+                            <option value="ubicacion">Por ubicación</option>
                         </select>
                     </div>
                     <div class="chart-container">
                         <canvas id="distributionChart"></canvas>
                     </div>
                     <div class="chart-legend" id="distributionLegend"></div>
-                </div>
-            </div>
-            
-            <!-- Quick Actions & Alerts -->
-            <div class="bottom-grid">
-                <div class="card quick-actions">
-                    <h3 class="card-title">Acciones Rápidas</h3>
-                    <div class="actions-grid">
-                        <button class="action-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M12 5v14M5 12h14" stroke-width="2"/>
-                            </svg>
-                            <span>Registrar Activo</span>
-                        </button>
-                        <button class="action-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
-                            </svg>
-                            <span>Añadir Consumible</span>
-                        </button>
-                        <button class="action-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <circle cx="9" cy="7" r="4" stroke-width="2"/>
-                                <path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2" stroke-width="2"/>
-                            </svg>
-                            <span>Nueva Asignación</span>
-                        </button>
-                        <button class="action-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/>
-                                <polyline points="14 2 14 8 20 8" stroke-width="2"/>
-                            </svg>
-                            <span>Generar Reporte</span>
-                        </button>
+                </article>
+
+                <!-- Alertas -->
+                <article class="card dashboard-card alerts-card">
+                    <div class="card-header">
+                        <div>
+                            <span class="section-kicker">Riesgos</span>
+                            <h3 class="card-title">Alertas importantes</h3>
+                        </div>
+                        <button class="btn-text" id="btnViewAlerts" type="button">Revisar</button>
                     </div>
-                </div>
-                
-                <div class="card alerts-card">
-                    <h3 class="card-title">Alertas Importantes</h3>
                     <div class="alerts-list" id="alertsList">
                         <div class="alert-item info">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -523,14 +619,71 @@
                             <span>Cargando alertas importantes...</span>
                         </div>
                     </div>
-                </div>
-            </div>
-        </main>
-    </div>
+                </article>
 
-    <script src="../js/app.js"></script>
-    <script src="../js/theme-toggle.js"></script>
-    <script src="../js/control-nivel.js"></script>
-    
+                <!-- Actividad reciente -->
+                <article class="card dashboard-card recent-activity">
+                    <div class="card-header">
+                        <div>
+                            <span class="section-kicker">Bitácora</span>
+                            <h3 class="card-title">Actividad reciente</h3>
+                        </div>
+                        <button class="btn-text" id="btnViewAllActivity" type="button">Ver historial</button>
+                    </div>
+                    <div class="activity-list" id="activityList">
+                        <div class="activity-item activity-loading">
+                            <div class="activity-content">
+                                <span>Cargando actividad reciente...</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Acciones rápidas -->
+                <article class="card dashboard-card quick-actions">
+                    <div class="card-header">
+                        <div>
+                            <span class="section-kicker">Operación</span>
+                            <h3 class="card-title">Acciones rápidas</h3>
+                        </div>
+                    </div>
+                    <div class="actions-grid">
+                        <button class="action-btn" data-href="ModuloActivo.html">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M12 5v14M5 12h14" stroke-width="2"/>
+                            </svg>
+                            <span>Registrar activo</span>
+                        </button>
+                        <button class="action-btn" data-href="consumibles.html">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="2"/>
+                            </svg>
+                            <span>Consumibles</span>
+                        </button>
+                        <button class="action-btn" data-href="ModuloActivo.html#resguardos">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="9" cy="7" r="4" stroke-width="2"/>
+                                <path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2" stroke-width="2"/>
+                            </svg>
+                            <span>Asignaciones</span>
+                        </button>
+                        <button class="action-btn" data-href="reportes.html">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="2"/>
+                                <polyline points="14 2 14 8 20 8" stroke-width="2"/>
+                            </svg>
+                            <span>Reportes</span>
+                        </button>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/theme-toggle.js"></script>
+<script src="../js/control-nivel.js"></script>
 </body>
 </html>
