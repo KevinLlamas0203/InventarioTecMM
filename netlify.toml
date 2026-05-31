@@ -2,6 +2,6 @@
   publish = "Proyecto/Front-end"
 
 [[redirects]]
-  from = "/*"
+  from = "/"
   to = "/login.html"
-  status = 200
+  status = 302
